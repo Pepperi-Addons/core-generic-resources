@@ -10,7 +10,9 @@
 		"client:singlespa": "cd client-side && ng serve --port 4400 --configuration SingleSpa && cd..",
 		"client:standalone": "cd client-side && ng serve --port 4400 --configuration Standalone && cd..",
 		"publish-addon": "npm run build && publish-addon",
-		"cpi-publish-addon": "cd ./cpi-side && npm run build:debug && cd .. && cpi-node-debug"
+		"cpi-publish-addon": "cd ./cpi-side && npm run build:debug && cd .. && cpi-node-debug",
+		"lint": "eslint --fix  ./server-side/*.ts"
+
 	},
 	"keywords": [],
 	"author": "",
