@@ -9,8 +9,8 @@ The error Message is importent! it will be written in the audit log and help the
 */
 
 import { Client, Request } from '@pepperi-addons/debug-server'
-import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { CORE_BASE_URL, RESOURCE_TYPES } from './constants';
+import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
+import { CORE_BASE_URL, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from './constants';
 import { Helper } from './helper';
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -20,7 +20,8 @@ export async function install(client: Client, request: Request): Promise<any>
     const papiClient = Helper.getPapiClient(client);
     try
     {
-       res['resultObject'] =  await createCoreSchemas(papiClient);
+       res['resultObject'] = await createCoreSchemas(papiClient);
+       await createDimxRelations(client, papiClient);
     }
     catch(error)
     {
@@ -33,7 +34,20 @@ export async function install(client: Client, request: Request): Promise<any>
 
 export async function uninstall(client: Client, request: Request): Promise<any> 
 {
-	return {success:true,resultObject:{}}
+	const res = { success: true };
+	
+    const papiClient = Helper.getPapiClient(client);
+    try
+    {
+       await removeDimxRelations(client, papiClient);
+    }
+    catch(error)
+    {
+        res.success = false;
+        res['errorMessage'] = error;
+    }
+
+	return res;
 }
 
 export async function upgrade(client: Client, request: Request): Promise<any> 
@@ -49,10 +63,58 @@ export async function downgrade(client: Client, request: Request): Promise<any>
 async function createCoreSchemas(papiClient: PapiClient)
 {
     const resObject = { schemas: Array<any>() }
+    
     for (const resource of RESOURCE_TYPES)
     {
         resObject.schemas.push( await papiClient.post(`${CORE_BASE_URL}/create?resource_name=${resource}`));
     }
 
     return resObject;
+}
+
+async function createDimxRelations(client: Client, papiClient: PapiClient)
+{
+    const isHidden = false;
+    await postDimxRelations(client, isHidden, papiClient);
+}
+
+async function removeDimxRelations(client: Client, papiClient: PapiClient)
+{
+    const isHidden = true;
+    await postDimxRelations(client, isHidden, papiClient);
+}
+
+async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient) {
+    for (const resource of RESOURCE_TYPES) {
+        const importRelation: Relation = {
+            RelationName: "DataImportResource",
+            AddonUUID: client.AddonUUID,
+            Name: resource,
+            Type: 'AddonAPI',
+            Source: 'papi',
+            Hidden: isHidden
+        };
+
+        // Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
+        if (resource === 'users') {
+            importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
+        }
+
+        const exportRelation: Relation = {
+            RelationName: "DataExportResource",
+            AddonUUID: client.AddonUUID,
+            Name: resource,
+            Type: 'AddonAPI',
+            Source: 'papi',
+            Hidden: isHidden
+        };
+
+        await upsertRelation(papiClient, importRelation);
+        await upsertRelation(papiClient, exportRelation);
+    }
+}
+
+async function upsertRelation(papiClient: PapiClient, relation: Relation) 
+{
+	return papiClient.post('/addons/data/relations', relation);
 }
