@@ -14,7 +14,9 @@
   "PublishConfig": {
     "ClientStack": "ng10",
     "Editors": [],
-    "Dependencies": {},
+    "Dependencies": {
+      "adal": "1.0.316"
+    },
     "CPISide": []
   }
 }
