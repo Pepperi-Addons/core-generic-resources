@@ -10,7 +10,7 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
-import { CORE_BASE_URL, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from './constants';
+import { NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from './constants';
 import { Helper } from './helper';
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -20,7 +20,7 @@ export async function install(client: Client, request: Request): Promise<any>
     const papiClient = Helper.getPapiClient(client);
     try
     {
-       res['resultObject'] = await createCoreSchemas(papiClient);
+       res['resultObject'] = await createCoreSchemas(papiClient, client);
        await createDimxRelations(client, papiClient);
     }
     catch(error)
@@ -60,13 +60,23 @@ export async function downgrade(client: Client, request: Request): Promise<any>
 	return {success:true,resultObject:{}}
 }
 
-async function createCoreSchemas(papiClient: PapiClient)
+async function createCoreSchemas(papiClient: PapiClient, client: Client)
 {
     const resObject = { schemas: Array<any>() }
-    
+
     for (const resource of RESOURCE_TYPES)
     {
-        resObject.schemas.push( await papiClient.post(`${CORE_BASE_URL}/create?resource_name=${resource}`));
+        const schemaBody = {
+            Name: resource,
+            Type: 'papi',
+        };
+        try{
+            resObject.schemas.push(await papiClient.post(`/addons/papi/schemes/${client.AddonUUID}/create`, schemaBody));
+        }
+        catch(error)
+        {
+            throw new Error(`Failed to create schema ${resource}: ${error}`);
+        }
     }
 
     return resObject;
