@@ -71,7 +71,7 @@ async function createCoreSchemas(papiClient: PapiClient, client: Client)
             Type: 'papi',
         };
         try{
-            resObject.schemas.push(await papiClient.post(`/addons/papi/schemes/${client.AddonUUID}/create`, schemaBody));
+            resObject.schemas.push(await papiClient.post(`/addons/data/schemes`, schemaBody));
         }
         catch(error)
         {
