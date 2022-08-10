@@ -89,6 +89,11 @@ async function createDimxRelations(client: Client, papiClient: PapiClient)
 	await postDimxRelations(client, isHidden, papiClient);
 }
 
+export async function test(client: Client, request: Request): Promise<any>
+{
+	return await removeDimxRelations(client, Helper.getPapiClient(client));
+}
+
 async function removeDimxRelations(client: Client, papiClient: PapiClient)
 {
 	const isHidden = true;
@@ -102,6 +107,7 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 		const importRelation: Relation = {
 			RelationName: "DataImportResource",
 			AddonUUID: client.AddonUUID,
+			AddonRelativeURL: '',
 			Name: resource,
 			Type: 'AddonAPI',
 			Source: 'papi',
@@ -117,6 +123,7 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 		const exportRelation: Relation = {
 			RelationName: "DataExportResource",
 			AddonUUID: client.AddonUUID,
+			AddonRelativeURL: '',
 			Name: resource,
 			Type: 'AddonAPI',
 			Source: 'papi',
