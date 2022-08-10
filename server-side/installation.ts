@@ -89,11 +89,6 @@ async function createDimxRelations(client: Client, papiClient: PapiClient)
 	await postDimxRelations(client, isHidden, papiClient);
 }
 
-export async function test(client: Client, request: Request): Promise<any>
-{
-	return await removeDimxRelations(client, Helper.getPapiClient(client));
-}
-
 async function removeDimxRelations(client: Client, papiClient: PapiClient)
 {
 	const isHidden = true;
