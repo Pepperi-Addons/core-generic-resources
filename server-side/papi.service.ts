@@ -19,11 +19,11 @@ export class PapiService
 		}
 	}
 
-	async getResources(resourceName: string, query: string)
+	async getResources(resourceName: string, query: string, whereClause = '')
 	{
 		try
 		{
-			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}${query ? '&' + query : ''}`);
+			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}${query ? '&' + query : ''}${whereClause ? '&' + whereClause : ''}`);
 		}
 		catch(error)
 		{
@@ -31,11 +31,11 @@ export class PapiService
 		}
 	}
 
-	async getResourceByKey(resourceName: string, key: string): Promise<any> 
+	async getResourceByKey(resourceName: string, key: string, whereClause = ''): Promise<any> 
 	{
 		try
 		{
-			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}&key=${key}`);
+			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}&key=${key}${whereClause ? '&' + whereClause : ''}`);
 		}
 		catch(error)
 		{
@@ -43,11 +43,11 @@ export class PapiService
 		}
 	}
 
-	async getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string)
+	async getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause = '')
 	{
 		try
 		{
-			return await this.papiClient.get(`${CORE_BASE_URL}/get_by_unique_field?resource_name=${resourceName}&field_id=${uniqueFieldId}&value=${value}`);
+			return await this.papiClient.get(`${CORE_BASE_URL}/get_by_unique_field?resource_name=${resourceName}&field_id=${uniqueFieldId}&value=${value}${whereClause ? '&' + whereClause : ''}`);
 		}
 		catch(error)
 		{
@@ -65,6 +65,11 @@ export class PapiService
 		{
 			throw new ErrorWithStatus(error);
 		}
+	}
+
+	async getAccountTypeDefinitionID(): Promise<any> 
+	{
+		return await this.papiClient.get(`/types?where=Type=35 and Name like 'Customer'`);
 	}
 }
 

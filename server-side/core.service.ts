@@ -2,37 +2,47 @@ import { Request } from '@pepperi-addons/debug-server';
 import { Helper } from './helper';
 import PapiService from './papi.service';
 
-class CoreService 
+abstract class BaseCoreService 
 {
     
-	constructor(private resource: string, private request: Request, private papiService: PapiService)
+	constructor(protected resource: string, protected request: Request, protected papiService: PapiService)
 	{}
 
-	getResourceByUniqueField()
+	protected abstract validateResourceBeforeReturn(resource: any): void;
+	protected abstract modifyGetResourcesRequest(): Promise<void>;
+	protected abstract modifySearchRequest(): Promise<void>;
+
+	public async getResourceByUniqueField()
 	{
-		return this.papiService.getResourceByUniqueField(this.resource, this.request.query.field_id, this.request.query.value);
+		const res = await this.papiService.getResourceByUniqueField(this.resource, this.request.query.field_id, this.request.query.value, this.request.query.where);
+		await this.validateResourceBeforeReturn(res);
+		return res;
 	}
 
-	createResource()
+	public createResource()
 	{
 		return this.papiService.createResource(this.resource, this.request.body);
 	}
 
-	getResources()
+	public async getResources()
 	{
+		await this.modifyGetResourcesRequest();
 		const queryParams: string = Helper.queryParamsToString(this.request.query);
 		return this.papiService.getResources(this.resource, queryParams);
 	}
 
-	getResourceByKey()
+	public async getResourceByKey()
 	{
-		return this.papiService.getResourceByKey(this.resource, this.request.query.key);
+		const res = await this.papiService.getResourceByKey(this.resource, this.request.query.key, this.request.query.where);
+		await this.validateResourceBeforeReturn(res);
+		return res;
 	}
 
-	search()
+	public async search()
 	{
+		await this.modifySearchRequest();
 		return this.papiService.searchResource(this.resource, this.request.body);
 	} 
 }
 
-export default CoreService;
+export default BaseCoreService;
