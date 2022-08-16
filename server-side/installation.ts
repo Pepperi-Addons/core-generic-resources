@@ -9,57 +9,128 @@ The error Message is importent! it will be written in the audit log and help the
 */
 
 import { Client, Request } from '@pepperi-addons/debug-server'
-import { Relation } from '@pepperi-addons/papi-sdk'
-import MyService from './my.service';
+import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
+import { NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from './constants';
+import { Helper } from './helper';
 
-export async function install(client: Client, request: Request): Promise<any> {
-    // For block template uncomment this.
-    // const res = await createBlockRelation(client, false);
-    // return res;
-    return {success:true,resultObject:{}}
+export async function install(client: Client, request: Request): Promise<any> 
+{
+	const res = { success: true };
+	
+	const papiClient = Helper.getPapiClient(client);
+	try
+	{
+		res['resultObject'] = await createCoreSchemas(papiClient, client);
+		await createDimxRelations(client, papiClient);
+	}
+	catch(error)
+	{
+		res.success = false;
+		res['errorMessage'] = error;
+	}
+
+	return res;
 }
 
-export async function uninstall(client: Client, request: Request): Promise<any> {
-    return {success:true,resultObject:{}}
+export async function uninstall(client: Client, request: Request): Promise<any> 
+{
+	const res = { success: true };
+	
+	const papiClient = Helper.getPapiClient(client);
+	try
+	{
+		await removeDimxRelations(client, papiClient);
+	}
+	catch(error)
+	{
+		res.success = false;
+		res['errorMessage'] = error;
+	}
+
+	return res;
 }
 
-export async function upgrade(client: Client, request: Request): Promise<any> {
-    return {success:true,resultObject:{}}
+export async function upgrade(client: Client, request: Request): Promise<any> 
+{
+	return {success:true,resultObject:{}}
 }
 
-export async function downgrade(client: Client, request: Request): Promise<any> {
-    return {success:true,resultObject:{}}
+export async function downgrade(client: Client, request: Request): Promise<any> 
+{
+	return {success:true,resultObject:{}}
 }
 
-async function createBlockRelation(client: Client, isPageBlock: boolean): Promise<any> {
-    try {
-        // TODO: change to block name (this is the unique relation name and the description that will be on the block).
-        const blockName = 'BLOCK_NAME_TO_CHANGE';
+async function createCoreSchemas(papiClient: PapiClient, client: Client)
+{
+	const resObject = { schemas: Array<any>() }
 
-        const filename = `file_${client.AddonUUID.replace(/-/g, '_').toLowerCase()}`;
+	for (const resource of RESOURCE_TYPES)
+	{
+		const schemaBody = {
+			Name: resource,
+			Type: 'papi',
+		};
+		try
+		{
+			resObject.schemas.push(await papiClient.post(`/addons/data/schemes`, schemaBody));
+		}
+		catch(error)
+		{
+			throw new Error(`Failed to create schema ${resource}: ${error}`);
+		}
+	}
 
-        const pageComponentRelation: Relation = {
-            RelationName: isPageBlock ? 'PageBlock' : 'AddonBlock',
-            Name: blockName,
-            Description: `${blockName} block`,
-            Type: "NgComponent",
-            SubType: "NG11",
-            AddonUUID: client.AddonUUID,
-            AddonRelativeURL: filename,
-            ComponentName: `BlockComponent`, // This is should be the block component name (from the client-side)
-            ModuleName: `BlockModule`, // This is should be the block module name (from the client-side)
-        };
+	return resObject;
+}
 
-        // For Page block we need to declare the editor data.
-        if (isPageBlock) {
-            pageComponentRelation['EditorComponentName'] = `BlockEditorComponent`, // This is should be the block editor component name (from the client-side)
-            pageComponentRelation['EditorModuleName'] = `BlockEditorModule` // This is should be the block editor module name (from the client-side)}
-        }
+async function createDimxRelations(client: Client, papiClient: PapiClient)
+{
+	const isHidden = false;
+	await postDimxRelations(client, isHidden, papiClient);
+}
 
-        const service = new MyService(client);
-        const result = await service.upsertRelation(pageComponentRelation);
-        return { success:true, resultObject: result };
-    } catch(err) {
-        return { success: false, resultObject: err , errorMessage: `Error in upsert relation. error - ${err}`};
-    }
+async function removeDimxRelations(client: Client, papiClient: PapiClient)
+{
+	const isHidden = true;
+	await postDimxRelations(client, isHidden, papiClient);
+}
+
+async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient) 
+{
+	for (const resource of RESOURCE_TYPES) 
+	{
+		const importRelation: Relation = {
+			RelationName: "DataImportResource",
+			AddonUUID: client.AddonUUID,
+			AddonRelativeURL: '',
+			Name: resource,
+			Type: 'AddonAPI',
+			Source: 'papi',
+			Hidden: isHidden
+		};
+
+		// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
+		if (resource === 'users') 
+		{
+			importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
+		}
+
+		const exportRelation: Relation = {
+			RelationName: "DataExportResource",
+			AddonUUID: client.AddonUUID,
+			AddonRelativeURL: '',
+			Name: resource,
+			Type: 'AddonAPI',
+			Source: 'papi',
+			Hidden: isHidden
+		};
+
+		await upsertRelation(papiClient, importRelation);
+		await upsertRelation(papiClient, exportRelation);
+	}
+}
+
+async function upsertRelation(papiClient: PapiClient, relation: Relation) 
+{
+	return papiClient.post('/addons/data/relations', relation);
 }
