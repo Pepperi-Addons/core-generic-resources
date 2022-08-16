@@ -12,7 +12,6 @@
 		"publish-addon": "npm run build && publish-addon",
 		"cpi-publish-addon": "cd ./cpi-side && npm run build:debug && cd .. && cpi-node-debug",
 		"lint": "eslint --fix  ./server-side/*.ts"
-
 	},
 	"keywords": [],
 	"author": "",
