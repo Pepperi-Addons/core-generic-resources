@@ -21,7 +21,10 @@ export async function install(client: Client, request: Request): Promise<any>
 	try
 	{
 		res['resultObject'] = await createCoreSchemas(papiClient, client);
-		await createDimxRelations(client, papiClient);
+		// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
+		// to implement https://pepperi.atlassian.net/browse/DI-21113
+		// It was decided that for the time being DIMX won't be supported.
+		// await createDimxRelations(client, papiClient);
 	}
 	catch(error)
 	{
@@ -35,17 +38,21 @@ export async function install(client: Client, request: Request): Promise<any>
 export async function uninstall(client: Client, request: Request): Promise<any> 
 {
 	const res = { success: true };
+
+	// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
+	// to implement https://pepperi.atlassian.net/browse/DI-21113
+	// It was decided that for the time being DIMX won't be supported.
 	
-	const papiClient = Helper.getPapiClient(client);
-	try
-	{
-		await removeDimxRelations(client, papiClient);
-	}
-	catch(error)
-	{
-		res.success = false;
-		res['errorMessage'] = error;
-	}
+	// const papiClient = Helper.getPapiClient(client);
+	// try
+	// {
+	// 	await removeDimxRelations(client, papiClient);
+	// }
+	// catch(error)
+	// {
+	// 	res.success = false;
+	// 	res['errorMessage'] = error;
+	// }
 
 	return res;
 }
