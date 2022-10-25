@@ -28,8 +28,9 @@ export async function install(client: Client, request: Request): Promise<any>
 	}
 	catch(error)
 	{
+		
 		res.success = false;
-		res['errorMessage'] = error;
+		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 	}
 
 	return res;
