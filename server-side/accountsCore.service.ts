@@ -25,10 +25,10 @@ class AccountsCoreService extends BaseCoreService
 
 	protected async modifySearchRequest(): Promise<void>
 	{
-		await this.setWhereDefintionIDClauseOnBody();
+		await this.setWhereDefinitionIDClauseOnBody();
 	}
 
-	private async setWhereDefintionIDClauseOnBody() 
+	private async setWhereDefinitionIDClauseOnBody() 
 	{
 		const typeDefinitionID = await this.getTypeDefinitionID();
 		this.request.body.Where = `TypeDefinitionID=${typeDefinitionID}${this.request.body.Where ? ' AND (' + this.request.body.Where + ')' : ''}`;
@@ -49,7 +49,7 @@ class AccountsCoreService extends BaseCoreService
 		}
 		catch(error)
 		{
-			const errorMessage = `Failed to get account type definition ID. Error: ${error}`;
+			const errorMessage = `Failed to get account type definition ID. Error: ${error instanceof Error ? error.message : 'Unknown error occurred.'}`;
 			console.error(errorMessage)
 			throw new Error(errorMessage);
 		}
