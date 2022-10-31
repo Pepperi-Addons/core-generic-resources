@@ -18,6 +18,11 @@ export async function get_users_by_key(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "users");
 }
+
+export async function get_account_users_by_key(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_users");
+}
 // #endregion
 
 // #region GET/POST
@@ -36,6 +41,11 @@ export async function users(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "users");
 }
+
+export async function account_users(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_users");
+}
 // #endregion
 
 // #region get by unique field
@@ -52,6 +62,11 @@ export async function get_accounts_by_unique_field(client: Client, request: Requ
 export async function get_users_by_unique_field(client: Client, request: Request) 
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "users");
+}
+
+export async function get_account_users_by_unique_field(client: Client, request: Request) 
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "account_users");
 }
 
 async function getByUniqueFieldFunctionAdapter(client: Client, request: Request, resourceName: string)
@@ -74,6 +89,11 @@ export async function accounts_search(client: Client, request: Request)
 export async function users_search(client: Client, request: Request) 
 {
 	return await searchFunctionAdapter(client, request, "users");
+}
+
+export async function account_users_search(client: Client, request: Request) 
+{
+	return await searchFunctionAdapter(client, request, "account_users");
 }
 
 async function searchFunctionAdapter(client: Client, request: Request, resourceName: string)
