@@ -16,9 +16,9 @@ import { Helper } from './helper';
 export async function install(client: Client, request: Request): Promise<any> 
 {
 	const res = { success: true };
-	
+
 	const papiClient = Helper.getPapiClient(client);
-	try
+	try 
 	{
 		res['resultObject'] = await createCoreSchemas(papiClient, client);
 		// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
@@ -26,9 +26,9 @@ export async function install(client: Client, request: Request): Promise<any>
 		// It was decided that for the time being DIMX won't be supported.
 		// await createDimxRelations(client, papiClient);
 	}
-	catch(error)
+	catch (error) 
 	{
-		
+
 		res.success = false;
 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 	}
@@ -43,7 +43,7 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 	// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
 	// to implement https://pepperi.atlassian.net/browse/DI-21113
 	// It was decided that for the time being DIMX won't be supported.
-	
+
 	// const papiClient = Helper.getPapiClient(client);
 	// try
 	// {
@@ -60,34 +60,34 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 
 export async function upgrade(client: Client, request: Request): Promise<any> 
 {
-	return {success:true,resultObject:{}}
+	return { success: true, resultObject: {} }
 }
 
 export async function downgrade(client: Client, request: Request): Promise<any> 
 {
-	return {success:true,resultObject:{}}
+	return { success: true, resultObject: {} }
 }
 
-async function createCoreSchemas(papiClient: PapiClient, client: Client)
+async function createCoreSchemas(papiClient: PapiClient, client: Client) 
 {
 	const resObject = { schemas: Array<any>() }
 
-	for (const resource of RESOURCE_TYPES)
+	for (const resource of RESOURCE_TYPES) 
 	{
 		let schemaBody: any = {
 			Name: resource,
 			Type: 'papi',
 		};
 
-		if(resource === 'account_users')
+		if (resource === 'account_users') 
 		{
 			schemaBody = addAccountUsersSpecificFields(schemaBody);
 		}
-		try
+		try 
 		{
 			resObject.schemas.push(await papiClient.post(`/addons/data/schemes`, schemaBody));
 		}
-		catch(error)
+		catch (error) 
 		{
 			throw new Error(`Failed to create schema ${resource}: ${error}`);
 		}
@@ -96,13 +96,13 @@ async function createCoreSchemas(papiClient: PapiClient, client: Client)
 	return resObject;
 }
 
-async function createDimxRelations(client: Client, papiClient: PapiClient)
+async function createDimxRelations(client: Client, papiClient: PapiClient) 
 {
 	const isHidden = false;
 	await postDimxRelations(client, isHidden, papiClient);
 }
 
-async function removeDimxRelations(client: Client, papiClient: PapiClient)
+async function removeDimxRelations(client: Client, papiClient: PapiClient) 
 {
 	const isHidden = true;
 	await postDimxRelations(client, isHidden, papiClient);
@@ -148,70 +148,71 @@ async function upsertRelation(papiClient: PapiClient, relation: Relation)
 	return papiClient.post('/addons/data/relations', relation);
 }
 
-function addAccountUsersSpecificFields(schemaBody: any): any {
-	const alteredSchema = {...schemaBody};
-	alteredSchema.Fields = 
+function addAccountUsersSpecificFields(schemaBody: any): any 
+{
+	const alteredSchema = { ...schemaBody };
+	alteredSchema.Fields =
 	{
 		Account:
-  {
-    Type: "Object",
-    "Fields":
-    {
-      Data:
-      {
-        Type: "Object",
-        "Fields":
-        {
-          InternalID:
-          {
-            Type: "Integer"
-          },
-          UUID:
-          {
-            Type: "String"
-          },
-          ExternalID:
-          {
-            Type: "String"
-          }
-        }
-      },
-      URI:
-      {
-        Type: "String"
-      }
-    }
-  },
-  User:
-  {
-    Type: "Object",
-    "Fields":
-    {
-      Data:
-      {
-        Type: "Object",
-        "Fields":
-        {
-          InternalID:
-          {
-            Type: "Integer"
-          },
-          UUID:
-          {
-            Type: "String"
-          },
-          ExternalID:
-          {
-            Type: "String"
-          }
-        }
-      },
-      URI:
-      {
-        Type: "String"
-      }
-    }
-  }
+		{
+			Type: "Object",
+			"Fields":
+			{
+				Data:
+				{
+					Type: "Object",
+					"Fields":
+					{
+						InternalID:
+						{
+							Type: "Integer"
+						},
+						UUID:
+						{
+							Type: "String"
+						},
+						ExternalID:
+						{
+							Type: "String"
+						}
+					}
+				},
+				URI:
+				{
+					Type: "String"
+				}
+			}
+		},
+		User:
+		{
+			Type: "Object",
+			"Fields":
+			{
+				Data:
+				{
+					Type: "Object",
+					"Fields":
+					{
+						InternalID:
+						{
+							Type: "Integer"
+						},
+						UUID:
+						{
+							Type: "String"
+						},
+						ExternalID:
+						{
+							Type: "String"
+						}
+					}
+				},
+				URI:
+				{
+					Type: "String"
+				}
+			}
+		}
 	};
 
 	return alteredSchema;
