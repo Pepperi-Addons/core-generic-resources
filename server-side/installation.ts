@@ -74,10 +74,15 @@ async function createCoreSchemas(papiClient: PapiClient, client: Client)
 
 	for (const resource of RESOURCE_TYPES)
 	{
-		const schemaBody = {
+		let schemaBody: any = {
 			Name: resource,
 			Type: 'papi',
 		};
+
+		if(resource === 'account_users')
+		{
+			schemaBody = addAccountUsersSpecificFields(schemaBody);
+		}
 		try
 		{
 			resObject.schemas.push(await papiClient.post(`/addons/data/schemes`, schemaBody));
@@ -141,4 +146,73 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 async function upsertRelation(papiClient: PapiClient, relation: Relation) 
 {
 	return papiClient.post('/addons/data/relations', relation);
+}
+
+function addAccountUsersSpecificFields(schemaBody: any): any {
+	const alteredSchema = {...schemaBody};
+	alteredSchema.Fields = 
+	{
+		Account:
+  {
+    Type: "Object",
+    "Fields":
+    {
+      Data:
+      {
+        Type: "Object",
+        "Fields":
+        {
+          InternalID:
+          {
+            Type: "Integer"
+          },
+          UUID:
+          {
+            Type: "String"
+          },
+          ExternalID:
+          {
+            Type: "String"
+          }
+        }
+      },
+      URI:
+      {
+        Type: "String"
+      }
+    }
+  },
+  User:
+  {
+    Type: "Object",
+    "Fields":
+    {
+      Data:
+      {
+        Type: "Object",
+        "Fields":
+        {
+          InternalID:
+          {
+            Type: "Integer"
+          },
+          UUID:
+          {
+            Type: "String"
+          },
+          ExternalID:
+          {
+            Type: "String"
+          }
+        }
+      },
+      URI:
+      {
+        Type: "String"
+      }
+    }
+  }
+	};
+
+	return alteredSchema;
 }
