@@ -12,6 +12,7 @@ import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import { NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from './constants';
 import { Helper } from './helper';
+import semver from 'semver';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -20,7 +21,7 @@ export async function install(client: Client, request: Request): Promise<any>
 	const papiClient = Helper.getPapiClient(client);
 	try 
 	{
-		res['resultObject'] = await createCoreSchemas(papiClient, client);
+		res['resultObject'] = await createCoreSchemas(papiClient);
 		// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
 		// to implement https://pepperi.atlassian.net/browse/DI-21113
 		// It was decided that for the time being DIMX won't be supported.
@@ -60,7 +61,21 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 
 export async function upgrade(client: Client, request: Request): Promise<any> 
 {
-	return { success: true, resultObject: {} }
+	const res = { success: true };
+
+	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.0') < 0) 
+	{
+		try
+		{
+			res['resultObject'] = await createMissingSchemas(Helper.getPapiClient(client), client);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+		}
+	}
+	return res;
 }
 
 export async function downgrade(client: Client, request: Request): Promise<any> 
@@ -68,11 +83,11 @@ export async function downgrade(client: Client, request: Request): Promise<any>
 	return { success: true, resultObject: {} }
 }
 
-async function createCoreSchemas(papiClient: PapiClient, client: Client) 
+async function createCoreSchemas(papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
 {
 	const resObject = { schemas: Array<any>() }
 
-	for (const resource of RESOURCE_TYPES) 
+	for (const resource of resourcesList) 
 	{
 		let schemaBody: any = {
 			Name: resource,
@@ -216,4 +231,20 @@ function addAccountUsersSpecificFields(schemaBody: any): any
 	};
 
 	return alteredSchema;
+}
+
+async function createMissingSchemas(papiClient: PapiClient, client: Client)
+{
+	const missingSchemas: Array<string> = await getMissingSchemas(papiClient);
+
+	return await createCoreSchemas(papiClient, missingSchemas);
+}
+
+async function getMissingSchemas(papiClient: PapiClient)
+{
+	const existingSchemas = (await papiClient.addons.data.schemes.get({fields: ['Name']})).map(obj => obj.Name);
+
+	const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
+
+	return missingSchemas;
 }
