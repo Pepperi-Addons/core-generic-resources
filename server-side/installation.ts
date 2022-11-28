@@ -10,9 +10,8 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
-import { NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from './constants';
-import { Helper } from './helper';
 import semver from 'semver';
+import { Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {

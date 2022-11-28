@@ -1,11 +1,11 @@
 import { Request } from '@pepperi-addons/debug-server';
 import { Helper } from './helper';
-import PapiService from './papi.service';
+import { IApiService } from './iApi.service';
 
 abstract class BaseCoreService 
 {
     
-	constructor(protected resource: string, protected request: Request, protected papiService: PapiService)
+	constructor(protected resource: string, protected request: Request, protected papiService: IApiService)
 	{}
 
 	protected abstract validateResourceBeforeReturn(resource: any): void;
@@ -28,7 +28,7 @@ abstract class BaseCoreService
 	{
 		await this.modifyGetResourcesRequest();
 		const queryParams: string = Helper.queryParamsToString(this.request.query);
-		return this.papiService.getResources(this.resource, queryParams);
+		return this.papiService.getResources(this.resource, queryParams, undefined);
 	}
 
 	public async getResourceByKey()
