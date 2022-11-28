@@ -63,7 +63,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.4') < 0) 
+	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.5') < 0) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
