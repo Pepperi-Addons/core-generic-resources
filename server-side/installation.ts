@@ -63,7 +63,23 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.0') < 0) 
+	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.4') < 0) 
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// We need to re-upsert all schemas to pass Sync: true.
+			res['resultObject'] = await createCoreSchemas(papiClient);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+		}
+	}
+
+	if (res.success && request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.0') < 0) 
 	{
 		try
 		{
@@ -75,6 +91,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 		}
 	}
+
 	return res;
 }
 
@@ -92,6 +109,10 @@ async function createCoreSchemas(papiClient: PapiClient, resourcesList: string[]
 		let schemaBody: any = {
 			Name: resource,
 			Type: 'papi',
+			SyncData:
+			{
+				Sync: true,
+			},
 		};
 
 		if (resource === 'account_users') 
