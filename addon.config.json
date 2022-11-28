@@ -18,6 +18,8 @@
       "adal": "1.0.316",
       "core": "0.5.2"
     },
-    "CPISide": []
+    "CPISide": [
+      "addon-cpi.ts"
+    ]
   }
 }
