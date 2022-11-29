@@ -1,8 +1,10 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { CORE_BASE_URL } from './constants';
-import { ErrorWithStatus } from './errorWithStatus';
 
-export class PapiService 
+import { ErrorWithStatus } from './errorWithStatus';
+import { IApiService, CORE_BASE_URL} from 'core-resources-shared';
+import { PapiClient } from '@pepperi-addons/papi-sdk';
+
+
+export default class PapiService implements IApiService
 {
 	constructor(protected papiClient: PapiClient) 
 	{}
@@ -19,7 +21,7 @@ export class PapiService
 		}
 	}
 
-	async getResources(resourceName: string, query: string, whereClause = '')
+	async getResources(resourceName: string, query: string, whereClause: string | undefined)
 	{
 		try
 		{
@@ -73,4 +75,3 @@ export class PapiService
 	}
 }
 
-export default PapiService;
