@@ -1,5 +1,4 @@
 import { IApiService } from "core-resources-shared";
-import config from '../addon.config.json'
 
 export default abstract class AClientApiService implements IApiService
 {
@@ -9,10 +8,4 @@ export default abstract class AClientApiService implements IApiService
     abstract getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined);
     abstract searchResource(resourceName: string, body: void);
     abstract getAccountTypeDefinitionID();
-    
-    protected async getRequestedFields(resourceName: string) {
-        const schema = await pepperi.addons.data.schemes.uuid(config.AddonUUID).name(resourceName).get();
-        const schemaFields = Object.keys(schema.Fields);
-        return schemaFields;
-    }
 }

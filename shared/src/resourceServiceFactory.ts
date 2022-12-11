@@ -6,14 +6,14 @@ import { IApiService } from "./iApi.service";
 
 export class CoreResourceServiceFactory
 {
-	public static getResourceService(resourceName: string, request: Request, papiService: IApiService): BaseCoreService
+	public static getResourceService(resourceName: string, request: Request, iApiService: IApiService): BaseCoreService
 	{
 		switch(resourceName)
 		{
 		case "accounts":
-			return new AccountsCoreService(resourceName, request, papiService)
+			return new AccountsCoreService(resourceName, request, iApiService)
 		default:
-			return new DefaultCoreResourcesService(resourceName, request, papiService);
+			return new DefaultCoreResourcesService(resourceName, request, iApiService);
 		}
 	}
 }
