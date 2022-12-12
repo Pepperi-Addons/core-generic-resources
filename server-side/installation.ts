@@ -12,6 +12,7 @@ import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import semver from 'semver';
 import { Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
+import PapiService from './papi.service';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -21,10 +22,7 @@ export async function install(client: Client, request: Request): Promise<any>
 	try 
 	{
 		res['resultObject'] = await createCoreSchemas(papiClient);
-		// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
-		// to implement https://pepperi.atlassian.net/browse/DI-21113
-		// It was decided that for the time being DIMX won't be supported.
-		// await createDimxRelations(client, papiClient);
+		await createDimxRelations(client, papiClient);
 	}
 	catch (error) 
 	{
@@ -40,20 +38,16 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	// Since we are waiting for https://pepperi.atlassian.net/browse/DI-21107
-	// to implement https://pepperi.atlassian.net/browse/DI-21113
-	// It was decided that for the time being DIMX won't be supported.
-
-	// const papiClient = Helper.getPapiClient(client);
-	// try
-	// {
-	// 	await removeDimxRelations(client, papiClient);
-	// }
-	// catch(error)
-	// {
-	// 	res.success = false;
-	// 	res['errorMessage'] = error;
-	// }
+	const papiClient = Helper.getPapiClient(client);
+	try
+	{
+		await removeDimxRelations(client, papiClient);
+	}
+	catch(error)
+	{
+		res.success = false;
+		res['errorMessage'] = error;
+	}
 
 	return res;
 }
@@ -61,6 +55,22 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 export async function upgrade(client: Client, request: Request): Promise<any> 
 {
 	const res = { success: true };
+
+	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.8') < 0) 
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			await createDimxRelations(client, papiClient);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
 
 	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.5') < 0) 
 	{
@@ -75,6 +85,8 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	
 			res.success = false;
 			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
 		}
 	}
 
@@ -172,6 +184,16 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 			Source: 'papi',
 			Hidden: isHidden
 		};
+
+		if(resource === 'accounts')
+		{
+			// Get the DefaultDefinitionTypeID
+			const papiService = new PapiService(papiClient);
+			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID()).accountType[0].InternalID;
+
+			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
+			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`}
+		}
 
 		await upsertRelation(papiClient, importRelation);
 		await upsertRelation(papiClient, exportRelation);
