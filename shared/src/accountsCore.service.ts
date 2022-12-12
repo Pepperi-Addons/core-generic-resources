@@ -44,7 +44,7 @@ class AccountsCoreService extends BaseCoreService
 	{
 		try
 		{
-			const accountType = await this.papiService.getAccountTypeDefinitionID();
+			const accountType = await this.iApiService.getAccountTypeDefinitionID();
 			return accountType[0].InternalID;
 		}
 		catch(error)

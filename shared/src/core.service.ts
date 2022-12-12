@@ -5,7 +5,7 @@ import { IApiService } from './iApi.service';
 abstract class BaseCoreService 
 {
     
-	constructor(protected resource: string, protected request: Request, protected papiService: IApiService)
+	constructor(protected resource: string, protected request: Request, protected iApiService: IApiService)
 	{}
 
 	protected abstract validateResourceBeforeReturn(resource: any): void;
@@ -14,26 +14,26 @@ abstract class BaseCoreService
 
 	public async getResourceByUniqueField()
 	{
-		const res = await this.papiService.getResourceByUniqueField(this.resource, this.request.query.field_id, this.request.query.value, this.request.query.where);
+		const res = await this.iApiService.getResourceByUniqueField(this.resource, this.request.query.field_id, this.request.query.value, this.request.query.where);
 		await this.validateResourceBeforeReturn(res);
 		return res;
 	}
 
 	public createResource()
 	{
-		return this.papiService.createResource(this.resource, this.request.body);
+		return this.iApiService.createResource(this.resource, this.request.body);
 	}
 
 	public async getResources()
 	{
 		await this.modifyGetResourcesRequest();
 		const queryParams: string = Helper.queryParamsToString(this.request.query);
-		return this.papiService.getResources(this.resource, queryParams, undefined);
+		return this.iApiService.getResources(this.resource, queryParams, undefined);
 	}
 
 	public async getResourceByKey()
 	{
-		const res = await this.papiService.getResourceByKey(this.resource, this.request.query.key, this.request.query.where);
+		const res = await this.iApiService.getResourceByKey(this.resource, this.request.query.key, this.request.query.where);
 		await this.validateResourceBeforeReturn(res);
 		return res;
 	}
@@ -41,7 +41,7 @@ abstract class BaseCoreService
 	public async search()
 	{
 		await this.modifySearchRequest();
-		return this.papiService.searchResource(this.resource, this.request.body);
+		return this.iApiService.searchResource(this.resource, this.request.body);
 	} 
 }
 
