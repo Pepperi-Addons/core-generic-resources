@@ -7,5 +7,6 @@ export default abstract class AClientApiService implements IApiService
     abstract getResourceByKey(resourceName: string, key: string, whereClause: undefined);
     abstract getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined);
     abstract searchResource(resourceName: string, body: void);
+    abstract isAccountTypeDefinitionFilteringRequired(): boolean
     abstract getAccountTypeDefinitionID();
 }

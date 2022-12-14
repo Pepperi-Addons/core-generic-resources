@@ -10,5 +10,7 @@ export interface IApiService
 
     searchResource(resourceName: string, body: void): {};
     
+    isAccountTypeDefinitionFilteringRequired(): boolean;
+    
     getAccountTypeDefinitionID(): Promise<any>;
 }

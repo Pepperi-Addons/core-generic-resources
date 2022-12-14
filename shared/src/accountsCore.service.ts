@@ -5,6 +5,11 @@ class AccountsCoreService extends BaseCoreService
 
 	protected async validateResourceBeforeReturn(resource: any): Promise<void> 
 	{
+		if(!this.iApiService.isAccountTypeDefinitionFilteringRequired())
+		{
+			return;
+		}
+
 		const typeDefinitionID = await this.getTypeDefinitionID();
 		if(resource.TypeDefinitionID !== typeDefinitionID) 
 		{
@@ -20,11 +25,19 @@ class AccountsCoreService extends BaseCoreService
 
 	protected async modifyGetResourcesRequest(): Promise<void>
 	{
+		if(!this.iApiService.isAccountTypeDefinitionFilteringRequired())
+		{
+			return;
+		}
 		await this.setWhereDefinitionIDClauseOnQuery();
 	}
 
 	protected async modifySearchRequest(): Promise<void>
 	{
+		if(!this.iApiService.isAccountTypeDefinitionFilteringRequired())
+		{
+			return;
+		}
 		await this.setWhereDefinitionIDClauseOnBody();
 	}
 
