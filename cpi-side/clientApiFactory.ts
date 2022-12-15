@@ -1,4 +1,5 @@
 import { IApiService } from "core-resources-shared";
+import AccountsClientApiService from "./accountsClientApi.service";
 import BaseClientApiService from "./baseClientApi.service";
 import CatalogClientApiService from "./catalogsClientApi.service";
 
@@ -11,6 +12,10 @@ export default class ClientApiFactory
 		case 'catalogs':
 		{
 			return new CatalogClientApiService();
+		}
+		case 'accounts':
+		{
+			return new AccountsClientApiService();
 		}
 		default:
 		{
