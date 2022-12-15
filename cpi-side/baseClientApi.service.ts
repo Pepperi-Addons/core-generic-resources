@@ -1,11 +1,10 @@
 import { AddonsApiGetParams, AddonsApiPostParams } from "@pepperi-addons/cpi-node/build/cpi-side/client-api";
 import { IApiService } from "core-resources-shared";
-import AClientApiService from "./aClientApi.service";
 import { CORE_ADDON_UUID } from "./constants";
 import config from '../addon.config.json';
 
 
-export default class BaseClientApiService extends AClientApiService implements IApiService
+export default class BaseClientApiService implements IApiService
 {
 	
 	async createResource(resourceName: string, body: any): Promise<any> 
@@ -26,13 +25,12 @@ export default class BaseClientApiService extends AClientApiService implements I
 	}
 	async getResourceByKey(resourceName: string, key: string, whereClause: undefined): Promise<any> 
 	{
-        const getParams: AddonsApiGetParams = {
+		const getParams: AddonsApiGetParams = {
 			url: `addon-cpi/${resourceName}/key/${key}?addon_uuid=${config.AddonUUID}`
 		};
 		const res = await pepperi.addons.api.uuid(CORE_ADDON_UUID).get(getParams);
 
 		return res;
-
 	}
 
 	async getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined): Promise<any> 
@@ -54,16 +52,5 @@ export default class BaseClientApiService extends AClientApiService implements I
 		const res = await pepperi.addons.api.uuid(CORE_ADDON_UUID).post(postParams);
 
 		return res;
-	}
-
-	isAccountTypeDefinitionFilteringRequired(): boolean {
-		// There's no need to filter in cpi-side
-		return false;
-	}
-
-	async getAccountTypeDefinitionID(): Promise<any> 
-	{
-		// There's no need to filter in cpi-side
-		throw new Error("Method not implemented.");
 	}
 }

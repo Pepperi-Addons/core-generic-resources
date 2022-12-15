@@ -19,7 +19,8 @@
         "@pepperi-addons/papi-sdk": "^1.43.0",
         "@pepperi-addons/pepperi-filters": "^1.0.17",
         "core-resources-shared": "file:../shared",
-        "encoding": "^0.1.13"
+        "encoding": "^0.1.13",
+        "lodash.clonedeep": "^4.5.0"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^15.1.0",

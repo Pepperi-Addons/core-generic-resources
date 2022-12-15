@@ -68,14 +68,4 @@ export default class PapiService implements IApiService
 			throw new ErrorWithStatus(error);
 		}
 	}
-
-	isAccountTypeDefinitionFilteringRequired(): boolean {
-		return true;
-	}
-
-	async getAccountTypeDefinitionID(): Promise<any> 
-	{
-		return await this.papiClient.get(`/types?where=Type=35 and Name like 'Customer'`);
-	}
 }
-
