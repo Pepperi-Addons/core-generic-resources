@@ -12,7 +12,7 @@ import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import semver from 'semver';
 import { Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
-import PapiService from './papi.service';
+import AccountsPapiService from './accountsPapi.service';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -188,7 +188,7 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 		if(resource === 'accounts')
 		{
 			// Get the DefaultDefinitionTypeID
-			const papiService = new PapiService(papiClient);
+			const papiService = new AccountsPapiService(papiClient);
 			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID()).accountType[0].InternalID;
 
 			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports

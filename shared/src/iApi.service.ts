@@ -9,6 +9,4 @@ export interface IApiService
     getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined): {};
 
     searchResource(resourceName: string, body: void): {};
-    
-    getAccountTypeDefinitionID(): Promise<any>;
 }

@@ -1,4 +1,6 @@
 import { IApiService } from "core-resources-shared";
+import AccountsClientApiService from "./accountsClientApi.service";
+import BaseClientApiService from "./baseClientApi.service";
 import CatalogClientApiService from "./catalogsClientApi.service";
 
 export default class ClientApiFactory
@@ -11,9 +13,13 @@ export default class ClientApiFactory
 		{
 			return new CatalogClientApiService();
 		}
+		case 'accounts':
+		{
+			return new AccountsClientApiService();
+		}
 		default:
 		{
-			throw new Error(`Requested resource '${resourceName}' is not supported.`);
+			return new BaseClientApiService();
 		}
 		}
 	}

@@ -1,5 +1,5 @@
 import '@pepperi-addons/cpi-node'
-import { CoreResourceServiceFactory } from 'core-resources-shared';
+import { CoreService } from 'core-resources-shared';
 import ClientApiFactory from './clientApiFactory';
 
 
@@ -11,7 +11,7 @@ export async function load(configuration: any)
 
 router.use('/:resourceName', async (req, res, next) => 
 {
-    try
+	try
 	{
 		validateResourceSupportedInCpiSide(req.params.resourceName);
 	} 
@@ -27,7 +27,7 @@ router.use('/:resourceName', async (req, res, next) =>
 
 function validateResourceSupportedInCpiSide(resourceName: string)
 {
-	const supportedResources = ['catalogs'];
+	const supportedResources = ['catalogs', 'accounts'];
 
 	if(!supportedResources.includes(resourceName))
 	{
@@ -109,6 +109,6 @@ router.get('/:resourceName/unique/:fieldID/:fieldValue', async (req, res, next) 
 function getGenericResourceService(req)
 {
 	const clientApi = ClientApiFactory.getClientApi(req.query.resource_name);
-	const coreResourceService = CoreResourceServiceFactory.getResourceService(req.query?.resource_name, req, clientApi);
+	const coreResourceService = new CoreService(req.query?.resource_name, req, clientApi);
 	return coreResourceService;
 }
