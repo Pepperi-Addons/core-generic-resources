@@ -15,7 +15,10 @@ export class AccountUsersCoreService extends CoreService implements ICoreService
 
 	public async createResource()
 	{
-		const res = await this.iApiService.createResource(this.resource, this.request.body);
+		const papiBody = this.translateAccountAndUserReferenceFieldsToPapi([this.request.body])[0];
+
+		const res = await this.iApiService.createResource(this.resource, papiBody);
+
 		const translatedResult = this.translateAccountAndUserPropertiesToReferenceFields([res])[0];
 		return translatedResult;
 	}
@@ -56,6 +59,34 @@ export class AccountUsersCoreService extends CoreService implements ICoreService
 			if(objectCopy.hasOwnProperty('User'))
 			{
 				objectCopy.User = objectCopy.User.Data.UUID;
+			}
+
+			return objectCopy;
+		})
+	}
+
+	protected translateAccountAndUserReferenceFieldsToPapi(objects: Array<any>): Array<any>
+	{
+		return objects.map(object => 
+		{
+			const objectCopy = deepClone(object);
+
+			if(objectCopy.hasOwnProperty('Account'))
+			{
+				objectCopy.Account = { 
+					Data: {
+						UUID: objectCopy.Account
+					}
+				}
+			}
+
+			if(objectCopy.hasOwnProperty('User'))
+			{
+				objectCopy.User = {
+					Data: {
+						UUID: objectCopy.User
+					}
+				}
 			}
 
 			return objectCopy;
