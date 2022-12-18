@@ -1,5 +1,5 @@
 import '@pepperi-addons/cpi-node'
-import CoreServiceFactory from 'core-resources-shared/lib/CoreServiceFactory';
+import { CoreServiceFactory } from 'core-resources-shared';
 import ClientApiFactory from './clientApiFactory';
 
 

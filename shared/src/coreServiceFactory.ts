@@ -4,9 +4,9 @@ import { Request } from '@pepperi-addons/debug-server';
 import { CoreService } from "./core.service";
 
 
-export default class CoreServiceFactory
+export class CoreServiceFactory
 {
-	public static getCoreService(resourceName: string, request: Request, iApiService: IApiService)
+	static getCoreService(resourceName: string, request: Request, iApiService: IApiService)
 	{
 		switch(resourceName)
 		{
