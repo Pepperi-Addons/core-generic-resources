@@ -1,7 +1,8 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import PapiService from './papi.service';
-import { Helper, IApiService, CoreService } from 'core-resources-shared'
+import { Helper, IApiService } from 'core-resources-shared'
 import AccountsPapiService from './accountsPapi.service';
+import CoreServiceFactory from 'core-resources-shared/lib/CoreServiceFactory';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -226,7 +227,7 @@ async function search(client: Client, request: Request)
 function getCoreService(client: Client, request: Request)
 {
 	const papiService = getPapiService(client, request);
-	const core = new CoreService(request.query?.resource_name, request, papiService);
+	const core = CoreServiceFactory.getCoreService(request.query?.resource_name, request, papiService);
 	return core;
 }
 
