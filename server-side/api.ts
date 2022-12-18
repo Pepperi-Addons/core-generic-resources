@@ -1,6 +1,6 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import PapiService from './papi.service';
-import { CoreServiceFactory, Helper, IApiService } from 'core-resources-shared'
+import { AccountUsersCoreService, CoreServiceFactory, Helper, IApiService } from 'core-resources-shared'
 import AccountsPapiService from './accountsPapi.service';
 
 // #region get by key
@@ -223,10 +223,51 @@ async function search(client: Client, request: Request)
 	}
 }
 
+export async function account_users_export(client: Client, request: Request) 
+{
+	request.query.resource_name = "account_users"
+	switch (request.method) 
+	{
+	case "POST":
+	{
+		const coreService = getAccountUsersCoreService(client, request);
+		return coreService.dimxExport();
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
+export async function account_users_import(client: Client, request: Request) 
+{
+	request.query.resource_name = "account_users"
+	switch (request.method) 
+	{
+	case "POST":
+	{
+		const coreService = getAccountUsersCoreService(client, request);
+		return coreService.dimxImport();
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
 function getCoreService(client: Client, request: Request)
 {
 	const papiService = getPapiService(client, request);
 	const core = CoreServiceFactory.getCoreService(request.query?.resource_name, request, papiService);
+	return core;
+}
+
+function getAccountUsersCoreService(client: Client, request: Request)
+{
+	const papiService = getPapiService(client, request);
+	const core = new AccountUsersCoreService(request.query?.resource_name, request, papiService);
 	return core;
 }
 

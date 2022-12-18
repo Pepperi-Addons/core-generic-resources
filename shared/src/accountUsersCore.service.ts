@@ -2,6 +2,7 @@ import { CoreService } from './core.service';
 import { Helper } from './helper';
 import { ICoreService } from './iCoreService';
 import deepClone from 'lodash.clonedeep'
+import { DimxExportObject as DimxObject } from './constants';
 
 export class AccountUsersCoreService extends CoreService implements ICoreService
 {
@@ -43,6 +44,44 @@ export class AccountUsersCoreService extends CoreService implements ICoreService
 		const res = await this.iApiService.searchResource(this.resource, this.request.body);
 		res.Objects = this.translateAccountAndUserPropertiesToReferenceFields(res.Objects);
 		return res;
+	}
+
+	public dimxExport(): DimxObject
+	{
+		return this.dimxProcessing(this.translateAccountAndUserPropertiesToReferenceFields);
+	}
+
+	public dimxImport(): DimxObject
+	{
+		return this.dimxProcessing(this.translateAccountAndUserReferenceFieldsToPapi);
+	}
+
+	protected dimxProcessing(translationFunction: (objects: Array<any>) => Array<any>): DimxObject
+	{
+		const resultDimxObject: DimxObject = {DIMXObjects: []}
+
+		for (let index = 0; index < this.request.body.DIMXObjects.length; index++) 
+		{
+			const originalDimxObject = this.request.body.DIMXObjects[index];
+			try
+			{
+				resultDimxObject.DIMXObjects.push({
+					Object: translationFunction([originalDimxObject.Object])[0],
+					Status: originalDimxObject.Status
+				});
+			}
+			catch(error)
+			{
+				const errorMessage = error instanceof Error ? error.message : `An unknown error occurred trying to manipulate object with key ${originalDimxObject.Object.Key}`;
+				console.error(errorMessage);
+				resultDimxObject.DIMXObjects.push({
+					Status: "Error",
+					Details: errorMessage
+				});
+			}
+		}
+
+		return resultDimxObject;
 	}
 
 	protected translateAccountAndUserPropertiesToReferenceFields(objects: Array<any>): Array<any>
