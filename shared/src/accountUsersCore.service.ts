@@ -1,6 +1,6 @@
 import { CoreService } from './core.service';
 import { Helper } from './helper';
-import { ICoreService } from './ICoreService';
+import { ICoreService } from './iCoreService';
 import deepClone from 'lodash.clonedeep'
 
 export class AccountUsersCoreService extends CoreService implements ICoreService

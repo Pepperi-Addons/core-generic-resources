@@ -1,7 +1,7 @@
 import { Request } from '@pepperi-addons/debug-server';
 import { Helper } from './helper';
 import { IApiService } from './iApi.service';
-import { ICoreService } from './ICoreService';
+import { ICoreService } from './iCoreService';
 
 export class CoreService implements ICoreService
 {
