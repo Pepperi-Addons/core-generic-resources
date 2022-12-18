@@ -10,9 +10,10 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
-import semver from 'semver';
+import semverLessThanComparator from 'semver/functions/lt'
 import { Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 import AccountsPapiService from './accountsPapi.service';
+import config from '../addon.config.json';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -56,7 +57,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.8') < 0) 
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.10')) 
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// account_users schema should be updated to new Fields and set as associative.
+			res['resultObject'] = await createCoreSchemas(papiClient, ['account_users']);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.8')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
@@ -72,7 +91,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.5') < 0) 
+	if (res.success && request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.5')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
@@ -90,7 +109,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if (res.success && request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.0') < 0) 
+	if (res.success && request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.0')) 
 	{
 		try
 		{
@@ -208,67 +227,25 @@ async function upsertRelation(papiClient: PapiClient, relation: Relation)
 function addAccountUsersSpecificFields(schemaBody: any): any 
 {
 	const alteredSchema = { ...schemaBody };
+	alteredSchema.DataSourceData.Associative = 
+	{
+		FieldID1: 'Account',
+		FieldID2: 'User'
+	}
+
 	alteredSchema.Fields =
 	{
 		Account:
 		{
-			Type: "Object",
-			"Fields":
-			{
-				Data:
-				{
-					Type: "Object",
-					"Fields":
-					{
-						InternalID:
-						{
-							Type: "Integer"
-						},
-						UUID:
-						{
-							Type: "String"
-						},
-						ExternalID:
-						{
-							Type: "String"
-						}
-					}
-				},
-				URI:
-				{
-					Type: "String"
-				}
-			}
+			"Type": "Resource",
+			"Resource": "accounts",
+			"AddonUUID": config.AddonUUID
 		},
 		User:
 		{
-			Type: "Object",
-			"Fields":
-			{
-				Data:
-				{
-					Type: "Object",
-					"Fields":
-					{
-						InternalID:
-						{
-							Type: "Integer"
-						},
-						UUID:
-						{
-							Type: "String"
-						},
-						ExternalID:
-						{
-							Type: "String"
-						}
-					}
-				},
-				URI:
-				{
-					Type: "String"
-				}
-			}
+			"Type": "Resource",
+			"Resource": "users",
+			"AddonUUID": config.AddonUUID
 		}
 	};
 
