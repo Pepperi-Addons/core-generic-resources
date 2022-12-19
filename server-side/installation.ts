@@ -240,7 +240,7 @@ async function upsertRelation(papiClient: PapiClient, relation: Relation)
 function addAccountUsersSpecificFields(schemaBody: any): any 
 {
 	const alteredSchema = { ...schemaBody };
-	alteredSchema.DataSourceData.Associative = 
+	alteredSchema.SyncData.Associative = 
 	{
 		FieldID1: 'Account',
 		FieldID2: 'User'
