@@ -2,7 +2,7 @@ import { CoreService } from './core.service';
 import { Helper } from './helper';
 import { ICoreService } from './iCoreService';
 import deepClone from 'lodash.clonedeep'
-import { DimxExportObject as DimxObject } from './constants';
+import { DimxObject } from './constants';
 
 export class AccountUsersCoreService extends CoreService implements ICoreService
 {

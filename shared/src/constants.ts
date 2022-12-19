@@ -7,4 +7,4 @@ export const CORE_BASE_URL = '/addons/api/00000000-0000-0000-0000-00000000c07e/d
 
 export const NUMBER_OF_USERS_ON_IMPORT_REQUEST = 5;
 
-export type DimxExportObject = {DIMXObjects: {Status: string, Object?: any, Details?: string}[]}
+export type DimxObject = {DIMXObjects: {Status: string, Object?: any, Details?: string}[]}

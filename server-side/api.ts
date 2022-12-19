@@ -1,6 +1,6 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import PapiService from './papi.service';
-import { AccountUsersCoreService, CoreServiceFactory, Helper, IApiService } from 'core-resources-shared'
+import { CoreServiceFactory, Helper, IApiService } from 'core-resources-shared'
 import AccountsPapiService from './accountsPapi.service';
 
 // #region get by key
@@ -230,7 +230,7 @@ export async function account_users_export(client: Client, request: Request)
 	{
 	case "POST":
 	{
-		const coreService = getAccountUsersCoreService(client, request);
+		const coreService = getCoreService(client, request);
 		return coreService.dimxExport();
 	}
 	default:
@@ -247,7 +247,7 @@ export async function account_users_import(client: Client, request: Request)
 	{
 	case "POST":
 	{
-		const coreService = getAccountUsersCoreService(client, request);
+		const coreService = getCoreService(client, request);
 		return coreService.dimxImport();
 	}
 	default:
@@ -261,13 +261,6 @@ function getCoreService(client: Client, request: Request)
 {
 	const papiService = getPapiService(client, request);
 	const core = CoreServiceFactory.getCoreService(request.query?.resource_name, request, papiService);
-	return core;
-}
-
-function getAccountUsersCoreService(client: Client, request: Request)
-{
-	const papiService = getPapiService(client, request);
-	const core = new AccountUsersCoreService(request.query?.resource_name, request, papiService);
 	return core;
 }
 

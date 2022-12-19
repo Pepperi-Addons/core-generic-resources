@@ -1,4 +1,5 @@
 import { Request } from '@pepperi-addons/debug-server';
+import { DimxObject } from './constants';
 import { Helper } from './helper';
 import { IApiService } from './iApi.service';
 import { ICoreService } from './iCoreService';
@@ -35,5 +36,17 @@ export class CoreService implements ICoreService
 	public async search()
 	{
 		return await this.iApiService.searchResource(this.resource, this.request.body);
-	} 
+	}
+
+	public dimxExport(): DimxObject 
+	{
+		// There's no treatment needed
+		return this.request.body
+	}
+
+	public dimxImport(): DimxObject 
+	{
+		// There's no treatment needed
+		return this.request.body
+	}
 }
