@@ -216,7 +216,7 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 		{
 			// Get the DefaultDefinitionTypeID
 			const papiService = new AccountsPapiService(papiClient);
-			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID()).accountType[0].InternalID;
+			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID())[0].InternalID;
 
 			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
 			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`}
