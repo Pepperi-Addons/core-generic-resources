@@ -10,9 +10,10 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
-import semver from 'semver';
+import semverLessThanComparator from 'semver/functions/lt'
 import { Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 import AccountsPapiService from './accountsPapi.service';
+import config from '../addon.config.json';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -56,7 +57,28 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.8') < 0) 
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.10')) 
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// account_users schema should be updated to new Fields and set as associative.
+			res['resultObject'] = await createCoreSchemas(papiClient, ['account_users']);
+			// account_users DIMX relations should be updated with the new relative url
+			// to handle translation from/to PAPI to/from the associative interface
+			await createDimxRelations(client, papiClient, ["account_users"]);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.8')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
@@ -72,7 +94,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if (request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.5') < 0) 
+	if (res.success && request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.5')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
@@ -90,7 +112,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if (res.success && request.body.FromVersion && semver.compare(request.body.FromVersion, '0.6.0') < 0) 
+	if (res.success && request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.0')) 
 	{
 		try
 		{
@@ -143,21 +165,21 @@ async function createCoreSchemas(papiClient: PapiClient, resourcesList: string[]
 	return resObject;
 }
 
-async function createDimxRelations(client: Client, papiClient: PapiClient) 
+async function createDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
 {
 	const isHidden = false;
-	await postDimxRelations(client, isHidden, papiClient);
+	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function removeDimxRelations(client: Client, papiClient: PapiClient) 
+async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
 {
 	const isHidden = true;
-	await postDimxRelations(client, isHidden, papiClient);
+	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient) 
+async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[]) 
 {
-	for (const resource of RESOURCE_TYPES) 
+	for (const resource of resourcesList) 
 	{
 		const importRelation: Relation = {
 			RelationName: "DataImportResource",
@@ -175,6 +197,11 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 			importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
 		}
 
+		if(resource === 'account_users')
+		{
+			importRelation.AddonRelativeURL = '/api/account_users_import'
+		}
+
 		const exportRelation: Relation = {
 			RelationName: "DataExportResource",
 			AddonUUID: client.AddonUUID,
@@ -189,10 +216,15 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 		{
 			// Get the DefaultDefinitionTypeID
 			const papiService = new AccountsPapiService(papiClient);
-			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID()).accountType[0].InternalID;
+			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID())[0].InternalID;
 
 			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
 			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`}
+		}
+
+		if(resource === 'account_users')
+		{
+			exportRelation.AddonRelativeURL = '/api/account_users_export'
 		}
 
 		await upsertRelation(papiClient, importRelation);
@@ -208,67 +240,25 @@ async function upsertRelation(papiClient: PapiClient, relation: Relation)
 function addAccountUsersSpecificFields(schemaBody: any): any 
 {
 	const alteredSchema = { ...schemaBody };
+	alteredSchema.SyncData.Associative = 
+	{
+		FieldID1: 'Account',
+		FieldID2: 'User'
+	}
+
 	alteredSchema.Fields =
 	{
 		Account:
 		{
-			Type: "Object",
-			"Fields":
-			{
-				Data:
-				{
-					Type: "Object",
-					"Fields":
-					{
-						InternalID:
-						{
-							Type: "Integer"
-						},
-						UUID:
-						{
-							Type: "String"
-						},
-						ExternalID:
-						{
-							Type: "String"
-						}
-					}
-				},
-				URI:
-				{
-					Type: "String"
-				}
-			}
+			"Type": "Resource",
+			"Resource": "accounts",
+			"AddonUUID": config.AddonUUID
 		},
 		User:
 		{
-			Type: "Object",
-			"Fields":
-			{
-				Data:
-				{
-					Type: "Object",
-					"Fields":
-					{
-						InternalID:
-						{
-							Type: "Integer"
-						},
-						UUID:
-						{
-							Type: "String"
-						},
-						ExternalID:
-						{
-							Type: "String"
-						}
-					}
-				},
-				URI:
-				{
-					Type: "String"
-				}
-			}
+			"Type": "Resource",
+			"Resource": "users",
+			"AddonUUID": config.AddonUUID
 		}
 	};
 

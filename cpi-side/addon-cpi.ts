@@ -1,5 +1,5 @@
 import '@pepperi-addons/cpi-node'
-import { CoreService } from 'core-resources-shared';
+import { CoreServiceFactory } from 'core-resources-shared';
 import ClientApiFactory from './clientApiFactory';
 
 
@@ -109,6 +109,6 @@ router.get('/:resourceName/unique/:fieldID/:fieldValue', async (req, res, next) 
 function getGenericResourceService(req)
 {
 	const clientApi = ClientApiFactory.getClientApi(req.query.resource_name);
-	const coreResourceService = new CoreService(req.query?.resource_name, req, clientApi);
+	const coreResourceService = CoreServiceFactory.getCoreService(req.query?.resource_name, req, clientApi);
 	return coreResourceService;
 }

@@ -1,5 +1,5 @@
 export * from './constants'
-export * from './core.service'
 export * from './helper'
 export * from './iAccountsApi.service'
 export * from './iApi.service'
+export * from './coreServiceFactory'

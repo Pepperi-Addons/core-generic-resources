@@ -1,8 +1,10 @@
 import { Request } from '@pepperi-addons/debug-server';
+import { DimxObject } from './constants';
 import { Helper } from './helper';
 import { IApiService } from './iApi.service';
+import { ICoreService } from './iCoreService';
 
-export class CoreService 
+export class CoreService implements ICoreService
 {
     
 	constructor(protected resource: string, protected request: Request, protected iApiService: IApiService)
@@ -14,15 +16,15 @@ export class CoreService
 		return res;
 	}
 
-	public createResource()
+	public async createResource()
 	{
-		return this.iApiService.createResource(this.resource, this.request.body);
+		return await this.iApiService.createResource(this.resource, this.request.body);
 	}
 
 	public async getResources()
 	{
 		const queryParams: string = Helper.queryParamsToString(this.request.query);
-		return this.iApiService.getResources(this.resource, queryParams, undefined);
+		return await this.iApiService.getResources(this.resource, queryParams, undefined);
 	}
 
 	public async getResourceByKey()
@@ -33,6 +35,18 @@ export class CoreService
 
 	public async search()
 	{
-		return this.iApiService.searchResource(this.resource, this.request.body);
-	} 
+		return await this.iApiService.searchResource(this.resource, this.request.body);
+	}
+
+	public dimxExport(): DimxObject 
+	{
+		// There's no treatment needed
+		return this.request.body
+	}
+
+	public dimxImport(): DimxObject 
+	{
+		// There's no treatment needed
+		return this.request.body
+	}
 }
