@@ -26,10 +26,23 @@ export class AccountUsersCoreService extends CoreService implements ICoreService
 
 	public async getResources()
 	{
+		// If not include_deleted=true, add 'Hidden=0' to where clause.
+		// Otherwise PAPI returns NULL values for hidden account_users.
+		// For more information see: https://pepperi.atlassian.net/browse/DI-22222
+		if(!this.request.query.include_deleted)
+		{
+			this.request.query.where = this.filterHiddenObjects(this.request.query.where);
+		}
+		
 		const queryParams: string = Helper.queryParamsToString(this.request.query);
 		const res = await this.iApiService.getResources(this.resource, queryParams, undefined);
 		const translatedResult = this.translateAccountAndUserPropertiesToReferenceFields(res);
 		return translatedResult;
+	}
+
+	private filterHiddenObjects(where: string): string 
+	{
+		return `Hidden=0 AND (${where})`;
 	}
 
 	public async getResourceByKey()
@@ -41,6 +54,14 @@ export class AccountUsersCoreService extends CoreService implements ICoreService
 
 	public async search()
 	{
+		// If not include_deleted=true, add 'Hidden=0' to where clause.
+		// Otherwise PAPI returns NULL values for hidden account_users.
+		// For more information see: https://pepperi.atlassian.net/browse/DI-22222
+		if(!this.request.body.IncludeDeleted)
+		{
+			this.request.body.Where = this.filterHiddenObjects(this.request.body.Where);
+		}
+
 		const res = await this.iApiService.searchResource(this.resource, this.request.body);
 		res.Objects = this.translateAccountAndUserPropertiesToReferenceFields(res.Objects);
 		return res;
