@@ -57,6 +57,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.12')) 
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// account_users DIMX export relation should be updated with the new 
+			// exportRelation.DataSourceExportParams.ForcedWhereClauseAdditionIfNotIncludingDeleted
+			await createDimxRelations(client, papiClient, ["account_users"]);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.10')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
@@ -219,12 +238,14 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID())[0].InternalID;
 
 			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
-			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`}
+			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`};
 		}
 
 		if(resource === 'account_users')
 		{
-			exportRelation.AddonRelativeURL = '/api/account_users_export'
+			exportRelation.AddonRelativeURL = '/api/account_users_export';
+			// Add a filter of Hidden objects in case IncludeDeleted !== true
+			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAdditionIfNotIncludingDeleted: `Hidden=0`};
 		}
 
 		await upsertRelation(papiClient, importRelation);
