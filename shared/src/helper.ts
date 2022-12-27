@@ -40,7 +40,7 @@ export class Helper
 		  // Split the current key-value pair into an array containing the key and value
 		  // Use the split method's optional limit argument to ensure that the resulting
 		  // array always contains exactly two elements (the key and the value)
-		  const [key, value] = pair.split('=', 2);
+		  const [key, value] = pair.split(/=(.*)/s, 2);
 	  
 		  // Add the key-value pair to the params object
 		  params[key] = value;
