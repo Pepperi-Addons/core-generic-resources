@@ -200,38 +200,57 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 {
 	for (const resource of resourcesList) 
 	{
-		const importRelation: Relation = {
-			RelationName: "DataImportResource",
-			AddonUUID: client.AddonUUID,
-			AddonRelativeURL: '',
-			Name: resource,
-			Type: 'AddonAPI',
-			Source: 'papi',
-			Hidden: isHidden
-		};
+		await postDimxImportRelation(client, isHidden, papiClient, resource);
+		await postDimxExportRelation(client, isHidden, papiClient, resource);
+	}
+}
 
-		// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
-		if (resource === 'users') 
+async function postDimxImportRelation(client: Client, isHidden: boolean, papiClient: PapiClient, resource: string): Promise<void>
+{
+	const importRelation: Relation = {
+		RelationName: "DataImportResource",
+		AddonUUID: client.AddonUUID,
+		AddonRelativeURL: '',
+		Name: resource,
+		Type: 'AddonAPI',
+		Source: 'papi',
+		Hidden: isHidden
+	};
+
+	switch(resource)
+	{
+		case 'users':
 		{
+			// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
 			importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
-		}
-
-		if(resource === 'account_users')
+			break;
+		}		
+		case 'account_users':
 		{
-			importRelation.AddonRelativeURL = '/api/account_users_import'
+			importRelation.AddonRelativeURL = '/api/account_users_import';
+			break;
 		}
 
-		const exportRelation: Relation = {
-			RelationName: "DataExportResource",
-			AddonUUID: client.AddonUUID,
-			AddonRelativeURL: '',
-			Name: resource,
-			Type: 'AddonAPI',
-			Source: 'papi',
-			Hidden: isHidden
-		};
+	}
 
-		if(resource === 'accounts')
+	await upsertRelation(papiClient, importRelation);
+}
+
+async function postDimxExportRelation(client: Client, isHidden: boolean, papiClient: PapiClient, resource: string): Promise<void>
+{
+	const exportRelation: Relation = {
+		RelationName: "DataExportResource",
+		AddonUUID: client.AddonUUID,
+		AddonRelativeURL: '',
+		Name: resource,
+		Type: 'AddonAPI',
+		Source: 'papi',
+		Hidden: isHidden
+	};
+
+	switch(resource)
+	{
+		case 'accounts':
 		{
 			// Get the DefaultDefinitionTypeID
 			const papiService = new AccountsPapiService(papiClient);
@@ -239,18 +258,18 @@ async function postDimxRelations(client: Client, isHidden: boolean, papiClient: 
 
 			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
 			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`};
-		}
-
-		if(resource === 'account_users')
+			break;
+		}		
+		case 'account_users':
 		{
 			exportRelation.AddonRelativeURL = '/api/account_users_export';
 			// Add a filter of Hidden objects in case IncludeDeleted !== true
 			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAdditionIfNotIncludingDeleted: `Hidden=0`};
+			break;
 		}
-
-		await upsertRelation(papiClient, importRelation);
-		await upsertRelation(papiClient, exportRelation);
 	}
+
+	await upsertRelation(papiClient, exportRelation);
 }
 
 async function upsertRelation(papiClient: PapiClient, relation: Relation) 
