@@ -218,17 +218,17 @@ async function postDimxImportRelation(client: Client, isHidden: boolean, papiCli
 
 	switch(resource)
 	{
-		case 'users':
-		{
-			// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
-			importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
-			break;
-		}		
-		case 'account_users':
-		{
-			importRelation.AddonRelativeURL = '/api/account_users_import';
-			break;
-		}
+	case 'users':
+	{
+		// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
+		importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
+		break;
+	}		
+	case 'account_users':
+	{
+		importRelation.AddonRelativeURL = '/api/account_users_import';
+		break;
+	}
 
 	}
 
@@ -249,23 +249,23 @@ async function postDimxExportRelation(client: Client, isHidden: boolean, papiCli
 
 	switch(resource)
 	{
-		case 'accounts':
-		{
-			// Get the DefaultDefinitionTypeID
-			const papiService = new AccountsPapiService(papiClient);
-			const typeDefinitionID = (await papiService.getAccountTypeDefinitionID())[0].InternalID;
+	case 'accounts':
+	{
+		// Get the DefaultDefinitionTypeID
+		const papiService = new AccountsPapiService(papiClient);
+		const typeDefinitionID = (await papiService.getAccountTypeDefinitionID())[0].InternalID;
 
-			// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
-			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`};
-			break;
-		}		
-		case 'account_users':
-		{
-			exportRelation.AddonRelativeURL = '/api/account_users_export';
-			// Add a filter of Hidden objects in case IncludeDeleted !== true
-			exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAdditionIfNotIncludingDeleted: `Hidden=0`};
-			break;
-		}
+		// Add the DefaultDefinitionTypeID to the where clauses on DIMX exports
+		exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAddition: `TypeDefinitionID=${typeDefinitionID}`};
+		break;
+	}		
+	case 'account_users':
+	{
+		exportRelation.AddonRelativeURL = '/api/account_users_export';
+		// Add a filter of Hidden objects in case IncludeDeleted !== true
+		exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAdditionIfNotIncludingDeleted: `Hidden=0`};
+		break;
+	}
 	}
 
 	await upsertRelation(papiClient, exportRelation);

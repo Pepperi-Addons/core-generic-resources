@@ -39,7 +39,7 @@ export class AccountUsersCoreService extends CoreService implements ICoreService
 
 	private filterHiddenObjects(where: string | undefined, includeDeleted: boolean): string | undefined
 	{
-        const res = includeDeleted ? where : `Hidden=0${where ? ` AND (${where})` : ''}`;
+		const res = includeDeleted ? where : `Hidden=0${where ? ` AND (${where})` : ''}`;
 
 		return res;
 	}
