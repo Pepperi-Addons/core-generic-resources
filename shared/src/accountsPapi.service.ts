@@ -1,10 +1,11 @@
-import { ErrorWithStatus } from './errorWithStatus';
-import { Helper, IAccountsApiService } from 'core-resources-shared';
-import PapiService from './papi.service';
+import { PapiService } from './papi.service';
 import deepClone from 'lodash.clonedeep'
+import { IAccountsApiService } from './iAccountsApi.service';
+import { Helper } from './helper';
+import { ErrorWithStatus } from './errorWithStatus';
 
 
-export default class AccountsPapiService extends PapiService implements IAccountsApiService
+export class AccountsPapiService extends PapiService implements IAccountsApiService
 {
 	
 	async getResources(resourceName: string, query: string, whereClause: string | undefined)
