@@ -27,7 +27,7 @@ router.use('/:resourceName', async (req, res, next) =>
 
 function validateResourceSupportedInCpiSide(resourceName: string)
 {
-	const supportedResources = ['catalogs', 'accounts'];
+	const supportedResources = ['catalogs', 'accounts', 'users'];
 
 	if(!supportedResources.includes(resourceName))
 	{
