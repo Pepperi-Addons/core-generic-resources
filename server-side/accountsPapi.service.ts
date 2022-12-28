@@ -21,6 +21,7 @@ export default class AccountsPapiService extends PapiService implements IAccount
 		{
 			const res = await super.getResourceByKey(resourceName, key, whereClause);
 			await this.validateResourceBeforeReturn(res);
+			return res;
 		}
 		catch(error)
 		{
@@ -34,6 +35,7 @@ export default class AccountsPapiService extends PapiService implements IAccount
 		{
 			const res = await super.getResourceByUniqueField(resourceName, uniqueFieldId, value, whereClause);
 			await this.validateResourceBeforeReturn(res);
+			return res;
 		}
 		catch(error)
 		{
@@ -70,7 +72,7 @@ export default class AccountsPapiService extends PapiService implements IAccount
 	async validateResourceBeforeReturn(resource: any): Promise<void>
 	{
 		const typeDefinitionID = await this.getAccountTypeDefinitionID();
-		if(resource.TypeDefinitionID !== typeDefinitionID) 
+		if(resource.TypeDefinitionID !== typeDefinitionID[0].InternalID) 
 		{
 			const errorMessage = `Resource type definition ID ${resource.typeDefinitionID} does not match expected type definition ID ${typeDefinitionID}`;
 			console.error(errorMessage);
