@@ -3,7 +3,7 @@ import BaseClientApiService from "./baseClientApi.service";
 import deepClone from "lodash.clonedeep";
 
 
-export default class AccountsClientApiService extends BaseClientApiService implements IAccountsApiService
+export default class OfflineAccountsClientApiService extends BaseClientApiService implements IAccountsApiService
 {
 	readonly expectedAccountType = 'Customer';
 

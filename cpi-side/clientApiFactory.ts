@@ -1,11 +1,11 @@
-import { IApiService } from "core-resources-shared";
-import AccountsClientApiService from "./accountsClientApi.service";
+import { AccountsPapiService, IApiService } from "core-resources-shared";
+import OfflineAccountsClientApiService from "./offlineAccountsClientApi.service";
 import BaseClientApiService from "./baseClientApi.service";
 import CatalogClientApiService from "./catalogsClientApi.service";
 
 export default class ClientApiFactory
 {
-	public static getClientApi(resourceName: string): IApiService
+	public static async getClientApi(resourceName: string): Promise<IApiService>
 	{
 		switch(resourceName)
 		{
@@ -15,7 +15,18 @@ export default class ClientApiFactory
 		}
 		case 'accounts':
 		{
-			return new AccountsClientApiService();
+			const isWebApp = await global['app']['wApp']['isWebApp']();
+			const isBuyer = await global['app']['wApp']['isBuyer']();
+			
+			if(isWebApp && !isBuyer)
+			{
+				const papiClient = await pepperi.papiClient;
+				return new AccountsPapiService(papiClient);
+			}
+			else
+			{
+				return new OfflineAccountsClientApiService();
+			}
 		}
 		default:
 		{
