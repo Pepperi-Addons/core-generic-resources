@@ -36,7 +36,7 @@ export default class OfflineAccountsClientApiService extends BaseClientApiServic
 
 	async concatFilteringWhereClause(whereClause: string): Promise<string>
 	{
-		return `TypeDefinitionID=${this.expectedAccountType}${whereClause ? ' AND (' + whereClause + ')' : ''}`;
+		return `Type=${this.expectedAccountType}${whereClause ? ' AND (' + whereClause + ')' : ''}`;
 	}
 
 	async validateResourceBeforeReturn(resource: any): Promise<void>
