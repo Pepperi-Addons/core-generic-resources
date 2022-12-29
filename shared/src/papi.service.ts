@@ -1,10 +1,11 @@
 
-import { ErrorWithStatus } from './errorWithStatus';
-import { IApiService, CORE_BASE_URL} from 'core-resources-shared';
 import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { CORE_BASE_URL } from './constants';
+import { ErrorWithStatus } from './errorWithStatus';
+import { IApiService } from './iApi.service';
 
 
-export default class PapiService implements IApiService
+export class PapiService implements IApiService
 {
 	constructor(protected papiClient: PapiClient) 
 	{}

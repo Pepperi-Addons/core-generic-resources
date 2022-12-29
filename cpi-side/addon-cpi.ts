@@ -40,7 +40,7 @@ router.post('/:resourceName', async (req, res, next) =>
     
 	try 
 	{
-		const genericResourceService = getGenericResourceService(req);
+		const genericResourceService = await getGenericResourceService(req);
 		const createdResource = await genericResourceService.createResource();
 
 		res.json(createdResource);
@@ -56,7 +56,7 @@ router.post('/:resourceName/search', async (req, res, next) =>
 {
 	try 
 	{
-		const genericResourceService = getGenericResourceService(req);
+		const genericResourceService = await getGenericResourceService(req);
 		const createdResource = await genericResourceService.search();
 
 		res.json(createdResource);
@@ -74,7 +74,7 @@ router.get('/:resourceName/key/:key', async (req, res, next) =>
 
 	try 
 	{
-		const genericResourceService = getGenericResourceService(req);
+		const genericResourceService = await getGenericResourceService(req);
 		const resource = await genericResourceService.getResourceByKey();
 
 		res.json(resource);
@@ -93,7 +93,7 @@ router.get('/:resourceName/unique/:fieldID/:fieldValue', async (req, res, next) 
 
 	try 
 	{
-		const genericResourceService = getGenericResourceService(req);
+		const genericResourceService = await getGenericResourceService(req);
 		const resource = await genericResourceService.getResourceByUniqueField();
 
 		res.json(resource);
@@ -106,9 +106,9 @@ router.get('/:resourceName/unique/:fieldID/:fieldValue', async (req, res, next) 
 });
 
 
-function getGenericResourceService(req)
+async function getGenericResourceService(req)
 {
-	const clientApi = ClientApiFactory.getClientApi(req.query.resource_name);
+	const clientApi = await ClientApiFactory.getClientApi(req.query.resource_name);
 	const coreResourceService = CoreServiceFactory.getCoreService(req.query?.resource_name, req, clientApi);
 	return coreResourceService;
 }
