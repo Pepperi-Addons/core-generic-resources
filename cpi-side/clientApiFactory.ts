@@ -71,7 +71,8 @@ export default class ClientApiFactory
 		}
 	}
 	
-	private static async isInAccountScope(request: any): Promise<boolean> {
+	private static async isInAccountScope(request: any): Promise<boolean> 
+	{
 		let isInAccountScope = false;
 		const whereClause = request.body.Where;
 		const resourceName = request.query.resource_name;
@@ -79,8 +80,14 @@ export default class ClientApiFactory
 		const filter: JSONFilter = parse(whereClause, await ClientApiFactory.getClientApiFieldsTypes(resourceName))!;
 		
 		transform(filter, {
-            'Account.UUID': (filter) => { isInAccountScope = true },
-			'AccountUUID': (filter) => { isInAccountScope = true },
+			'Account.UUID': (filter) => 
+			{
+				isInAccountScope = true 
+			},
+			'AccountUUID': (filter) => 
+			{
+				isInAccountScope = true 
+			},
 		});
 		
 		return isInAccountScope;
