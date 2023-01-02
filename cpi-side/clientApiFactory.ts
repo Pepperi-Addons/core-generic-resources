@@ -20,10 +20,9 @@ export default class ClientApiFactory
 		}
 		case 'accounts':
 		{
-			const isWebApp = await global['app']['wApp']['isWebApp']();
-			const isBuyer = await global['app']['wApp']['isBuyer']();
+			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 
-			if(isWebApp && !isBuyer)
+			if(isWebAppAndNotBuyer)
 			{
 				const papiClient = await pepperi.papiClient;
 				return new AccountsPapiService(papiClient);
@@ -35,10 +34,9 @@ export default class ClientApiFactory
 		}
 		case 'users':
 		{
-			const isWebApp = await global['app']['wApp']['isWebApp']();
-			const isBuyer = await global['app']['wApp']['isBuyer']();
+			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 
-			if(isWebApp && !isBuyer)
+			if(isWebAppAndNotBuyer)
 			{
 				const papiClient = await pepperi.papiClient;
 				return new PapiService(papiClient);
@@ -51,10 +49,9 @@ export default class ClientApiFactory
 		case 'contacts':
 		{
 			const isInAccountScope = ClientApiFactory.isInAccountScope(request);
-			const isWebApp = await global['app']['wApp']['isWebApp']();
-			const isBuyer = await global['app']['wApp']['isBuyer']();
+			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 
-			if(!isInAccountScope && isWebApp && !isBuyer)
+			if(!isInAccountScope &&isWebAppAndNotBuyer)
 			{
 				const papiClient = await pepperi.papiClient;
 				return new PapiService(papiClient);
@@ -71,6 +68,13 @@ export default class ClientApiFactory
 		}
 	}
 	
+	private static async isWebAppAndNotBuyer(): Promise<boolean>
+	{
+		const isWebApp = await global['app']['wApp']['isWebApp']();
+		const isBuyer = await global['app']['wApp']['isBuyer']();
+		return isWebApp && !isBuyer
+	}
+
 	private static async isInAccountScope(request: any): Promise<boolean> 
 	{
 		let isInAccountScope = false;
