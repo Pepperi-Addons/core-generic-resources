@@ -27,7 +27,7 @@ router.use('/:resourceName', async (req, res, next) =>
 
 function validateResourceSupportedInCpiSide(resourceName: string)
 {
-	const supportedResources = ['catalogs', 'accounts', 'users'];
+	const supportedResources = ['catalogs', 'accounts', 'users', 'contacts'];
 
 	if(!supportedResources.includes(resourceName))
 	{
@@ -108,7 +108,7 @@ router.get('/:resourceName/unique/:fieldID/:fieldValue', async (req, res, next) 
 
 async function getGenericResourceService(req)
 {
-	const clientApi = await ClientApiFactory.getClientApi(req.query.resource_name);
+	const clientApi = await ClientApiFactory.getClientApi(req);
 	const coreResourceService = CoreServiceFactory.getCoreService(req.query?.resource_name, req, clientApi);
 	return coreResourceService;
 }
