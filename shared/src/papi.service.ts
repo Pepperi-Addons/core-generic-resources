@@ -3,6 +3,7 @@ import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { CORE_BASE_URL } from './constants';
 import { ErrorWithStatus } from './errorWithStatus';
 import { IApiService } from './iApi.service';
+import config from '../../addon.config.json'
 
 
 export class PapiService implements IApiService
@@ -14,7 +15,7 @@ export class PapiService implements IApiService
 	{
 		try
 		{
-			return this.papiClient.post(`${CORE_BASE_URL}/resources?resource_name=${resourceName}`, body);
+			return this.papiClient.post(`${CORE_BASE_URL}/resources?resource_name=${resourceName}&addon_uuid=${config.AddonUUID}`, body);
 		}
 		catch(error)
 		{
@@ -26,7 +27,7 @@ export class PapiService implements IApiService
 	{
 		try
 		{
-			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}${query ? '&' + query : ''}${whereClause ? '&' + whereClause : ''}`);
+			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}&addon_uuid=${config.AddonUUID}${query ? '&' + query : ''}${whereClause ? '&' + whereClause : ''}`);
 		}
 		catch(error)
 		{
@@ -38,7 +39,7 @@ export class PapiService implements IApiService
 	{
 		try
 		{
-			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}&key=${key}${whereClause ? '&' + whereClause : ''}`);
+			return await this.papiClient.get(`${CORE_BASE_URL}/resources?resource_name=${resourceName}&addon_uuid=${config.AddonUUID}&key=${key}${whereClause ? '&' + whereClause : ''}`);
 		}
 		catch(error)
 		{
@@ -50,7 +51,7 @@ export class PapiService implements IApiService
 	{
 		try
 		{
-			return await this.papiClient.get(`${CORE_BASE_URL}/get_by_unique_field?resource_name=${resourceName}&field_id=${uniqueFieldId}&value=${value}${whereClause ? '&' + whereClause : ''}`);
+			return await this.papiClient.get(`${CORE_BASE_URL}/get_by_unique_field?resource_name=${resourceName}&addon_uuid=${config.AddonUUID}&field_id=${uniqueFieldId}&value=${value}${whereClause ? '&' + whereClause : ''}`);
 		}
 		catch(error)
 		{
@@ -62,7 +63,7 @@ export class PapiService implements IApiService
 	{
 		try
 		{
-			return await this.papiClient.post(`${CORE_BASE_URL}/search?resource_name=${resourceName}`, body);
+			return await this.papiClient.post(`${CORE_BASE_URL}/search?resource_name=${resourceName}&addon_uuid=${config.AddonUUID}`, body);
 		}
 		catch(error)
 		{
