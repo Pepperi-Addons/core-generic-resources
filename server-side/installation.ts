@@ -56,13 +56,13 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.21')) 
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.24')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
 		{
-			// account_users schema should be updated to new Fields and set as associative.
-			res['resultObject'] = await createCoreSchemas(papiClient, ['account_users']);
+			// Switch to hardcoded schemas
+			res['resultObject'] = await createCoreSchemas(papiClient);
 			// account_users DIMX relations should be updated with the new (empty) relative url
 			await createDimxRelations(client, papiClient, ["account_users"]);
 		}
@@ -89,37 +89,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
 			return res;
-		}
-	}
-
-	if (res.success && request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.5')) 
-	{
-		const papiClient = Helper.getPapiClient(client);
-		try 
-		{
-			// We need to re-upsert all schemas to pass Sync: true.
-			res['resultObject'] = await createCoreSchemas(papiClient);
-		}
-		catch (error) 
-		{
-	
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
-
-			return res;
-		}
-	}
-
-	if (res.success && request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.0')) 
-	{
-		try
-		{
-			res['resultObject'] = await createMissingSchemas(Helper.getPapiClient(client), client);
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 		}
 	}
 
