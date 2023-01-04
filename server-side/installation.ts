@@ -56,34 +56,14 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 {
 	const res = { success: true };
 
-	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.12')) 
-	{
-		const papiClient = Helper.getPapiClient(client);
-		try 
-		{
-			// account_users DIMX export relation should be updated with the new 
-			// exportRelation.DataSourceExportParams.ForcedWhereClauseAdditionIfNotIncludingDeleted
-			await createDimxRelations(client, papiClient, ["account_users"]);
-		}
-		catch (error) 
-		{
-	
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
-
-			return res;
-		}
-	}
-
-	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.10')) 
+	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.21')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
 		{
 			// account_users schema should be updated to new Fields and set as associative.
 			res['resultObject'] = await createCoreSchemas(papiClient, ['account_users']);
-			// account_users DIMX relations should be updated with the new relative url
-			// to handle translation from/to PAPI to/from the associative interface
+			// account_users DIMX relations should be updated with the new (empty) relative url
 			await createDimxRelations(client, papiClient, ["account_users"]);
 		}
 		catch (error) 
@@ -226,7 +206,7 @@ async function postDimxImportRelation(client: Client, isHidden: boolean, papiCli
 	}		
 	case 'account_users':
 	{
-		importRelation.AddonRelativeURL = '/api/account_users_import';
+		importRelation.AddonRelativeURL = '';
 		break;
 	}
 
@@ -261,7 +241,7 @@ async function postDimxExportRelation(client: Client, isHidden: boolean, papiCli
 	}		
 	case 'account_users':
 	{
-		exportRelation.AddonRelativeURL = '/api/account_users_export';
+		exportRelation.AddonRelativeURL = '';
 		// Add a filter of Hidden objects in case IncludeDeleted !== true
 		exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAdditionIfNotIncludingDeleted: `Hidden=0`};
 		break;
@@ -287,6 +267,12 @@ function addAccountUsersSpecificFields(schemaBody: any): any
 
 	alteredSchema.Fields =
 	{
+		Key:
+		{
+			"Type": "String",
+			"Unique": true
+		},
+
 		Account:
 		{
 			"Type": "Resource",
@@ -298,6 +284,24 @@ function addAccountUsersSpecificFields(schemaBody: any): any
 			"Type": "Resource",
 			"Resource": "users",
 			"AddonUUID": config.AddonUUID
+		},
+		InternalID:
+		{
+			"Type": "Integer",
+			"Unique": true
+
+		},
+		Hidden:
+		{
+			"Type": "Boolean"
+		},
+		ModificationDateTime:
+		{
+			"Type": "DateTime"
+		},
+		CreationDateTime:
+		{
+			"Type": "DateTime"		
 		}
 	};
 
