@@ -37,16 +37,4 @@ export class CoreService implements ICoreService
 	{
 		return await this.iApiService.searchResource(this.resource, this.request.body);
 	}
-
-	public dimxExport(): DimxObject 
-	{
-		// There's no treatment needed
-		return this.request.body
-	}
-
-	public dimxImport(): DimxObject 
-	{
-		// There's no treatment needed
-		return this.request.body
-	}
 }

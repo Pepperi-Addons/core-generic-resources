@@ -221,40 +221,6 @@ async function search(client: Client, request: Request)
 	}
 }
 
-export async function account_users_export(client: Client, request: Request) 
-{
-	request.query.resource_name = "account_users"
-	switch (request.method) 
-	{
-	case "POST":
-	{
-		const coreService = getCoreService(client, request);
-		return coreService.dimxExport();
-	}
-	default:
-	{
-		throw new Error(`Unsupported method: ${request.method}`);
-	}
-	}
-}
-
-export async function account_users_import(client: Client, request: Request) 
-{
-	request.query.resource_name = "account_users"
-	switch (request.method) 
-	{
-	case "POST":
-	{
-		const coreService = getCoreService(client, request);
-		return coreService.dimxImport();
-	}
-	default:
-	{
-		throw new Error(`Unsupported method: ${request.method}`);
-	}
-	}
-}
-
 function getCoreService(client: Client, request: Request)
 {
 	const papiService = getPapiService(client, request);
