@@ -10,8 +10,4 @@ export interface ICoreService {
     getResourceByKey(): Promise<any>;
 
     search(): Promise<{Objects: Array<any>, Count?: number}>;
-
-    dimxExport(): DimxObject
-
-    dimxImport(): DimxObject
 }
