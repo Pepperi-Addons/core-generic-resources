@@ -75,6 +75,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			return res;
 		}
 	}
+	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.27'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// No need for filtering of Hidden account_users,
+			// Starting at Core 0.6.31 this is handled in Core
+			// for all resources.
+			await createDimxRelations(client, papiClient, ["account_users"]);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
 
 	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.8')) 
 	{
@@ -198,8 +217,9 @@ async function postDimxExportRelation(client: Client, isHidden: boolean, papiCli
 	case 'account_users':
 	{
 		exportRelation.AddonRelativeURL = '';
-		// Add a filter of Hidden objects in case IncludeDeleted !== true
-		exportRelation['DataSourceExportParams'] = {ForcedWhereClauseAdditionIfNotIncludingDeleted: `Hidden=0`};
+		// No need for data source export params in account_users.
+		// For more details see: https://pepperi.atlassian.net/browse/DI-22222
+		exportRelation['DataSourceExportParams'] = {};
 		break;
 	}
 	}
