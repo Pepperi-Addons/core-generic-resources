@@ -192,6 +192,12 @@ const contactsSchema: AddonDataScheme = {
     		"Type": "Integer",
     		"Unique": true
     	},
+		"Status": {
+    		"Type": "Integer"
+    	},
+		"TypeDefinitionID": {
+    		"Type": "Integer"
+    	},
     	"Email": {
     		"Type": "String"
     	},
