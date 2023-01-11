@@ -94,6 +94,26 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			return res;
 		}
 	}
+	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.28'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+				// Fix 'accounts' and 'contacts' schemas
+				// For more information please see the following:
+				// https://pepperi.atlassian.net/browse/DI-22492
+				// https://pepperi.atlassian.net/browse/DI-22490
+				res['resultObject'] = await createCoreSchemas(papiClient, ["accounts", "contacts"]);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
 
 	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.8')) 
 	{
