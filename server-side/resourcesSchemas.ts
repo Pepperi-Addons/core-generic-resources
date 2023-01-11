@@ -125,6 +125,9 @@ const accountsSchema: AddonDataScheme = {
     	"Email": {
     		"Type": "String"
     	},
+		"Street": {
+    		"Type": "String"
+    	},
     	"ExternalID": {
     		"Type": "String",
     		"Unique": true
