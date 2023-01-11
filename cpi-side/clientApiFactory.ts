@@ -61,6 +61,13 @@ export default class ClientApiFactory
 				throw new Error(`The 'contacts' resource doest not have offline support.`);
 			}
 		}
+		case 'items':
+		case 'account_users':
+		{
+			// items and account_users are only supported online.
+			const papiClient = await pepperi.papiClient;
+			return new PapiService(papiClient);
+		}
 		default:
 		{
 			return new BaseClientApiService();
