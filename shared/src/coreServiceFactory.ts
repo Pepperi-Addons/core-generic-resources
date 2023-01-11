@@ -1,4 +1,3 @@
-import { AccountUsersCoreService } from "./accountUsersCore.service";
 import { IApiService } from "./iApi.service";
 import { Request } from '@pepperi-addons/debug-server';
 import { CoreService } from "./core.service";
@@ -10,10 +9,6 @@ export class CoreServiceFactory
 	{
 		switch(resourceName)
 		{
-		case "account_users":
-		{
-			return new AccountUsersCoreService(resourceName, request, iApiService)
-		}
 		default:
 		{
 			return new CoreService(resourceName, request, iApiService);
