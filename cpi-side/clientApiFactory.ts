@@ -33,6 +33,8 @@ export default class ClientApiFactory
 			}
 		}
 		case 'users':
+		case 'items':
+		case 'account_users':
 		{
 			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 
@@ -43,7 +45,7 @@ export default class ClientApiFactory
 			}
 			else
 			{
-				throw new Error(`The 'users' resource doest not have offline support.`);
+				throw new Error(`The '${resourceName}' resource doest not have offline support.`);
 			}
 		}
 		case 'contacts':
@@ -60,13 +62,6 @@ export default class ClientApiFactory
 			{
 				throw new Error(`The 'contacts' resource doest not have offline support.`);
 			}
-		}
-		case 'items':
-		case 'account_users':
-		{
-			// items and account_users are only supported online.
-			const papiClient = await pepperi.papiClient;
-			return new PapiService(papiClient);
 		}
 		default:
 		{
