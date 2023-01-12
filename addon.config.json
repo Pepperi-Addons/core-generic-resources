@@ -16,7 +16,7 @@
     "Editors": [],
     "Dependencies": {
       "adal": "1.0.316",
-      "core": "0.6.31"
+      "core": "0.6.34"
     },
     "CPISide": [
       "addon-cpi.ts"
