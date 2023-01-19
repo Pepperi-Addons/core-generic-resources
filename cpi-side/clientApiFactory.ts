@@ -50,7 +50,7 @@ export default class ClientApiFactory
 		}
 		case 'contacts':
 		{
-			const isInAccountScope = ClientApiFactory.isInAccountScope(request);
+			const isInAccountScope = await ClientApiFactory.isInAccountScope(request);
 			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 
 			if(!isInAccountScope &&isWebAppAndNotBuyer)
