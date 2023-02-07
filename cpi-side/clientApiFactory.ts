@@ -1,8 +1,8 @@
 import { AccountsPapiService, IApiService, PapiService } from "core-resources-shared";
 import OfflineAccountsClientApiService from "./offlineAccountsClientApi.service";
 import BaseClientApiService from "./baseClientApi.service";
-import CatalogClientApiService from "./catalogsClientApi.service";
-import { FieldType, JSONFilter, JSONRegularFilter, parse, transform } from '@pepperi-addons/pepperi-filters';
+import CreateNotSupportedClientApiService from "./createNotSupportdClientApi.service";
+import { FieldType, JSONFilter, parse, transform } from '@pepperi-addons/pepperi-filters';
 import config from '../addon.config.json';
 
 
@@ -16,7 +16,7 @@ export default class ClientApiFactory
 		{
 		case 'catalogs':
 		{
-			return new CatalogClientApiService();
+			return new CreateNotSupportedClientApiService();
 		}
 		case 'accounts':
 		{
@@ -32,7 +32,6 @@ export default class ClientApiFactory
 				return new OfflineAccountsClientApiService();
 			}
 		}
-		case 'users':
 		case 'items':
 		case 'account_users':
 		{
@@ -46,6 +45,20 @@ export default class ClientApiFactory
 			else
 			{
 				throw new Error(`The '${resourceName}' resource doest not have offline support.`);
+			}
+		}
+		case 'users':
+		{
+			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
+
+			if(isWebAppAndNotBuyer)
+			{
+				const papiClient = await pepperi.papiClient;
+				return new PapiService(papiClient);
+			}
+			else
+			{
+				return new CreateNotSupportedClientApiService();
 			}
 		}
 		case 'contacts':
