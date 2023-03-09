@@ -125,7 +125,7 @@ const accountsSchema: AddonDataScheme = {
     	"Email": {
     		"Type": "String"
     	},
-		"Street": {
+    	"Street": {
     		"Type": "String"
     	},
     	"ExternalID": {
@@ -192,10 +192,10 @@ const contactsSchema: AddonDataScheme = {
     		"Type": "Integer",
     		"Unique": true
     	},
-		"Status": {
+    	"Status": {
     		"Type": "Integer"
     	},
-		"TypeDefinitionID": {
+    	"TypeDefinitionID": {
     		"Type": "Integer"
     	},
     	"Email": {

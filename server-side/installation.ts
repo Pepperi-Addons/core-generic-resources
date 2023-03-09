@@ -100,11 +100,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		const papiClient = Helper.getPapiClient(client);
 		try 
 		{
-				// Fix 'accounts' and 'contacts' schemas
-				// For more information please see the following:
-				// https://pepperi.atlassian.net/browse/DI-22492
-				// https://pepperi.atlassian.net/browse/DI-22490
-				res['resultObject'] = await createCoreSchemas(papiClient, ["accounts", "contacts"]);
+			// Fix 'accounts' and 'contacts' schemas
+			// For more information please see the following:
+			// https://pepperi.atlassian.net/browse/DI-22492
+			// https://pepperi.atlassian.net/browse/DI-22490
+			res['resultObject'] = await createCoreSchemas(papiClient, ["accounts", "contacts"]);
 		}
 		catch (error) 
 		{
