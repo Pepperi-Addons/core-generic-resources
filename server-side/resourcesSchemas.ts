@@ -1,57 +1,62 @@
 import { AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import config from '../addon.config.json';
 
-const accountUsersSchema: AddonDataScheme = {
-	Name: "account_users",
+
+const accountEmployeesSchema: AddonDataScheme = {
+	Name: "account_employees",
 	Type: 'papi',
 	SyncData:
-    {
-    	Sync: true,
-    	Associative:
-        {
-        	FieldID1: 'Account',
-		    FieldID2: 'User'
-        }
-    },
+	{
+		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Account',
+			FieldID2: 'User'
+		}
+	},
 	Fields:
-    {
-    	Key:
+	{
+		Key:
 		{
 			"Type": "String",
 			"Unique": true
 		},
-
-    	Account:
+		Account:
 		{
 			"Type": "Resource",
 			"Resource": "accounts",
 			"AddonUUID": config.AddonUUID
 		},
-    	User:
+		User:
 		{
 			"Type": "Resource",
 			"Resource": "users",
 			"AddonUUID": config.AddonUUID
 		},
-    	InternalID:
+		InternalID:
 		{
 			"Type": "Integer",
 			"Unique": true
-
 		},
-    	Hidden:
+		Hidden:
 		{
 			"Type": "Bool"
 		},
-    	ModificationDateTime:
+		ModificationDateTime:
 		{
 			"Type": "DateTime"
 		},
-    	CreationDateTime:
+		CreationDateTime:
 		{
 			"Type": "DateTime"		
 		}
-    }
+	}
+}
+
+const accountUsersSchema: AddonDataScheme = {
+	...accountEmployeesSchema,
+	Name: "account_users",
+	Type: 'papi'
 }
 
 const catalogsSchema: AddonDataScheme = {
@@ -230,8 +235,8 @@ const contactsSchema: AddonDataScheme = {
     }
 }
 
-const usersSchema: AddonDataScheme = {
-	Name: "users",
+const employeesSchema: AddonDataScheme = {
+	Name: "employees",
 	Type: 'papi',
 	SyncData:
     {
@@ -276,10 +281,10 @@ const usersSchema: AddonDataScheme = {
     }
 }
 
-const employeesSchema: AddonDataScheme = {
-	...usersSchema,
-	Name: "employees",
-	Type: "papi"
+const usersSchema: AddonDataScheme = {
+	...employeesSchema,
+	Name: 'users',
+	Type: 'papi'
 }
 
 const itemsSchema: AddonDataScheme = {
@@ -371,6 +376,7 @@ const itemsSchema: AddonDataScheme = {
 }
 
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
+	'account_employees': accountEmployeesSchema,
 	'account_users': accountUsersSchema,
 	'catalogs': catalogsSchema,
 	'accounts': accountsSchema,
