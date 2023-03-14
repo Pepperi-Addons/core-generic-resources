@@ -132,6 +132,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.1'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+
+			res['resultObject'] = await createCoreSchemas(papiClient, ["employees"]);
+			await createDimxRelations(client, papiClient, ["employees"]);
+
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	return res;
 }
 
