@@ -276,6 +276,12 @@ const usersSchema: AddonDataScheme = {
     }
 }
 
+const employeesSchema: AddonDataScheme = {
+	...usersSchema,
+	Name: "employees",
+	Type: "papi"
+}
+
 const itemsSchema: AddonDataScheme = {
 	Name: "items",
 	Type: 'papi',
@@ -370,5 +376,6 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'accounts': accountsSchema,
 	'contacts': contactsSchema,
 	'users': usersSchema,
+	'employees': employeesSchema,
 	'items': itemsSchema,
 }
