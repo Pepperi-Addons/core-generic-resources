@@ -46,7 +46,6 @@ export default class ClientApiFactory
 				return new BaseClientApiService();
 			}
 		}
-		case 'users':
 		case 'account_users':
 		{
 			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
