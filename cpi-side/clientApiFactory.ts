@@ -33,6 +33,20 @@ export default class ClientApiFactory
 			}
 		}
 		case 'items':
+		{
+			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
+
+			if(isWebAppAndNotBuyer)
+			{
+				const papiClient = await pepperi.papiClient;
+				return new PapiService(papiClient);
+			}
+			else
+			{
+				return new BaseClientApiService();
+			}
+		}
+		case 'users':
 		case 'account_users':
 		{
 			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
