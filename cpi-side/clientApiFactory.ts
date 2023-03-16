@@ -2,7 +2,7 @@ import { AccountsPapiService, IApiService, PapiService } from "core-resources-sh
 import OfflineAccountsClientApiService from "./offlineAccountsClientApi.service";
 import BaseClientApiService from "./baseClientApi.service";
 import CatalogClientApiService from "./catalogsClientApi.service";
-import { FieldType, JSONFilter, JSONRegularFilter, parse, transform } from '@pepperi-addons/pepperi-filters';
+import { FieldType, JSONFilter, parse, transform } from '@pepperi-addons/pepperi-filters';
 import config from '../addon.config.json';
 
 
@@ -47,7 +47,9 @@ export default class ClientApiFactory
 			}
 		}
 		case 'users':
+		case 'employees':
 		case 'account_users':
+		case 'account_employees':
 		{
 			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 
