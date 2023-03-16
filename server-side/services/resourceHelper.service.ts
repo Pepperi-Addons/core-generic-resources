@@ -21,9 +21,8 @@ export class ResourceHelperService {
         return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resource}`, {Objects: objects});
     }
 
-    async getByKey(key: string, resource: string) {
-        const table = this.papiClient.addons.data.uuid(config.AddonUUID).table(resource);
-        return await table.key(key).get();
+    async getByKeys(keys: string[], resource: string) {
+        return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(resource).post({KeyList: keys});
     }
 
     replaceUUIDWithKey(user) {
