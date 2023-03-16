@@ -27,17 +27,16 @@ router.use('/:resourceName', async (req, res, next) =>
 
 function validateResourceSupportedInCpiSide(resourceName: string)
 {
-	const supportedResources = ['catalogs', 'accounts', 'users', 'contacts', 'items', 'account_users'];
+	const supportedResources = ['catalogs', 'accounts', 'users', 'contacts', 'items', 'account_users', 'employees', 'account_employees'];
 
 	if(!supportedResources.includes(resourceName))
 	{
-		throw new Error();
+		throw new Error(`Resource '${resourceName} isn't supported on CPI side.`);
 	}
 }
 
 router.post('/:resourceName', async (req, res, next) => 
 {
-    
 	try 
 	{
 		const genericResourceService = await getGenericResourceService(req);

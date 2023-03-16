@@ -81,9 +81,10 @@ export class PNSService {
             Fields: `${this.requestedUserFields},IsBuyer`
         });
         let usersToUpdate: User[] = [];
+        const contactsContainedInUsers = await this.resourceHelperService.getByKeys(contactsUUIDs, 'users');
         papiUpdatedContacts.forEach(async contact => {
             this.resourceHelperService.replaceUUIDWithKey(contact);
-            if(contact.IsBuyer==false && (await this.resourceHelperService.getByKey(contact.Key, 'users'))) {
+            if(contact.IsBuyer==false && contactsContainedInUsers.Objects.find(user => user.Key==contact.Key)) {
                 // hard delete the contact, which is no longer a user
                 await this.papiClient.post(`/users/${contact.Key}/hard_delete`);
             } else if(contact.IsBuyer==true) {
