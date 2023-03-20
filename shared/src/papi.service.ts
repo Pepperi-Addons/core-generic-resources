@@ -59,7 +59,7 @@ export class PapiService implements IApiService
 		}
 	}
 
-	async searchResource(resourceName: string, body: void)
+	async searchResource(resourceName: string, body: any)
 	{
 		try
 		{
