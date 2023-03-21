@@ -259,11 +259,11 @@ function getPapiService(client: Client, request: Request): IApiService
 	}
 	case('users'):
 	{
-		return new AdalService(papiClient, 'users');
+		return new AdalService(papiClient);
 	}
 	case('account_users'):
 	{
-		return new AdalService(papiClient, 'account_users');
+		return new AdalService(papiClient);
 	}
 	default:
 	{

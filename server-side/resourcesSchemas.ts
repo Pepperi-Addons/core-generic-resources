@@ -54,9 +54,38 @@ const accountEmployeesSchema: AddonDataScheme = {
 }
 
 const accountUsersSchema: AddonDataScheme = {
-	...accountEmployeesSchema,
 	Name: "account_users",
-	Type: 'papi'
+	Type: 'data',
+	GenericResource: true,
+	SyncData:
+	{
+		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Account',
+			FieldID2: 'User'
+		}
+	},
+	Fields:
+	{
+		Account:
+		{
+			"Type": "Resource",
+			"Resource": "accounts",
+			"AddonUUID": config.AddonUUID
+		},
+		User:
+		{
+			"Type": "Resource",
+			"Resource": "users",
+			"AddonUUID": config.AddonUUID
+		},
+		InternalID:
+		{
+			"Type": "Integer",
+			"Unique": true
+		}
+	}
 }
 
 const catalogsSchema: AddonDataScheme = {
@@ -249,42 +278,72 @@ const employeesSchema: AddonDataScheme = {
 			"Type": "String",
 			"Unique": true
 		},
-    	"InternalID": {
+    	InternalID: {
     		"Type": "Integer",
     		"Unique": true
     	},
-    	"CreationDateTime": {
+    	CreationDateTime: {
     		"Type": "DateTime"
     	},
-    	"Email": {
+    	Email: {
     		"Type": "String"
     	},
-    	"FirstName": {
+    	FirstName: {
     		"Type": "String"
     	},
-    	"ExternalID": {
+    	ExternalID: {
     		"Type": "String",
     		"Unique": true
     	},
-    	"ModificationDateTime": {
+    	ModificationDateTime: {
     		"Type": "DateTime"
     	},
-    	"Hidden": {
+    	Hidden: {
     		"Type": "Bool"
     	},
-    	"LastName": {
+    	LastName: {
     		"Type": "String"
     	},
-    	"Mobile": {
+    	Mobile: {
     		"Type": "String"
     	}
     }
 }
 
 const usersSchema: AddonDataScheme = {
-	...employeesSchema,
 	Name: 'users',
-	Type: 'papi'
+	Type: 'data',
+	GenericResource: true,
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	InternalID: {
+    		"Type": "Integer",
+    		"Unique": true
+    	},
+    	Email: {
+    		"Type": "String"
+    	},
+    	FirstName: {
+    		"Type": "String"
+    	},
+    	ExternalID: {
+    		"Type": "String",
+    		"Unique": true
+    	},
+    	LastName: {
+    		"Type": "String"
+    	},
+		Name: {
+    		"Type": "String"
+    	},
+    	Mobile: {
+    		"Type": "String"
+    	}
+    }
 }
 
 const itemsSchema: AddonDataScheme = {
