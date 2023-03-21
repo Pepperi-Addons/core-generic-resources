@@ -16,8 +16,8 @@ export class AccountUsersPNSService extends BasePNSService {
     async updateAccountUsers(messageFromPNS: any) {
         console.log("ACCOUNT USERS UPDATE PNS TRIGGERED");
         let updatedPapiAccountUsers = await this.getPapiUpdatedObjects(messageFromPNS, this.getResourceName());
-        updatedPapiAccountUsers = this.replaceUUIDs(updatedPapiAccountUsers);
-        updatedPapiAccountUsers = this.fixResourceTypeFields(updatedPapiAccountUsers);
+        updatedPapiAccountUsers = this.resourceHelperService.replaceUUIDs(updatedPapiAccountUsers);
+        updatedPapiAccountUsers = this.resourceHelperService.fixResourceTypeFields(updatedPapiAccountUsers);
         const batchUpsertResponse = await this.upsertObjects(updatedPapiAccountUsers);
         console.log("ACCOUNT USERS UPDATE PNS FINISHED. BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
     }

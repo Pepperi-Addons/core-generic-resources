@@ -1,6 +1,7 @@
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { UsersPNSService } from "./services/usersPns.service";
 import { AccountUsersPNSService } from "./services/accountUsersPns.service";
+import { BuildService } from './services/build.service';
 
 export async function update_users(client: Client, request: Request) {
     const service = new UsersPNSService(client);
@@ -31,3 +32,14 @@ export async function update_account_users(client: Client, request: Request) {
         throw new Error('Bad request');
     }
 };
+
+export async function build(client: Client, request: Request) {
+    const service = new BuildService(client);
+    if (request.method == 'POST') {
+        return await service.build();
+    }
+    else{
+        throw new Error('Bad request');
+    }
+};
+

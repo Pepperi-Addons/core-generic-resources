@@ -20,7 +20,7 @@ export abstract class BasePNSService {
 
     async getRequestedFields(): Promise<string> {
         if(!this._requestedFields) {
-            this._requestedFields = await this.buildRequestedFields(this.getResourceName());
+            this._requestedFields = await this.resourceHelperService.buildRequestedFields(this.getResourceName());
         }
         return this._requestedFields;
     }
@@ -43,17 +43,7 @@ export abstract class BasePNSService {
         })
     }
 
-    async buildRequestedFields(schemeName: string): Promise<string> {
-        const scheme = await this.papiClient.addons.data.schemes.name(schemeName).get();
-        // save fields of type "Resource" for later use
-        for(const fieldName in scheme.Fields) {
-            if(scheme.Fields[fieldName].Type == "Resource") this.resourceTypeFields.push(fieldName);
-        }
-        const fields = Object.keys(scheme.Fields as any);
-        fields.filter(f => f != 'Key');
-        fields.push('UUID');
-        return fields.join(',');
-    }
+    
 
     async getPapiUpdatedObjects(messageFromPNS: any, resource: string, additionalFields?: string): Promise<any[]> {
         const fields = await this.getRequestedFields();
@@ -66,26 +56,8 @@ export abstract class BasePNSService {
         return papiUpdatedObjects;
     }
 
-    replaceUUIDs(papiUpdatedObjects: any[]): any[] {
-        for(const objIndex in papiUpdatedObjects) {
-            papiUpdatedObjects[objIndex] = this.resourceHelperService.replaceUUIDWithKey(papiUpdatedObjects[objIndex]);
-        }
-        return papiUpdatedObjects;
-    }
-
     async upsertObjects(fixedObjects: any[]) {
         return await this.resourceHelperService.batchUpsert(fixedObjects, this.getResourceName());
     }
-
-    fixResourceTypeFields(papiUpdatedObjects: any[]): any[] {
-        for(const objIndex in papiUpdatedObjects) {
-            for(const field of this.resourceTypeFields) {
-                // based on resource type field structure
-                papiUpdatedObjects[objIndex][field] = papiUpdatedObjects[objIndex][field].Data.UUID;
-            }
-        }
-        return papiUpdatedObjects;
-    }
-
 
 }
