@@ -1,6 +1,5 @@
 import { AddonsApiGetParams, AddonsApiPostParams } from "@pepperi-addons/cpi-node/build/cpi-side/client-api";
-import { IApiService } from "core-resources-shared";
-import { CORE_ADDON_UUID } from "./constants";
+import { IApiService, CORE_ADDON_UUID } from "core-resources-shared";
 import config from '../addon.config.json';
 
 
