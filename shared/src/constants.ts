@@ -3,7 +3,8 @@ export type PapiBatchResponse = [
 ];
 
 export const RESOURCE_TYPES = ['accounts', 'items', 'users', 'catalogs', 'account_users', 'contacts', "employees"];
-export const CORE_BASE_URL = '/addons/api/00000000-0000-0000-0000-00000000c07e/data_source_api';
+export const CORE_ADDON_UUID = '00000000-0000-0000-0000-00000000c07e';
+export const CORE_BASE_URL = `/addons/api/${CORE_ADDON_UUID}/data_source_api`;
 
 export const NUMBER_OF_USERS_ON_IMPORT_REQUEST = 5;
 
