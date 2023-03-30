@@ -3,26 +3,30 @@ import { Client } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json';
 import { Helper } from 'core-resources-shared';
 
-export class ResourceHelperService {
+export class ResourceHelperService 
+{
 
-    papiClient: PapiClient;
+	papiClient: PapiClient;
 
-    constructor(client: Client) {
-        this.papiClient = Helper.getPapiClient(client);
-    }
+	constructor(client: Client) 
+	{
+		this.papiClient = Helper.getPapiClient(client);
+	}
 
-    async batchUpsert(objects: any[], resource: string) {
-        return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resource}`, {Objects: objects});
-    }
+	async batchUpsert(objects: any[], resource: string) 
+	{
+		return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resource}`, {Objects: objects});
+	}
 
-    async getByKeys(keys: string[], resource: string) {
-        return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(resource).post({KeyList: keys});
-    }
+	async getByKeys(keys: string[], resource: string) 
+	{
+		return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(resource).post({KeyList: keys});
+	}
 
-    replaceUUIDWithKey(user) {
-        user["Key"] = user["UUID"];
-        delete user["UUID"];
-        return user;
-    }
+	replaceUUIDWithKey(user): void 
+	{
+		user["Key"] = user["UUID"];
+		delete user["UUID"];
+	}
 
 }
