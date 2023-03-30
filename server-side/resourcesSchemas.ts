@@ -337,7 +337,7 @@ const usersSchema: AddonDataScheme = {
     	LastName: {
     		"Type": "String"
     	},
-		Name: {
+    	Name: {
     		"Type": "String"
     	},
     	Mobile: {
