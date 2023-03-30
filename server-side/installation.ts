@@ -9,10 +9,12 @@ The error Message is importent! it will be written in the audit log and help the
 */
 
 import { Client, Request } from '@pepperi-addons/debug-server'
-import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
+import { PapiClient, Relation, Subscription } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
-import { AccountsPapiService, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
+import { AccountsPapiService, CORE_ADDON_UUID, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from './resourcesSchemas';
+import { AddonUUID } from '../addon.config.json';
+import { TSA_CREATION_SUBSCRIPTION_NAME } from './constants';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -23,6 +25,7 @@ export async function install(client: Client, request: Request): Promise<any>
 	{
 		res['resultObject'] = await createCoreSchemas(papiClient);
 		await createDimxRelations(client, papiClient);
+		await upsertSubscriptionToTsaCreation(papiClient);
 	}
 	catch (error) 
 	{
@@ -42,6 +45,8 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 	try
 	{
 		await removeDimxRelations(client, papiClient);
+		const hideSubscription = true;
+		await upsertSubscriptionToTsaCreation(papiClient, hideSubscription);
 	}
 	catch(error)
 	{
@@ -141,6 +146,22 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['resultObject'] = await createCoreSchemas(papiClient, ["employees", "account_employees"]);
 			await createDimxRelations(client, papiClient, ["employees", "account_employees"]);
 
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.5'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			await upsertSubscriptionToTsaCreation(papiClient);
 		}
 		catch (error) 
 		{
@@ -286,4 +307,35 @@ async function getMissingSchemas(papiClient: PapiClient)
 	const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
 
 	return missingSchemas;
+}
+
+
+/**
+ * Create a subscription to TSA's creation
+ * @param papiClient 
+ */
+async function upsertSubscriptionToTsaCreation(papiClient: PapiClient)
+
+/**
+ * Either hides or creates a subscription to TSA's creation, depending on the shouldHide parameter.
+ * @param papiClient 
+ * @param shouldHide 
+ */
+async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHide: boolean)
+async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHide: boolean = false)
+{
+	const subscription: Subscription = {
+		AddonUUID: AddonUUID,
+		Name: TSA_CREATION_SUBSCRIPTION_NAME,
+		Type: "data",
+		FilterPolicy: {
+			Action: ['insert'],
+			AddonUUID: [CORE_ADDON_UUID],
+			Resource: ['type_safe_attribute']
+		},
+		AddonRelativeURL: '/api/handle_tsa_creation',
+		Hidden: shouldHide
+	}
+	
+	await papiClient.notification.subscriptions.upsert(subscription);
 }

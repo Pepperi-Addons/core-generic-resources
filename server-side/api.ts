@@ -160,7 +160,10 @@ async function searchFunctionAdapter(client: Client, request: Request, resourceN
 }
 // #endregion
 
-
+export async function handle_tsa_creation()
+{
+	throw new Error("Function not implemented.");
+}
 
 async function resourcesFunctionAdapter(client: Client, request: Request, resourceName: string)
 {

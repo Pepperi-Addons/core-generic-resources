@@ -1,0 +1,1 @@
+export const TSA_CREATION_SUBSCRIPTION_NAME = 'core-resources-TSA-creation';
