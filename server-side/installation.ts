@@ -12,18 +12,20 @@ import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation, Subscription } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
 import { AccountsPapiService, CORE_ADDON_UUID, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
-import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AddonUUID } from '../addon.config.json';
 import { TSA_CREATION_SUBSCRIPTION_NAME } from './constants';
+import { SchemaService } from './schema.service';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
 	const res = { success: true };
 
 	const papiClient = Helper.getPapiClient(client);
+	const schemaService = new SchemaService(papiClient);
+
 	try 
 	{
-		res['resultObject'] = await createCoreSchemas(papiClient);
+		res['resultObject'] = await schemaService.createCoreSchemas(papiClient);
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 	}
@@ -64,10 +66,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.24')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
 		try 
 		{
 			// Switch to hardcoded schemas
-			res['resultObject'] = await createCoreSchemas(papiClient);
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient);
 			// account_users DIMX relations should be updated with the new (empty) relative url
 			await createDimxRelations(client, papiClient, ["account_users"]);
 		}
@@ -103,13 +106,14 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.33'))
 	{
 		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
 		try 
 		{
 			// Fix 'accounts' and 'contacts' schemas
 			// For more information please see the following:
 			// https://pepperi.atlassian.net/browse/DI-22492
 			// https://pepperi.atlassian.net/browse/DI-22490
-			res['resultObject'] = await createCoreSchemas(papiClient, ["accounts", "contacts"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["accounts", "contacts"]);
 		}
 		catch (error) 
 		{
@@ -140,10 +144,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.2'))
 	{
 		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
 		try 
 		{
 
-			res['resultObject'] = await createCoreSchemas(papiClient, ["employees", "account_employees"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["employees", "account_employees"]);
 			await createDimxRelations(client, papiClient, ["employees", "account_employees"]);
 
 		}
@@ -156,7 +161,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.5'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.9'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
@@ -178,25 +183,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 export async function downgrade(client: Client, request: Request): Promise<any> 
 {
 	return { success: true, resultObject: {} }
-}
-
-async function createCoreSchemas(papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
-{
-	const resObject = { schemas: Array<any>() }
-
-	for (const resource of resourcesList) 
-	{
-		try 
-		{
-			resObject.schemas.push(await papiClient.addons.data.schemes.post(resourceNameToSchemaMap[resource]));
-		}
-		catch (error) 
-		{
-			throw new Error(`Failed to create schema ${resource}: ${error}`);
-		}
-	}
-
-	return resObject;
 }
 
 async function createDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
@@ -292,23 +278,6 @@ async function upsertRelation(papiClient: PapiClient, relation: Relation)
 {
 	return papiClient.post('/addons/data/relations', relation);
 }
-
-async function createMissingSchemas(papiClient: PapiClient, client: Client)
-{
-	const missingSchemas: Array<string> = await getMissingSchemas(papiClient);
-
-	return await createCoreSchemas(papiClient, missingSchemas);
-}
-
-async function getMissingSchemas(papiClient: PapiClient)
-{
-	const existingSchemas = (await papiClient.addons.data.schemes.get({fields: ['Name']})).map(obj => obj.Name);
-
-	const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
-
-	return missingSchemas;
-}
-
 
 /**
  * Create a subscription to TSA's creation
