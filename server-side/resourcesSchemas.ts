@@ -70,20 +70,37 @@ const accountUsersSchema: AddonDataScheme = {
 	{
 		Account:
 		{
-			"Type": "Resource",
-			"Resource": "accounts",
-			"AddonUUID": config.AddonUUID
+			Type: "Resource",
+			Resource: "accounts",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			}
 		},
 		User:
 		{
-			"Type": "Resource",
-			"Resource": "users",
-			"AddonUUID": config.AddonUUID
-		},
-		InternalID:
-		{
-			"Type": "Integer",
-			"Unique": true
+			Type: "Resource",
+			Resource: "users",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			}
 		}
 	}
 }
@@ -320,28 +337,42 @@ const usersSchema: AddonDataScheme = {
     },
 	Fields:
     {
-    	InternalID: {
-    		"Type": "Integer",
-    		"Unique": true
-    	},
     	Email: {
-    		"Type": "String"
+    		Type: "String"
     	},
     	FirstName: {
-    		"Type": "String"
+    		Type: "String"
     	},
     	ExternalID: {
-    		"Type": "String",
-    		"Unique": true
+    		Type: "String",
+    		Unique: true
     	},
     	LastName: {
-    		"Type": "String"
+    		Type: "String"
     	},
     	Name: {
-    		"Type": "String"
+    		Type: "String"
     	},
     	Mobile: {
-    		"Type": "String"
+    		Type: "String"
+    	},
+    	Phone: {
+    		Type: "String"
+    	},
+    	Profile: {
+    		Type: "Resource",
+    		Resource: "profile",
+    		AddonUUID: config.AddonUUID,
+    		Indexed: true,
+    		IndexedFields: {
+    			Name: {
+    				Type: "String",
+    				Indexed: true
+    			}
+    		}
+    	},
+    	UserType: {
+    		Type: "String"
     	}
     }
 }

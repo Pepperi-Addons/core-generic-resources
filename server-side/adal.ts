@@ -1,8 +1,11 @@
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { UsersPNSService } from "./services/usersPns.service";
 import { AccountUsersPNSService } from "./services/accountUsersPns.service";
-import { BuildService } from './services/build.service';
 import { BuildUsersService } from './services/buildUsers.service';
+import { BuildUsersFromContactsService } from './services/buildUsersFromContacts.service';
+import { BuildAccountUsersService } from './services/buildAccountUsers.service';
+import { BuildAccountBuyersService } from './services/buildAccountBuyers.service';
+import { AdalHelperService } from './services/adalHelper.service';
 
 export async function update_users(client: Client, request: Request) 
 {
@@ -43,12 +46,12 @@ export async function update_account_users(client: Client, request: Request)
 	}
 }
 
-export async function build_users_table(client: Client, request: Request) 
+export async function build_users(client: Client, request: Request) 
 {
 	const service = new BuildUsersService(client);
 	if (request.method == 'POST') 
 	{
-		return await service.buildAdalTable(request.body.CurrentPages[0], request.body.CurrentPages[1]);
+		return await service.buildAdalTable(request.body);
 	}
 	else
 	{
@@ -56,16 +59,55 @@ export async function build_users_table(client: Client, request: Request)
 	}
 }
 
-// export async function build(client: Client, request: Request) 
-// {
-// 	const service = new BuildService(client);
-// 	if (request.method == 'POST') 
-// 	{
-// 		return await service.build();
-// 	}
-// 	else
-// 	{
-// 		throw new Error('Bad request');
-// 	}
-// }
+export async function build_users_from_contacts(client: Client, request: Request) 
+{
+	const service = new BuildUsersFromContactsService(client);
+	if (request.method == 'POST')
+	{
+		return await service.buildAdalTable(request.body);
+	}
+	else
+	{
+		throw new Error('Bad request');
+	}
+}
+
+export async function build_account_users(client: Client, request: Request) 
+{
+	const service = new BuildAccountUsersService(client);
+	if (request.method == 'POST')
+	{
+		return await service.buildAdalTable(request.body);
+	}
+	else
+	{
+		throw new Error('Bad request');
+	}
+}
+
+export async function build_account_buyers(client: Client, request: Request) 
+{
+	const service = new BuildAccountBuyersService(client);
+	if (request.method == 'POST')
+	{
+		return await service.buildAdalTable(request.body);
+	}
+	else
+	{
+		throw new Error('Bad request');
+	}
+}
+
+export async function build(client: Client, request: Request) 
+{
+	const service = new AdalHelperService(client);
+	if (request.method == 'POST') 
+	{
+		return await service.build();
+	}
+	else
+	{
+		throw new Error('Bad request');
+	}
+}
 

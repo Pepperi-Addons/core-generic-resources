@@ -1,49 +1,48 @@
-import { Helper, CORE_ADDON_UUID } from 'core-resources-shared';
-import { AddonDataScheme, PapiClient, SchemeField } from '@pepperi-addons/papi-sdk';
+import { Helper } from 'core-resources-shared';
+import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server';
-import { ResourceHelperService } from './resourceHelper.service';
+import { AdalHelperService } from './adalHelper.service';
+import { PapiGetterService } from './papiGetter.service';
 
-export class BuildService {
-    papiClient: PapiClient;
-    resourceHelperService: ResourceHelperService;
-    currentPage: number = 1;
-    pageSize: number = 500;
+export abstract class BuildService 
+{
+	papiClient: PapiClient;
+	adalHelperService: AdalHelperService;
+	pageSize = 500;
 
-    constructor(client: Client) {
-        this.papiClient = Helper.getPapiClient(client);
-        this.resourceHelperService = new ResourceHelperService(client);
+	constructor(client: Client)
+	{
+		this.papiClient = Helper.getPapiClient(client);
+		this.adalHelperService = new AdalHelperService(client);
+	}
+
+	abstract papiGetterService: PapiGetterService;
+    abstract buildAdalTable(body: any): Promise<any>;
+
+    async buildAdalTableHelper(adalTable: string, body: any, where = ""): Promise<any>
+    {
+    	const res = { success: true };
+    	try
+    	{
+    		let results: any[];
+    		do
+    		{
+    			results = await this.papiGetterService.getPapiObjectsByPage(where, body.fromPage, this.pageSize);
+    			// // fix results and push to adal
+    			const fixedObjects = this.papiGetterService.fixPapiObjects(results);
+    			const batchUpsertResponse = await this.adalHelperService.batchUpsert(fixedObjects, adalTable);
+    			body.fromPage++;
+    			console.log(`${adalTable} PAGE UPSERT FINISHED. BATCH UPSERT RESPONSE: ` + JSON.stringify(batchUpsertResponse));
+        
+    		} while(results.length == this.pageSize);
+    	}
+    	catch (error)
+    	{
+    		res.success = false;
+    		res['errorMessage'] = error;
+    	}
+    	return res;
     }
 
-    // TODO: split this class to usersBuild and accountUsersBuild
-
-    async buildDataForAdal(resource, currentPages: number[]) {
-        const res = { success: true };
-        try {
-            let results: any[];
-            do {
-                const fields = await this.resourceHelperService.buildRequestedFields(resource);
-                results = await this.getSinglePageOfObjects(resource, fields, this.currentPage);
-                this.currentPage++;
-                // fix results and push to adal
-            } while(results.length == this.pageSize);
-        }
-        catch (error) {
-            res.success = false;
-            res['errorMessage'] = error;
-        }
-
-        return res;
-    }
-
-    async getSinglePageOfObjects(resource: string, fields: string, page: number, pageSize: number = 500) {
-        return await this.papiClient.post(`/${resource}/search`,{
-            Fields: `${fields}`,
-            PageSize: pageSize,
-            Page: page
-        });
-    }
-
-    async build() {
-        //return this.papiClient.addons.api.uuid('').async().file('adal').func('build_data_for_adal').post({retry: 20},{})
-    }
+    
 }
