@@ -262,6 +262,9 @@ const employeesSchema: AddonDataScheme = {
     	"FirstName": {
     		"Type": "String"
     	},
+		"Name": {
+    		"Type": "String"
+    	},
     	"ExternalID": {
     		"Type": "String",
     		"Unique": true
@@ -371,6 +374,30 @@ const itemsSchema: AddonDataScheme = {
     	},
     	"Price": {
     		"Type": "Double"
+    	}
+    }
+}
+
+const profilesSchema: AddonDataScheme = {
+	Name: "profiles",
+	Type: 'papi',
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	Key:
+		{
+			"Type": "String",
+			"Unique": true
+		},
+    	InternalID: {
+    		Type: "Integer",
+    		Unique: true
+    	},
+    	Name: {
+    		Type: "String"
     	}
     }
 }
