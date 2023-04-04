@@ -101,9 +101,9 @@ export async function build_account_buyers(client: Client, request: Request)
 export async function build(client: Client, request: Request) 
 {
 	const service = new AdalHelperService(client);
-	if (request.method == 'POST') 
+	if (request.method == 'POST')
 	{
-		return await service.build();
+		return await service.build(request.query?.resource);
 	}
 	else
 	{

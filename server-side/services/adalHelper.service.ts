@@ -7,6 +7,10 @@ export class AdalHelperService
 {
 
 	protected papiClient: PapiClient;
+	protected resourceFunctionsMap: any = {
+		users: ['build_users', 'build_users_from_contacts'],
+		account_users: ['build_account_users', 'build_account_buyers']
+	}
 
 	constructor(client: Client)
 	{
@@ -23,15 +27,19 @@ export class AdalHelperService
 		return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(resource).post({KeyList: keys});
 	}
 
-	async build(): Promise<any>
+	async build(resource: string): Promise<any>
 	{
-		const res = { success: true };
-		try 
+		if(resource != 'users' && resource != 'account_users')
 		{
-			res['users'] = await this.singleBuild('build_users');
-			res['contacts'] = await this.singleBuild('build_users_from_contacts');
-			res['account_users'] = await this.singleBuild('build_account_users');
-			res['account_buyers'] = await this.singleBuild('build_account_buyers');
+			throw new Error('Invalid resource name. Valid values are: users, account_users');
+		}
+		const firstFunc = this.resourceFunctionsMap[resource][0];
+		const secondFunc = this.resourceFunctionsMap[resource][1];
+		const res = { success: true };
+		try
+		{
+			res[firstFunc] = await this.singleBuild(firstFunc);
+			res[secondFunc] = await this.singleBuild(secondFunc);
 		}
 		catch (error)
     	{

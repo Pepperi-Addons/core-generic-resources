@@ -27,6 +27,7 @@ export abstract class BuildService
     		let results: any[];
     		do
     		{
+    			if(!body.fromPage) body.fromPage = 1;
     			results = await this.papiGetterService.getPapiObjectsByPage(where, body.fromPage, this.pageSize);
     			// // fix results and push to adal
     			const fixedObjects = this.papiGetterService.fixPapiObjects(results);
