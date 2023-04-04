@@ -25,7 +25,7 @@ export class AccountUsersPNSService extends BasePNSService
 		return 'account_users';
 	}
 
-	async updateAccountUsers(messageFromPNS: any) 
+	async updateAccountUsers(messageFromPNS: any): Promise<void>
 	{
 		console.log("ACCOUNT USERS UPDATE PNS TRIGGERED");
 		const accountUsersUUIDs = messageFromPNS.FilterAttributes.ModifiedObjects;

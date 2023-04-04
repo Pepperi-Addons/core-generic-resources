@@ -61,6 +61,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		const papiClient = Helper.getPapiClient(client);
 		try 
 		{
+			res['purgeResult'] = await purgeOldSchemas(papiClient);
 			// Switch to hardcoded schemas
 			res['resultObject'] = await createCoreSchemas(papiClient);
 			// account_users DIMX relations should be updated with the new (empty) relative url
@@ -286,4 +287,10 @@ async function getMissingSchemas(papiClient: PapiClient)
 	const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
 
 	return missingSchemas;
+}
+
+async function purgeOldSchemas(papiClient: PapiClient)
+{
+	await papiClient.post(`/addons/data/schemes/users/purge`);
+	await papiClient.post(`/addons/data/schemes/account_users/purge`);
 }

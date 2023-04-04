@@ -15,7 +15,7 @@ export class PapiUsersService extends PapiGetterService
 		return fields.join(',');
 	}
 
-	additionalFix(object: any): any
+	additionalFix(object: any): void
 	{
 		object["UserType"] = "Employee";
 	}

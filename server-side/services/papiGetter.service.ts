@@ -26,7 +26,7 @@ export abstract class PapiGetterService
 
     abstract getResourceName(): string;
     abstract buildFixedFieldsString(): Promise<string>;
-    abstract additionalFix(object): any;
+    abstract additionalFix(object): void;
 
     async getPapiObjects(body: any, additionalFields?: string): Promise<any[]> 
     {
@@ -64,10 +64,11 @@ export abstract class PapiGetterService
     	let fields = Object.keys(scheme.Fields as any);
     	fields = fields.filter(f => f != 'Key');
     	fields.push('UUID');
+		fields.push('Hidden');
     	return fields;
     }
 
-    replaceUUIDWithKey(user) 
+    replaceUUIDWithKey(user): void
     {
     	user["Key"] = user["UUID"];
     	delete user["UUID"];

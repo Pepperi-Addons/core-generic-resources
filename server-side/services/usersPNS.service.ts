@@ -17,7 +17,7 @@ export class UsersPNSService extends BasePNSService
 		this.papiContactsService = new PapiContactsService(client);
 	}
 
-	async subscribeToPNS() 
+	async subscribeToPNS(): Promise<void>
 	{
 		// for users maintenance
 		await this.subscribe("/adal/update_users", "papiUsersChanged", "update", "users");
@@ -31,7 +31,7 @@ export class UsersPNSService extends BasePNSService
 		return 'users';
 	}
 
-	async updateUsers(messageFromPNS: any) 
+	async updateUsers(messageFromPNS: any): Promise<void>
 	{
 		console.log("USERS UPDATE PNS TRIGGERED");
 		const usersUUIDs = messageFromPNS.FilterAttributes.ModifiedObjects;
@@ -41,7 +41,7 @@ export class UsersPNSService extends BasePNSService
 		console.log("USERS UPDATE PNS FINISHED. BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
 	}
 
-	async updateUsersFromContacts(messageFromPNS: any) 
+	async updateUsersFromContacts(messageFromPNS: any): Promise<void>
 	{
 		console.log("USERS UPDATE FROM CONTACTS PNS TRIGGERED");
 		const contactsUUIDs = messageFromPNS.FilterAttributes.ModifiedObjects;

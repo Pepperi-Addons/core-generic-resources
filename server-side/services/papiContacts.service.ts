@@ -14,7 +14,7 @@ export class PapiContactsService extends PapiGetterService
 		return fields.join(',');
 	}
 
-	additionalFix(object: any): any
+	additionalFix(object: any): void
 	{
 		object["UserType"] = "Buyer";
 	}

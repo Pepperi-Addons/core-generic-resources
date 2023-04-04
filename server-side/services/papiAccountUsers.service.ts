@@ -15,6 +15,6 @@ export class PapiAccountUsersService extends PapiGetterService
 		return fields.join(',');
 	}
 
-	additionalFix(object): any
+	additionalFix(object): void
 	{}
 }

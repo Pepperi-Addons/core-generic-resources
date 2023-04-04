@@ -10,8 +10,6 @@ export abstract class BasePNSService
 
 	protected papiClient: PapiClient;
 	protected adalHelperService: AdalHelperService;
-	protected _requestedFields: string | undefined;
-	protected resourceTypeFields: string[] = [];
 
 	constructor(client: Client)
 	{
@@ -21,9 +19,9 @@ export abstract class BasePNSService
 
     abstract getResourceName(): string;
 
-    abstract subscribeToPNS(): void;
+    abstract subscribeToPNS(): Promise<void>;
 
-    async subscribe(addonRelativeURL: string, name: string, action: any, resource: string) 
+    async subscribe(addonRelativeURL: string, name: string, action: any, resource: string): Promise<void>
     {
     	await this.papiClient.notification.subscriptions.upsert({
     		AddonUUID: config.AddonUUID,
