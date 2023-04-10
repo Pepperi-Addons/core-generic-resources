@@ -1,6 +1,7 @@
 import { AddonDataScheme, SchemeFieldType } from "@pepperi-addons/papi-sdk";
 
 export const TSA_CREATION_SUBSCRIPTION_NAME = 'core-resources-TSA-creation';
+export const TSA_MODIFICATION_SUBSCRIPTION_NAME = 'core-resources-TSA-modification';
 
 export const OwnerObjectTypeIDToResourceTypeMap: Map<number, string> = new Map([
     [35, 'accounts'],
@@ -42,6 +43,7 @@ export function getAdalFieldTypeFromPopulatableObjectType(populatableObjectType:
 }
 
 export type TSA = { 
+    UUID: string;
     Name: string;
     OwnerObjectTypeID: number;
     PopulatableObjectType: number;
