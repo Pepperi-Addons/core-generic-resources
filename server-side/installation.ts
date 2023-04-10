@@ -13,7 +13,7 @@ import { PapiClient, Relation, Subscription } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
 import { AccountsPapiService, CORE_ADDON_UUID, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 import { AddonUUID } from '../addon.config.json';
-import { TSA_CREATION_SUBSCRIPTION_NAME } from './constants';
+import { TSA_CREATION_SUBSCRIPTION_NAME } from './tsa-service/constants';
 import { SchemaService } from './schema.service';
 
 export async function install(client: Client, request: Request): Promise<any> 

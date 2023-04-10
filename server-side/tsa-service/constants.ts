@@ -1,4 +1,4 @@
-import { SchemeFieldType } from "@pepperi-addons/papi-sdk";
+import { AddonDataScheme, SchemeFieldType } from "@pepperi-addons/papi-sdk";
 
 export const TSA_CREATION_SUBSCRIPTION_NAME = 'core-resources-TSA-creation';
 
@@ -40,3 +40,12 @@ export function getAdalFieldTypeFromPopulatableObjectType(populatableObjectType:
             return 'String';
     }
 }
+
+export type TSA = { 
+    Name: string;
+    OwnerObjectTypeID: number;
+    PopulatableObjectType: number;
+};
+
+// Pick the Name and Fields properties from the AddonDataScheme interface, and make them required (non optional)
+export type SchemaNameAndFields = Required<Pick<AddonDataScheme, 'Name' | 'Fields'>>;
