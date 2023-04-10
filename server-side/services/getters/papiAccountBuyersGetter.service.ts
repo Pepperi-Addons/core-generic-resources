@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 import { PapiGetterService } from "./papiGetter.service";
 
-export class PapiAccountBuyersService extends PapiGetterService
+export class PapiAccountBuyersGetterService extends PapiGetterService
 { 
 
 	getResourceName(): string

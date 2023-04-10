@@ -1,16 +1,16 @@
-import { Client } from '@pepperi-addons/debug-server';
+import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { BasePNSService } from './basePNS.service';
-import { PapiAccountUsersService } from './papiAccountUsers.service';
+import { PapiAccountUsersGetterService } from '../getters/papiAccountUsersGetter.service';
 
 
 export class AccountUsersPNSService extends BasePNSService 
 {
-	protected papiAccountUsersService: PapiAccountUsersService;
+	protected papiAccountUsersService: PapiAccountUsersGetterService;
 
-	constructor(client: Client) 
+	constructor(papiClient: PapiClient) 
 	{
-		super(client);
-		this.papiAccountUsersService = new PapiAccountUsersService(client);
+		super(papiClient);
+		this.papiAccountUsersService = new PapiAccountUsersGetterService(papiClient);
 	}
 
 	async subscribeToPNS(): Promise<void> 

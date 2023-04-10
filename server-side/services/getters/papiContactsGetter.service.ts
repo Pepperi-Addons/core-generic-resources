@@ -1,6 +1,6 @@
 import { PapiGetterService } from "./papiGetter.service";
 
-export class PapiContactsService extends PapiGetterService
+export class PapiContactsGetterService extends PapiGetterService
 { 
 	getResourceName(): string 
 	{
@@ -11,7 +11,9 @@ export class PapiContactsService extends PapiGetterService
 	{
 		let fields = await this.getSchemeFields('users');
 		fields = fields.filter(field => field != 'UserType');
-		return fields.join(',');
+		const fieldsString = fields.join(',');
+		console.log("CONTACTS FIELDS STRING: " + fieldsString);
+		return fieldsString;
 	}
 
 	additionalFix(object: any): void

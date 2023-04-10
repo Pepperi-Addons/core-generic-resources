@@ -1,7 +1,5 @@
 /* eslint-disable indent */
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { Client } from '@pepperi-addons/debug-server';
-import { Helper } from 'core-resources-shared';
 
 export abstract class PapiGetterService 
 {
@@ -10,11 +8,12 @@ export abstract class PapiGetterService
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(client: Client)
+	constructor(papiClient: PapiClient)
 	{
-		this.papiClient = Helper.getPapiClient(client);
+		this.papiClient = papiClient;
 	}
 
+	// this function makes sure the fields string is built only once
 	async getRequestedFieldsString(): Promise<string>
 	{
 		if(!this._requestedFields)
@@ -24,16 +23,18 @@ export abstract class PapiGetterService
 		return this._requestedFields;
 	}
 
-    abstract getResourceName(): string;
-    abstract buildFixedFieldsString(): Promise<string>;
+    abstract getResourceName(): string; // search is performed on the given resource
+    abstract buildFixedFieldsString(): Promise<string>; 
     abstract additionalFix(object): void;
 
-    async getPapiObjects(body: any, additionalFields?: string): Promise<any[]> 
+    async getPapiObjects(body: any, additionalFieldsString?: string): Promise<any[]> 
     {
+		console.log("GETTING PAPI OBJECTS");
     	console.log(body);
-    	const fields = await this.getRequestedFieldsString();
-    	body["Fields"] = `${fields},${additionalFields}`;
+    	const fieldsString = await this.getRequestedFieldsString();
+    	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
     	const papiObjects = await this.papiClient.post(`/${this.getResourceName()}/search`, body);
+		console.log("FINISHED GETTING PAPI OBJECTS");
     	return papiObjects;
     }
 
@@ -76,6 +77,7 @@ export abstract class PapiGetterService
 
     fixPapiObjects(papiObjects: any[]): any[] 
     {
+		console.log("FIXING PAPI OBJECTS");
     	for(const objIndex in papiObjects)
     	{
     		this.replaceUUIDWithKey(papiObjects[objIndex]);

@@ -13,6 +13,9 @@ import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
 import { AccountsPapiService, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from './resourcesSchemas';
+import { UsersPNSService } from './services/pns/usersPNS.service';
+import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
+import { BasePNSService } from './services/pns/basePNS.service';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -23,6 +26,7 @@ export async function install(client: Client, request: Request): Promise<any>
 	{
 		res['resultObject'] = await createCoreSchemas(papiClient);
 		await createDimxRelations(client, papiClient);
+		await subscriptions(papiClient);
 	}
 	catch (error) 
 	{
@@ -59,9 +63,10 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.24')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
-		try 
+		try
 		{
-			res['purgeResult'] = await purgeOldSchemas(papiClient);
+			await purgeOldSchemas(papiClient);
+			await subscriptions(papiClient);
 			// Switch to hardcoded schemas
 			res['resultObject'] = await createCoreSchemas(papiClient);
 			// account_users DIMX relations should be updated with the new (empty) relative url
@@ -293,4 +298,15 @@ async function purgeOldSchemas(papiClient: PapiClient)
 {
 	await papiClient.post(`/addons/data/schemes/users/purge`);
 	await papiClient.post(`/addons/data/schemes/account_users/purge`);
+}
+
+async function subscribeToPNS(pnsService: BasePNSService)
+{
+	await pnsService.subscribeToPNS();
+}
+
+async function subscriptions(papiClient: PapiClient)
+{
+	await subscribeToPNS(new UsersPNSService(papiClient));
+	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }

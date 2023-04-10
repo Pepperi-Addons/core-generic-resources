@@ -1,7 +1,5 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { Client } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json';
-import { Helper } from 'core-resources-shared';
 
 export class AdalHelperService 
 {
@@ -12,9 +10,9 @@ export class AdalHelperService
 		account_users: ['build_account_users', 'build_account_buyers']
 	}
 
-	constructor(client: Client)
+	constructor(papiClient: PapiClient)
 	{
-		this.papiClient = Helper.getPapiClient(client);
+		this.papiClient = papiClient;
 	}
 
 	async batchUpsert(objects: any[], resource: string) 

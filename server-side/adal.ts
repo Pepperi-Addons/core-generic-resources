@@ -1,15 +1,17 @@
 import { Client, Request } from '@pepperi-addons/debug-server'
-import { UsersPNSService } from "./services/usersPns.service";
-import { AccountUsersPNSService } from "./services/accountUsersPns.service";
-import { BuildUsersService } from './services/buildUsers.service';
-import { BuildUsersFromContactsService } from './services/buildUsersFromContacts.service';
-import { BuildAccountUsersService } from './services/buildAccountUsers.service';
-import { BuildAccountBuyersService } from './services/buildAccountBuyers.service';
+import { UsersPNSService } from "./services/pns/usersPNS.service";
+import { AccountUsersPNSService } from "./services/pns/accountUsersPNS.service";
+import { BuildUsersFromContactsService } from './services/builders/buildUsersFromContacts.service';
+import { BuildAccountUsersService } from './services/builders/buildAccountUsers.service';
+import { BuildAccountBuyersService } from './services/builders/buildAccountBuyers.service';
+import { BuildUsersService } from './services/builders/buildUsers.service';
 import { AdalHelperService } from './services/adalHelper.service';
+import { Helper } from 'core-resources-shared';
 
 export async function update_users(client: Client, request: Request) 
 {
-	const service = new UsersPNSService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new UsersPNSService(papiClient);
 	if (request.method == 'POST') 
 	{
 		return await service.updateUsers(request.body);
@@ -22,7 +24,8 @@ export async function update_users(client: Client, request: Request)
 
 export async function update_users_from_contacts(client: Client, request: Request) 
 {
-	const service = new UsersPNSService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new UsersPNSService(papiClient);
 	if (request.method == 'POST') 
 	{
 		return await service.updateUsersFromContacts(request.body);
@@ -35,7 +38,8 @@ export async function update_users_from_contacts(client: Client, request: Reques
 
 export async function update_account_users(client: Client, request: Request) 
 {
-	const service = new AccountUsersPNSService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new AccountUsersPNSService(papiClient);
 	if (request.method == 'POST') 
 	{
 		return await service.updateAccountUsers(request.body);
@@ -48,7 +52,8 @@ export async function update_account_users(client: Client, request: Request)
 
 export async function build_users(client: Client, request: Request) 
 {
-	const service = new BuildUsersService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new BuildUsersService(papiClient);
 	if (request.method == 'POST') 
 	{
 		return await service.buildAdalTable(request.body);
@@ -61,7 +66,8 @@ export async function build_users(client: Client, request: Request)
 
 export async function build_users_from_contacts(client: Client, request: Request) 
 {
-	const service = new BuildUsersFromContactsService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new BuildUsersFromContactsService(papiClient);
 	if (request.method == 'POST')
 	{
 		return await service.buildAdalTable(request.body);
@@ -74,7 +80,8 @@ export async function build_users_from_contacts(client: Client, request: Request
 
 export async function build_account_users(client: Client, request: Request) 
 {
-	const service = new BuildAccountUsersService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new BuildAccountUsersService(papiClient);
 	if (request.method == 'POST')
 	{
 		return await service.buildAdalTable(request.body);
@@ -87,7 +94,8 @@ export async function build_account_users(client: Client, request: Request)
 
 export async function build_account_buyers(client: Client, request: Request) 
 {
-	const service = new BuildAccountBuyersService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new BuildAccountBuyersService(papiClient);
 	if (request.method == 'POST')
 	{
 		return await service.buildAdalTable(request.body);
@@ -100,7 +108,8 @@ export async function build_account_buyers(client: Client, request: Request)
 
 export async function build(client: Client, request: Request) 
 {
-	const service = new AdalHelperService(client);
+	const papiClient = Helper.getPapiClient(client);
+	const service = new AdalHelperService(papiClient);
 	if (request.method == 'POST')
 	{
 		return await service.build(request.query?.resource);
