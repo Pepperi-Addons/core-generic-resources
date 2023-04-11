@@ -215,7 +215,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	}
 
 	// create a new profiles schema
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.28'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);

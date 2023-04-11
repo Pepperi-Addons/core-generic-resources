@@ -380,7 +380,7 @@ const itemsSchema: AddonDataScheme = {
 }
 
 const profilesSchema: AddonDataScheme = {
-	Name: "items",
+	Name: "profiles",
 	Type: 'papi',
 	SyncData:
     {
