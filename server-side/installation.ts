@@ -162,6 +162,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			return res;
 		}
 	}
+	// Add FromERPIntegration field to account_employees
+	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.5'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		try 
+		{
+
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["account_employees"]);
+
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
 
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.9'))
 	{

@@ -28,6 +28,11 @@ export async function get_account_users_by_key(client: Client, request: Request)
 	return await resourcesFunctionAdapter(client, request, "account_users");
 }
 
+export async function get_account_employees_by_key(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_employees");
+}
+
 export async function get_contacts_by_key(client: Client, request: Request) 
 {
 	return await resourcesFunctionAdapter(client, request, "contacts");
@@ -66,6 +71,11 @@ export async function account_users(client: Client, request: Request)
 	return await resourcesFunctionAdapter(client, request, "account_users");
 }
 
+export async function account_employees(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_employees");
+}
+
 export async function contacts(client: Client, request: Request) 
 {
 	return await resourcesFunctionAdapter(client, request, "contacts");
@@ -101,6 +111,11 @@ export async function get_catalogs_by_unique_field(client: Client, request: Requ
 export async function get_account_users_by_unique_field(client: Client, request: Request) 
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "account_users");
+}
+
+export async function get_account_employees_by_unique_field(client: Client, request: Request) 
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "account_employees");
 }
 
 export async function get_contacts_by_unique_field(client: Client, request: Request) 
@@ -143,6 +158,11 @@ export async function catalogs_search(client: Client, request: Request)
 export async function account_users_search(client: Client, request: Request) 
 {
 	return await searchFunctionAdapter(client, request, "account_users");
+}
+
+export async function account_employees_search(client: Client, request: Request) 
+{
+	return await searchFunctionAdapter(client, request, "account_employees");
 }
 
 export async function contacts_search(client: Client, request: Request) 
