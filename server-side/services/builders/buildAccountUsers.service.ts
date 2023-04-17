@@ -6,15 +6,12 @@ import { PapiClient } from '@pepperi-addons/papi-sdk';
 export class BuildAccountUsersService extends BuildService 
 {
 	papiGetterService: PapiGetterService;
+	adalTable = 'account_users';
+	where = "";
 
 	constructor(papiClient: PapiClient) 
 	{
 		super(papiClient);
 		this.papiGetterService = new PapiAccountUsersGetterService(papiClient);
-	}
-	
-	async buildAdalTable(body: any): Promise<any> 
-	{
-		return await this.buildAdalTableHelper('account_users', body);
 	}
 }

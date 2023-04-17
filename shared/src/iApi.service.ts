@@ -9,4 +9,6 @@ export interface IApiService
     getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined): Promise<any>;
 
     searchResource(resourceName: string, body: any): Promise<{Objects: Array<any>, Count?: number}>;
+
+	batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>;
 }

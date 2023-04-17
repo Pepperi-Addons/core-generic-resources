@@ -10,4 +10,9 @@ export default class CatalogClientApiService extends BaseClientApiService implem
 		// Not supported by catalogs in cpi side.
 		throw new Error("Method not implemented.");
 	}
+
+	async batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>
+	{
+		throw new Error('Not supported');
+	}
 }

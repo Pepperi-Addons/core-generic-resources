@@ -52,4 +52,9 @@ export default class BaseClientApiService implements IApiService
 
 		return res;
 	}
+
+	async batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>
+	{
+		throw new Error('Not supported');
+	}
 }

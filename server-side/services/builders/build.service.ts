@@ -1,24 +1,23 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { AdalHelperService } from '../adalHelper.service';
 import { PapiGetterService } from '../getters/papiGetter.service';
+import { AdalService } from '../adal.service';
 
 export abstract class BuildService 
 {
-	protected papiClient: PapiClient;
-	protected adalHelperService: AdalHelperService;
+	protected adalService: AdalService;
+	protected abstract papiGetterService: PapiGetterService;
+	protected abstract adalTable: string;
+	protected abstract where: string;
 	private pageSize = 500;
 
 	constructor(papiClient: PapiClient)
 	{
-		this.papiClient = papiClient;
-		this.adalHelperService = new AdalHelperService(papiClient);
+		this.adalService = new AdalService(papiClient);
 	}
 
-	abstract papiGetterService: PapiGetterService;
-    abstract buildAdalTable(body: any): Promise<any>;
 
-    async buildAdalTableHelper(adalTable: string, body: any, where = ""): Promise<any>
-    {
+	async buildAdalTable(body: any): Promise<any>
+	{
     	const res = { success: true };
     	try
     	{
@@ -26,14 +25,14 @@ export abstract class BuildService
     		do
     		{
     			if(!body.fromPage) body.fromPage = 1;
-    			results = await this.papiGetterService.getPapiObjectsByPage(where, body.fromPage, this.pageSize);
+    			results = await this.papiGetterService.getPapiObjectsByPage(this.where, body.fromPage, this.pageSize);
     			console.log("FINISHED GETTING PAPI OBJECTS. RESULTS LENGTH: " + results.length);
     			// // fix results and push to adal
     			const fixedObjects = this.papiGetterService.fixPapiObjects(results);
     			console.log("FINISHED FIXING PAPI OBJECTS. RESULTS LENGTH: " + fixedObjects.length);
-    			const batchUpsertResponse = await this.adalHelperService.batchUpsert(fixedObjects, adalTable);
+    			const batchUpsertResponse = await this.adalService.batchUpsert(this.adalTable, fixedObjects);
     			body.fromPage++;
-    			console.log(`${adalTable} PAGE UPSERT FINISHED. BATCH UPSERT RESPONSE: ` + JSON.stringify(batchUpsertResponse));
+    			console.log(`${this.adalTable} PAGE UPSERT FINISHED. BATCH UPSERT RESPONSE: ` + JSON.stringify(batchUpsertResponse));
         
     		} while(results.length == this.pageSize);
     	}
@@ -43,7 +42,7 @@ export abstract class BuildService
     		res['errorMessage'] = error;
     	}
     	return res;
-    }
+	}
 
     
 }

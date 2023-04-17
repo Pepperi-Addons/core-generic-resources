@@ -1,5 +1,6 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
-import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService, AdalService } from 'core-resources-shared'
+import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService } from 'core-resources-shared'
+import { AdalService } from './services/adal.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 

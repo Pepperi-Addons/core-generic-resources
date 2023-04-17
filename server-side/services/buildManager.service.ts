@@ -1,7 +1,7 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import config from '../../addon.config.json';
 
-export class AdalHelperService 
+export class BuildManagerService 
 {
 
 	protected papiClient: PapiClient;
@@ -13,16 +13,6 @@ export class AdalHelperService
 	constructor(papiClient: PapiClient)
 	{
 		this.papiClient = papiClient;
-	}
-
-	async batchUpsert(objects: any[], resource: string) 
-	{
-		return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resource}`, {Objects: objects});
-	}
-
-	async getByKeys(keys: string[], resource: string)
-	{
-		return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(resource).post({KeyList: keys});
 	}
 
 	async build(resource: string): Promise<any>

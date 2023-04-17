@@ -33,6 +33,7 @@ export abstract class PapiGetterService
     	console.log(body);
     	const fieldsString = await this.getRequestedFieldsString();
     	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
+		body["IncludeDeleted"] = true;
     	const papiObjects = await this.papiClient.post(`/${this.getResourceName()}/search`, body);
 		console.log("FINISHED GETTING PAPI OBJECTS");
     	return papiObjects;

@@ -70,4 +70,9 @@ export class PapiService implements IApiService
 			throw new ErrorWithStatus(error);
 		}
 	}
+
+	async batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>
+	{
+		throw new Error('Not supported');
+	}
 }

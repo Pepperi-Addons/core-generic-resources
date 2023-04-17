@@ -1,8 +1,8 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { ErrorWithStatus } from './errorWithStatus';
-import { IApiService } from './iApi.service';
+import { ErrorWithStatus } from 'core-resources-shared';
+import { IApiService } from 'core-resources-shared';
 import config from '../../addon.config.json'
-import { Helper } from './helper';
+import { Helper } from 'core-resources-shared';
 
 
 export class AdalService implements IApiService
@@ -72,5 +72,10 @@ export class AdalService implements IApiService
 		{
 			throw new ErrorWithStatus(error);
 		}
+	}
+
+	async batchUpsert(resourceName: string,objects: any[]) 
+	{
+		return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resourceName}`, {Objects: objects});
 	}
 }
