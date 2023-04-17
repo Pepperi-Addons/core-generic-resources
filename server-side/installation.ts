@@ -11,11 +11,12 @@ The error Message is importent! it will be written in the audit log and help the
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
-import { AccountsPapiService, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
+import { AccountsPapiService, Helper, RESOURCE_TYPES, READONLY_RESOURCES } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { UsersPNSService } from './services/pns/usersPNS.service';
 import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
+import { ContactsPNSService } from './services/pns/contactsPNS';
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -65,8 +66,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		const papiClient = Helper.getPapiClient(client);
 		try
 		{
-			await purgeOldSchemas(papiClient);
-			await subscriptions(papiClient);
 			// Switch to hardcoded schemas
 			res['resultObject'] = await createCoreSchemas(papiClient);
 			// account_users DIMX relations should be updated with the new (empty) relative url
@@ -157,6 +156,24 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.26'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// purging schemas with same names as the new ones, which have different types
+			await purgeGivenSchemas(papiClient, ['users', 'account_users']);
+			await subscriptions(papiClient);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	return res;
 }
 
@@ -196,13 +213,28 @@ async function removeDimxRelations(client: Client, papiClient: PapiClient, resou
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[]) 
+// 'excludedResources' is used for resources that should not be available for import
+async function postDimxImportRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[], excludedResources: string[] = READONLY_RESOURCES) 
+{
+	const filteredResources = resourcesList.filter(resource => !excludedResources.includes(resource));
+	for (const resource of filteredResources)
+	{
+		await postDimxImportRelation(client, isHidden, papiClient, resource);
+	}
+}
+
+async function postDimxExportRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[]) 
 {
 	for (const resource of resourcesList) 
 	{
-		await postDimxImportRelation(client, isHidden, papiClient, resource);
 		await postDimxExportRelation(client, isHidden, papiClient, resource);
 	}
+}
+
+async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[])
+{
+	await postDimxImportRelations(client, isHidden, papiClient, resourcesList);
+	await postDimxExportRelations(client, isHidden, papiClient, resourcesList);
 }
 
 async function postDimxImportRelation(client: Client, isHidden: boolean, papiClient: PapiClient, resource: string): Promise<void>
@@ -216,22 +248,6 @@ async function postDimxImportRelation(client: Client, isHidden: boolean, papiCli
 		Source: 'papi',
 		Hidden: isHidden
 	};
-
-	switch(resource)
-	{
-	case 'users':
-	{
-		// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
-		importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
-		break;
-	}		
-	case 'account_users':
-	{
-		importRelation.AddonRelativeURL = '';
-		break;
-	}
-
-	}
 
 	await upsertRelation(papiClient, importRelation);
 }
@@ -262,10 +278,12 @@ async function postDimxExportRelation(client: Client, isHidden: boolean, papiCli
 	}		
 	case 'account_users':
 	{
-		exportRelation.AddonRelativeURL = '';
-		// No need for data source export params in account_users.
-		// For more details see: https://pepperi.atlassian.net/browse/DI-22222
-		exportRelation['DataSourceExportParams'] = {};
+		exportRelation['Source'] = 'adal';
+		break;
+	}
+	case 'users':
+	{
+		exportRelation['Source'] = 'adal';
 		break;
 	}
 	}
@@ -294,19 +312,22 @@ async function getMissingSchemas(papiClient: PapiClient)
 	return missingSchemas;
 }
 
-async function purgeOldSchemas(papiClient: PapiClient)
+async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[])
 {
-	await papiClient.post(`/addons/data/schemes/users/purge`);
-	await papiClient.post(`/addons/data/schemes/account_users/purge`);
+	for(const schemaName of schemasNames)
+	{
+		await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
+	}
 }
 
 async function subscribeToPNS(pnsService: BasePNSService)
 {
-	await pnsService.subscribeToPNS();
+	await pnsService.subscribe();
 }
 
 async function subscriptions(papiClient: PapiClient)
 {
 	await subscribeToPNS(new UsersPNSService(papiClient));
+	await subscribeToPNS(new ContactsPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }
