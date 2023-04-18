@@ -49,6 +49,10 @@ const accountEmployeesSchema: AddonDataScheme = {
 		CreationDateTime:
 		{
 			"Type": "DateTime"		
+		},
+		FromERPIntegration:
+		{
+			Type: "Bool"
 		}
 	}
 }
