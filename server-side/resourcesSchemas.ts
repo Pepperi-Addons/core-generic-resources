@@ -48,7 +48,7 @@ const accountEmployeesSchema: AddonDataScheme = {
 		},
 		CreationDateTime:
 		{
-			"Type": "DateTime"		
+			"Type": "DateTime"
 		},
 		FromERPIntegration:
 		{
@@ -68,14 +68,14 @@ const catalogsSchema: AddonDataScheme = {
 	Type: 'papi',
 	SyncData:
     {
-    	Sync: true,
+		Sync: true,
     },
 	Fields:
     {
-    	Key:
+		Key:
 		{
-			"Type": "String",
-			"Unique": true
+			Type: "String",
+			Unique: true
 		},
     	InternalID: {
     		"Type": "Integer",
