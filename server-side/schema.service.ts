@@ -1,6 +1,5 @@
-import { AddonDataScheme, FindOptions, PapiClient, SchemeField } from '@pepperi-addons/papi-sdk';
+import { AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
 import { RESOURCE_TYPES } from 'core-resources-shared/lib/shared/src/constants';
-import { getAdalFieldTypeFromPopulatableObjectType, OwnerObjectTypeIDToResourceTypeMap } from './constants';
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 
 export class SchemaService 
@@ -76,90 +75,5 @@ export class SchemaService
         const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
 
         return missingSchemas;
-    }
-
-    /**
-     * Add TSA fields to schemas
-     * @param tsaKeys TSA key(s) to get to add to schemas
-     */
-    public async addTsaFieldToSchema(tsaKeys: string | string[]): Promise<void>
-    {
-        tsaKeys = Array.isArray(tsaKeys) ? tsaKeys : [tsaKeys];
-
-        console.log(`Adding TSA fields to schemas: ${tsaKeys}`);
-
-        // Get the TSAs from PAPI, fields: Name, OwnerObjectTypeID, PopulatableObjectType
-        let tsas = await this.getTsaFields(tsaKeys);
-
-        // Keep only TSAs that are 'papi' typed schemas supported in RESOURCE_TYPES
-        tsas = tsas.filter(tsa => OwnerObjectTypeIDToResourceTypeMap.has(tsa.OwnerObjectTypeID));
-        
-        console.log(`Found ${tsas.length} TSAs to add to schemas`);
-
-        // Translate OwnerObjectTypeID to schema name, and get the relevant schemas.
-        // fields: Name, Fields
-        const findOptions: FindOptions = {
-            where: `Name in ('${tsas.map(tsa => OwnerObjectTypeIDToResourceTypeMap.get(tsa.OwnerObjectTypeID)).join("','")}')`,
-            fields: ['Name', 'Fields']
-        };
-        const schemas: { Name: string,
-                        Fields: {[key: string]: SchemeField}
-                    }[] = await this.papiClient.addons.data.schemes.get(findOptions) as any;
-
-        // Add the TSA to the relevant schema, translating PopulatableObjectType to Types
-        this.addTsaFieldsToSchemas(tsas, schemas);
-
-        // Upsert schemas
-        for (const schema of schemas)
-        {
-            await this.papiClient.addons.data.schemes.post(schema);
-        }
-    }
-
-    /*
-    * Add TSA fields to schemas
-    * @param tsas TSA fields to add to schemas
-    * @param schemas Schemas to add TSA fields to
-    * @private
-    */
-    private addTsaFieldsToSchemas(tsas: { Name: string; OwnerObjectTypeID: number; PopulatableObjectType: number; }[],
-                                schemas: { Name: string; Fields: { [key: string]: SchemeField; }; }[])
-    {
-        console.log(`Adding TSA fields to schemas: ${tsas.map(tsa => tsa.Name).join(', ')}`);
-        console.log(`Schemas: ${schemas.map(schema => schema.Name).join(', ')}`);
-
-        for (const tsa of tsas) 
-        {
-            const schema = schemas.find(schema => schema.Name === OwnerObjectTypeIDToResourceTypeMap.get(tsa.OwnerObjectTypeID));
-            if (!schema) 
-            {
-                console.error(`Failed to find schema for TSA '${tsa.Name}'.`);
-                continue;
-            }
-
-            schema.Fields[tsa.Name] = {
-                Type: getAdalFieldTypeFromPopulatableObjectType(tsa.PopulatableObjectType),
-            };
-
-            console.log(`Added TSA field '${tsa.Name}' to schema '${schema.Name}'`);
-        }
-    }
-
-    /**
-     * Get TSA fields from PAPI
-     * @param tsaKeys TSA key(s) to get
-     * @private
-     * @return TSA fields
-     */
-    private async getTsaFields(tsaKeys: string[]): Promise<{Name: string, OwnerObjectTypeID: number, PopulatableObjectType: number}[]>
-    {
-        const fields = ['Name', 'OwnerObjectTypeID', 'PopulatableObjectType'];
-
-        const searchBody = {
-            UUIDList: tsaKeys,
-            Fields: fields.join(','),
-        }
-
-        return await this.papiClient.post('/type_safe_attribute/search', searchBody);
     }
 }

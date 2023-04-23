@@ -13,7 +13,7 @@ import { PapiClient, Relation, Subscription } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
 import { AccountsPapiService, CORE_ADDON_UUID, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
 import { AddonUUID } from '../addon.config.json';
-import { TSA_CREATION_SUBSCRIPTION_NAME } from './constants';
+import { TSA_CREATION_SUBSCRIPTION_NAME, TSA_MODIFICATION_SUBSCRIPTION_NAME } from './tsa-service/constants';
 import { SchemaService } from './schema.service';
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -28,6 +28,7 @@ export async function install(client: Client, request: Request): Promise<any>
 		res['resultObject'] = await schemaService.createCoreSchemas(papiClient);
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
+		await upsertSubscriptionToTsaModification(papiClient);
 	}
 	catch (error) 
 	{
@@ -49,6 +50,7 @@ export async function uninstall(client: Client, request: Request): Promise<any>
 		await removeDimxRelations(client, papiClient);
 		const hideSubscription = true;
 		await upsertSubscriptionToTsaCreation(papiClient, hideSubscription);
+		await upsertSubscriptionToTsaModification(papiClient, hideSubscription);
 	}
 	catch(error)
 	{
@@ -160,6 +162,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			return res;
 		}
 	}
+	// Add FromERPIntegration field to account_employees
+	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.5'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		try 
+		{
+
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["account_employees"]);
+
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
 
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.9'))
 	{
@@ -185,6 +206,22 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			const schemaService = new SchemaService(papiClient);
 			// Update 'employees' schema to contain 'Name' field
 			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["employees"]);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.23'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			await upsertSubscriptionToTsaModification(papiClient);
 		}
 		catch (error) 
 		{
@@ -326,3 +363,33 @@ async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHid
 	
 	await papiClient.notification.subscriptions.upsert(subscription);
 }
+
+/**
+ * Create a subscription to TSA's modification
+ * @param papiClient 
+ */
+ async function upsertSubscriptionToTsaModification(papiClient: PapiClient): Promise<void>
+
+ /**
+  * Either hides or creates a subscription to TSA's modification, depending on the shouldHide parameter.
+  * @param papiClient 
+  * @param shouldHide 
+  */
+ async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shouldHide: boolean): Promise<void>
+ async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shouldHide: boolean = false): Promise<void>
+ {
+	 const subscription: Subscription = {
+		 AddonUUID: AddonUUID,
+		 Name: TSA_MODIFICATION_SUBSCRIPTION_NAME,
+		 Type: "data",
+		 FilterPolicy: {
+			 Action: ['update'],
+			 AddonUUID: [CORE_ADDON_UUID],
+			 Resource: ['type_safe_attribute']
+		 },
+		 AddonRelativeURL: '/api/handle_tsa_modifications',
+		 Hidden: shouldHide
+	 }
+	 
+	 await papiClient.notification.subscriptions.upsert(subscription);
+ }

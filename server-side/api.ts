@@ -1,6 +1,6 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService } from 'core-resources-shared'
-import { SchemaService } from './schema.service';
+import { TsaService } from './tsa-service/tsa.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -26,6 +26,11 @@ export async function get_catalogs_by_key(client: Client, request: Request)
 export async function get_account_users_by_key(client: Client, request: Request) 
 {
 	return await resourcesFunctionAdapter(client, request, "account_users");
+}
+
+export async function get_account_employees_by_key(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_employees");
 }
 
 export async function get_contacts_by_key(client: Client, request: Request) 
@@ -66,6 +71,11 @@ export async function account_users(client: Client, request: Request)
 	return await resourcesFunctionAdapter(client, request, "account_users");
 }
 
+export async function account_employees(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_employees");
+}
+
 export async function contacts(client: Client, request: Request) 
 {
 	return await resourcesFunctionAdapter(client, request, "contacts");
@@ -101,6 +111,11 @@ export async function get_catalogs_by_unique_field(client: Client, request: Requ
 export async function get_account_users_by_unique_field(client: Client, request: Request) 
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "account_users");
+}
+
+export async function get_account_employees_by_unique_field(client: Client, request: Request) 
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "account_employees");
 }
 
 export async function get_contacts_by_unique_field(client: Client, request: Request) 
@@ -145,6 +160,11 @@ export async function account_users_search(client: Client, request: Request)
 	return await searchFunctionAdapter(client, request, "account_users");
 }
 
+export async function account_employees_search(client: Client, request: Request) 
+{
+	return await searchFunctionAdapter(client, request, "account_employees");
+}
+
 export async function contacts_search(client: Client, request: Request) 
 {
 	return await searchFunctionAdapter(client, request, "contacts");
@@ -166,10 +186,24 @@ export async function handle_tsa_creation(client: Client, request: Request)
 	console.log('Handling TSA creation');
 
 	const papiClient = Helper.getPapiClient(client);
-	const schemaService = new SchemaService(papiClient);
+	const tsaService = new TsaService(papiClient);
 
 	const modifiedObjectKeys = request.body.Message?.ModifiedObjects?.map(modifiedObject => modifiedObject?.ObjectKey);
-	return await schemaService.addTsaFieldToSchema(modifiedObjectKeys);
+	return await tsaService.createTsaFieldsOnSchemas(modifiedObjectKeys);
+}
+
+export async function handle_tsa_modifications(client: Client, request: Request)
+{
+	console.log('Handling TSA modifications');
+
+	const papiClient = Helper.getPapiClient(client);
+	const tsaService = new TsaService(papiClient);
+
+	const modifiedObjects: { Key: string; OldName: string; }[] = request.body.Message?.ModifiedObjects?.map(modifiedObject => 
+		({ Key: modifiedObject?.ObjectKey, OldName: modifiedObject?.ModifiedFields[0].OldValue }
+	));
+
+	return await tsaService.modifyTsaFieldsOnSchemas(modifiedObjects);
 }
 
 async function resourcesFunctionAdapter(client: Client, request: Request, resourceName: string)
