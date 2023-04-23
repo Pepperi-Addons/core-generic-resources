@@ -1,5 +1,6 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService } from 'core-resources-shared'
+import { TsaService } from './tsa-service/tsa.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -180,7 +181,30 @@ async function searchFunctionAdapter(client: Client, request: Request, resourceN
 }
 // #endregion
 
+export async function handle_tsa_creation(client: Client, request: Request)
+{
+	console.log('Handling TSA creation');
 
+	const papiClient = Helper.getPapiClient(client);
+	const tsaService = new TsaService(papiClient);
+
+	const modifiedObjectKeys = request.body.Message?.ModifiedObjects?.map(modifiedObject => modifiedObject?.ObjectKey);
+	return await tsaService.createTsaFieldsOnSchemas(modifiedObjectKeys);
+}
+
+export async function handle_tsa_modifications(client: Client, request: Request)
+{
+	console.log('Handling TSA modifications');
+
+	const papiClient = Helper.getPapiClient(client);
+	const tsaService = new TsaService(papiClient);
+
+	const modifiedObjects: { Key: string; OldName: string; }[] = request.body.Message?.ModifiedObjects?.map(modifiedObject => 
+		({ Key: modifiedObject?.ObjectKey, OldName: modifiedObject?.ModifiedFields[0].OldValue }
+	));
+
+	return await tsaService.modifyTsaFieldsOnSchemas(modifiedObjects);
+}
 
 async function resourcesFunctionAdapter(client: Client, request: Request, resourceName: string)
 {
