@@ -122,6 +122,8 @@ export class TsaService
             let schemaFields: { [key: string]: SchemeField } | undefined; 
             if(OwnerObjectTypeIDToResourceTypeMap.has(tsa.OwnerObjectTypeID))
             {
+                // Since schemaFields is a pointer to the actual object in the map, we can modify it directly.
+                // This is why we don't need to set the value back to the original schema object.
                 schemaFields = schemaNameToFieldsMap.get(OwnerObjectTypeIDToResourceTypeMap.get(tsa.OwnerObjectTypeID)!);
             }
 
@@ -190,6 +192,8 @@ export class TsaService
             let schemaFields: { [key: string]: SchemeField } | undefined; 
             if(OwnerObjectTypeIDToResourceTypeMap.has(tsa.OwnerObjectTypeID))
             {
+                // Since schemaFields is a pointer to the actual object in the map, we can modify it directly.
+                // This is why we don't need to set the value back to the original schema object.
                 schemaFields = schemaNameToFieldsMap.get(OwnerObjectTypeIDToResourceTypeMap.get(tsa.OwnerObjectTypeID)!);
             }
 
