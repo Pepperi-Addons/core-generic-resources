@@ -266,6 +266,9 @@ const employeesSchema: AddonDataScheme = {
     	"FirstName": {
     		"Type": "String"
     	},
+		"Name": {
+    		"Type": "String"
+    	},
     	"ExternalID": {
     		"Type": "String",
     		"Unique": true
