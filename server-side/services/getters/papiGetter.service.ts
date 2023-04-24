@@ -34,6 +34,7 @@ export abstract class PapiGetterService
     	const fieldsString = await this.getRequestedFieldsString();
     	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
 		body["IncludeDeleted"] = true;
+		body["OrderBy"] = "ModificationDateTime";
     	const papiObjects = await this.papiClient.post(`/${this.getResourceName()}/search`, body);
 		console.log("FINISHED GETTING PAPI OBJECTS");
     	return papiObjects;
