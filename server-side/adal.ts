@@ -7,7 +7,7 @@ import { BuildAccountBuyersService } from './services/builders/buildAccountBuyer
 import { BuildUsersService } from './services/builders/buildUsers.service';
 import { BuildManagerService } from './services/buildManager.service';
 import { Helper } from 'core-resources-shared';
-import { ContactsPNSService } from './services/pns/contactsPNS';
+import { ContactsPNSService } from './services/pns/contactsPNS.service';
 
 export async function update_users(client: Client, request: Request) 
 {

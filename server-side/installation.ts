@@ -18,7 +18,8 @@ import { SchemaService } from './schema.service';
 import { UsersPNSService } from './services/pns/usersPNS.service';
 import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
-import { ContactsPNSService } from './services/pns/contactsPNS';
+import { ContactsPNSService } from './services/pns/contactsPNS.service';
+import { BuildManagerService } from './services/buildManager.service'
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -33,7 +34,8 @@ export async function install(client: Client, request: Request): Promise<any>
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		await subscriptions(papiClient);
+		await buildTables(papiClient, ['users', 'account_users']);
+		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
 	{
@@ -244,7 +246,8 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		{
 			// purging schemas with same names as the new ones, which have different types
 			await purgeGivenSchemas(papiClient, ['users', 'account_users']);
-			await subscriptions(papiClient);
+			await buildTables(papiClient, ['users', 'account_users']);
+			await pnsSubscriptions(papiClient);
 		}
 		catch (error) 
 		{
@@ -436,7 +439,7 @@ async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shoul
 	 await papiClient.notification.subscriptions.upsert(subscription);
 }
 
-async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[])
+async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[]): Promise<void>
 {
 	for(const schemaName of schemasNames)
 	{
@@ -444,14 +447,23 @@ async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[])
 	}
 }
 
-async function subscribeToPNS(pnsService: BasePNSService)
+async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 {
 	await pnsService.subscribe();
 }
 
-async function subscriptions(papiClient: PapiClient)
+async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 {
 	await subscribeToPNS(new UsersPNSService(papiClient));
 	await subscribeToPNS(new ContactsPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
+}
+
+async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<void>
+{
+	const buildManager = new BuildManagerService(papiClient);
+	for(const tablesName of tablesNames)
+	{
+		await buildManager.build(tablesName);
+	}
 }
