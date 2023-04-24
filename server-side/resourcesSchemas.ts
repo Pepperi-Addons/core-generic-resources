@@ -393,17 +393,24 @@ const profilesSchema: AddonDataScheme = {
     {
     	Key:
 		{
-			"Type": "String",
-			"Unique": true
-		},
-    	InternalID: {
-    		Type: "Integer",
-    		Unique: true
+			Type: "String",
+			Unique: true
+		
     	},
-    	Name: {
-    		Type: "String"
-    	}
-    }
+		InternalID:
+		{
+			Type: "Integer",
+			Unique: true
+		},
+		Name:
+		{
+			Type: "String"
+		},
+		ParentInternalID:
+		{
+			Type: "Integer"
+		},
+	}
 }
 
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
@@ -415,4 +422,5 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'users': usersSchema,
 	'employees': employeesSchema,
 	'items': itemsSchema,
+	'profiles': profilesSchema
 }
