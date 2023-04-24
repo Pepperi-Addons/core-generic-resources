@@ -61,6 +61,9 @@ const accountUsersSchema: AddonDataScheme = {
 	Name: "account_users",
 	Type: 'data',
 	GenericResource: true,
+	DataSourceData: {
+		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+	},
 	SyncData:
 	{
 		Sync: true,
@@ -114,11 +117,11 @@ const catalogsSchema: AddonDataScheme = {
 	Type: 'papi',
 	SyncData:
     {
-		Sync: true,
+    	Sync: true,
     },
 	Fields:
     {
-		Key:
+    	Key:
 		{
 			Type: "String",
 			Unique: true
@@ -312,7 +315,7 @@ const employeesSchema: AddonDataScheme = {
     	FirstName: {
     		"Type": "String"
     	},
-		"Name": {
+    	"Name": {
     		"Type": "String"
     	},
     	ExternalID: {
@@ -338,6 +341,9 @@ const usersSchema: AddonDataScheme = {
 	Name: 'users',
 	Type: 'data',
 	GenericResource: true,
+	DataSourceData: {
+		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+	},
 	SyncData:
     {
     	Sync: true,
@@ -487,20 +493,20 @@ const profilesSchema: AddonDataScheme = {
 			Unique: true
 		
     	},
-		InternalID:
+    	InternalID:
 		{
 			Type: "Integer",
 			Unique: true
 		},
-		Name:
+    	Name:
 		{
 			Type: "String"
 		},
-		ParentInternalID:
+    	ParentInternalID:
 		{
 			Type: "Integer"
 		},
-	}
+    }
 }
 
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
