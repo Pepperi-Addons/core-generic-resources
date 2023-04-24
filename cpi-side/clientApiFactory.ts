@@ -51,6 +51,7 @@ export default class ClientApiFactory
 		case 'account_users':
 		case 'account_employees':
 		case 'roles':
+		case 'profiles':
 		{
 			const isWebAppAndNotBuyer = await ClientApiFactory.isWebAppAndNotBuyer();
 

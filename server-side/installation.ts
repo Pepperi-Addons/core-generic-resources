@@ -220,12 +220,48 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.13'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			const schemaService = new SchemaService(papiClient);
+			// Update 'employees' schema to contain 'Name' field
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["employees"]);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.23'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		try 
 		{
 			await upsertSubscriptionToTsaModification(papiClient);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	// create a new profiles schema
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		try 
+		{
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["profiles"]);
 		}
 		catch (error) 
 		{

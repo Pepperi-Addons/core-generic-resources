@@ -266,6 +266,9 @@ const employeesSchema: AddonDataScheme = {
     	"FirstName": {
     		"Type": "String"
     	},
+		"Name": {
+    		"Type": "String"
+    	},
     	"ExternalID": {
     		"Type": "String",
     		"Unique": true
@@ -379,6 +382,37 @@ const itemsSchema: AddonDataScheme = {
     }
 }
 
+const profilesSchema: AddonDataScheme = {
+	Name: "profiles",
+	Type: 'papi',
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	Key:
+		{
+			Type: "String",
+			Unique: true
+		
+    	},
+		InternalID:
+		{
+			Type: "Integer",
+			Unique: true
+		},
+		Name:
+		{
+			Type: "String"
+		},
+		ParentInternalID:
+		{
+			Type: "Integer"
+		},
+	}
+}
+
 const rolesSchema: AddonDataScheme = {
 	Name: "roles",
 	Type: 'papi',
@@ -412,5 +446,6 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'users': usersSchema,
 	'employees': employeesSchema,
 	'items': itemsSchema,
+	'profiles': profilesSchema,
 	'roles': rolesSchema
 }
