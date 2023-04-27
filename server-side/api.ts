@@ -47,6 +47,11 @@ export async function get_profiles_by_key(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "profiles");
 }
+
+export async function get_roles_by_key(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "roles");
+}
 // #endregion
 
 // #region GET/POST
@@ -95,6 +100,11 @@ export async function profiles(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "profiles");
 }
+
+export async function roles(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "roles");
+}
 // #endregion
 
 // #region get by unique field
@@ -141,6 +151,11 @@ export async function get_employees_by_unique_field(client: Client, request: Req
 export async function get_profiles_by_unique_field(client: Client, request: Request)
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "profiles");
+}
+
+export async function get_roles_by_unique_field(client: Client, request: Request)
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "roles");
 }
 
 async function getByUniqueFieldFunctionAdapter(client: Client, request: Request, resourceName: string)
@@ -193,6 +208,11 @@ export async function employees_search(client: Client, request: Request)
 export async function profiles_search(client: Client, request: Request)
 {
 	return await searchFunctionAdapter(client, request, "profiles");
+}
+
+export async function roles_search(client: Client, request: Request)
+{
+	return await searchFunctionAdapter(client, request, "roles");
 }
 
 async function searchFunctionAdapter(client: Client, request: Request, resourceName: string)

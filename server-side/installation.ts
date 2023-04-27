@@ -182,6 +182,28 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.32'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		try 
+		{
+
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["roles"]);
+			await createDimxRelations(client, papiClient, ["roles"]);
+
+
+
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.9'))
 	{
 		const papiClient = Helper.getPapiClient(client);
