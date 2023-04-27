@@ -14,7 +14,7 @@ export abstract class PapiGetterService
 	}
 
 	// this function makes sure the fields string is built only once
-	async getRequestedFieldsString(): Promise<string>
+	private async getRequestedFieldsString(): Promise<string>
 	{
 		if(!this._requestedFields)
 		{
@@ -27,7 +27,7 @@ export abstract class PapiGetterService
     abstract buildFixedFieldsString(): Promise<string>; 
     abstract additionalFix(object): void;
 
-    async getPapiObjects(body: any, additionalFieldsString?: string): Promise<any[]> 
+    private async getPapiObjects(body: any, additionalFieldsString?: string): Promise<any[]> 
     {
 		console.log("GETTING PAPI OBJECTS");
     	console.log(body);
@@ -40,7 +40,7 @@ export abstract class PapiGetterService
     	return papiObjects;
     }
 
-    async getPapiObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any[]>
+    public async getPapiObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any[]>
     {
     	const body = {
     		PageSize: pageSize,
@@ -50,13 +50,13 @@ export abstract class PapiGetterService
     	return await this.getPapiObjects(body, additionalFields);
     }
 
-    async getPapiObjectsByUUIDs(UUIDs: string[], additionalFields?: string): Promise<any[]>
+    public async getPapiObjectsByUUIDs(UUIDs: string[], additionalFields?: string): Promise<any[]>
     {
     	const body = { UUIDList: UUIDs };
     	return await this.getPapiObjects(body, additionalFields);
     }
 
-    async getSchemeFields(schemeName: string): Promise<string[]>
+    protected async getSchemeFields(schemeName: string): Promise<string[]>
     {
     	const scheme = await this.papiClient.addons.data.schemes.name(schemeName).get();
     	// save fields of type "Resource" for later use
@@ -71,13 +71,13 @@ export abstract class PapiGetterService
     	return fields;
     }
 
-    replaceUUIDWithKey(user): void
+    private replaceUUIDWithKey(user): void
     {
     	user["Key"] = user["UUID"];
     	delete user["UUID"];
     }
 
-    fixPapiObjects(papiObjects: any[]): any[] 
+    public fixPapiObjects(papiObjects: any[]): any[] 
     {
 		console.log("FIXING PAPI OBJECTS");
     	for(const objIndex in papiObjects)

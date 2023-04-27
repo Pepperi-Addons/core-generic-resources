@@ -15,7 +15,7 @@ export class BuildManagerService
 		this.papiClient = papiClient;
 	}
 
-	async build(resource: string): Promise<any>
+	public async build(resource: string): Promise<any>
 	{
 		if(resource != 'users' && resource != 'account_users')
 		{
@@ -37,7 +37,7 @@ export class BuildManagerService
 		return res;
 	}
 
-	async singleBuild(funcName: string)
+	private async singleBuild(funcName: string)
 	{
 		return await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 20}, {fromPage: 1});
 	}

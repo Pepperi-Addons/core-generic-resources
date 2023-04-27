@@ -16,7 +16,7 @@ export abstract class BuildService
 	}
 
 
-	async buildAdalTable(body: any): Promise<any>
+	public async buildAdalTable(body: any): Promise<any>
 	{
     	const res = { success: true };
     	try
