@@ -44,12 +44,12 @@ export class AccountsPapiService extends PapiService implements IAccountsApiServ
 		}
 	}
 
-	async searchResource(resourceName: string, body: void)
+	async searchResource(resourceName: string, body: any)
 	{
 		try
 		{
 			const bodyCopy = deepClone(body);
-			bodyCopy.where = await this.concatFilteringWhereClause(bodyCopy.where)
+			bodyCopy.Where = await this.concatFilteringWhereClause(bodyCopy.Where)
 			return await super.searchResource(resourceName, bodyCopy);
 		}
 		catch(error)

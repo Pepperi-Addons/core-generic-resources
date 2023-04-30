@@ -11,10 +11,15 @@ The error Message is importent! it will be written in the audit log and help the
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { PapiClient, Relation, Subscription } from '@pepperi-addons/papi-sdk';
 import semverLessThanComparator from 'semver/functions/lt'
-import { AccountsPapiService, CORE_ADDON_UUID, Helper, NUMBER_OF_USERS_ON_IMPORT_REQUEST, RESOURCE_TYPES } from 'core-resources-shared';
+import { AccountsPapiService, CORE_ADDON_UUID, Helper, RESOURCE_TYPES, READONLY_RESOURCES } from 'core-resources-shared';
 import { AddonUUID } from '../addon.config.json';
 import { TSA_CREATION_SUBSCRIPTION_NAME, TSA_MODIFICATION_SUBSCRIPTION_NAME } from './tsa-service/constants';
 import { SchemaService } from './schema.service';
+import { UsersPNSService } from './services/pns/usersPNS.service';
+import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
+import { BasePNSService } from './services/pns/basePNS.service';
+import { ContactsPNSService } from './services/pns/contactsPNS.service';
+import { BuildManagerService } from './services/buildManager.service'
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -29,6 +34,8 @@ export async function install(client: Client, request: Request): Promise<any>
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
+		await buildTables(papiClient, ['users', 'account_users']);
+		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
 	{
@@ -69,7 +76,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		try 
+		try
 		{
 			// Switch to hardcoded schemas
 			res['resultObject'] = await schemaService.createCoreSchemas(papiClient);
@@ -254,6 +261,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.26'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// purging schemas with same names as the new ones, which have different types
+			await purgeGivenSchemas(papiClient, ['users', 'account_users']);
+			await buildTables(papiClient, ['users', 'account_users']);
+			await pnsSubscriptions(papiClient);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	// create a new profiles schema
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
 	{
@@ -292,13 +318,28 @@ async function removeDimxRelations(client: Client, papiClient: PapiClient, resou
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[]) 
+// 'excludedResources' is used for resources that should not be available for import
+async function postDimxImportRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[], excludedResources: string[] = READONLY_RESOURCES) 
+{
+	const filteredResources = resourcesList.filter(resource => !excludedResources.includes(resource));
+	for (const resource of filteredResources)
+	{
+		await postDimxImportRelation(client, isHidden, papiClient, resource);
+	}
+}
+
+async function postDimxExportRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[]) 
 {
 	for (const resource of resourcesList) 
 	{
-		await postDimxImportRelation(client, isHidden, papiClient, resource);
 		await postDimxExportRelation(client, isHidden, papiClient, resource);
 	}
+}
+
+async function postDimxRelations(client: Client, isHidden: boolean, papiClient: PapiClient, resourcesList: string[])
+{
+	await postDimxImportRelations(client, isHidden, papiClient, resourcesList);
+	await postDimxExportRelations(client, isHidden, papiClient, resourcesList);
 }
 
 async function postDimxImportRelation(client: Client, isHidden: boolean, papiClient: PapiClient, resource: string): Promise<void>
@@ -312,22 +353,6 @@ async function postDimxImportRelation(client: Client, isHidden: boolean, papiCli
 		Source: 'papi',
 		Hidden: isHidden
 	};
-
-	switch(resource)
-	{
-	case 'users':
-	{
-		// Since the creation of users takes a long while, there's a need to limit the number of posted users a single request
-		importRelation['MaxPageSize'] = NUMBER_OF_USERS_ON_IMPORT_REQUEST;
-		break;
-	}		
-	case 'account_users':
-	{
-		importRelation.AddonRelativeURL = '';
-		break;
-	}
-
-	}
 
 	await upsertRelation(papiClient, importRelation);
 }
@@ -358,10 +383,12 @@ async function postDimxExportRelation(client: Client, isHidden: boolean, papiCli
 	}		
 	case 'account_users':
 	{
-		exportRelation.AddonRelativeURL = '';
-		// No need for data source export params in account_users.
-		// For more details see: https://pepperi.atlassian.net/browse/DI-22222
-		exportRelation['DataSourceExportParams'] = {};
+		exportRelation['Source'] = 'adal';
+		break;
+	}
+	case 'users':
+	{
+		exportRelation['Source'] = 'adal';
 		break;
 	}
 	}
@@ -386,7 +413,7 @@ async function upsertSubscriptionToTsaCreation(papiClient: PapiClient)
  * @param shouldHide 
  */
 async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHide: boolean)
-async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHide: boolean = false)
+async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHide = false)
 {
 	const subscription: Subscription = {
 		AddonUUID: AddonUUID,
@@ -416,8 +443,8 @@ async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHid
   * @param shouldHide 
   */
  async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shouldHide: boolean): Promise<void>
- async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shouldHide: boolean = false): Promise<void>
- {
+async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shouldHide = false): Promise<void>
+{
 	 const subscription: Subscription = {
 		 AddonUUID: AddonUUID,
 		 Name: TSA_MODIFICATION_SUBSCRIPTION_NAME,
@@ -432,4 +459,33 @@ async function upsertSubscriptionToTsaCreation(papiClient: PapiClient, shouldHid
 	 }
 	 
 	 await papiClient.notification.subscriptions.upsert(subscription);
- }
+}
+
+async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[]): Promise<void>
+{
+	for(const schemaName of schemasNames)
+	{
+		await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
+	}
+}
+
+async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
+{
+	await pnsService.subscribe();
+}
+
+async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
+{
+	await subscribeToPNS(new UsersPNSService(papiClient));
+	await subscribeToPNS(new ContactsPNSService(papiClient));
+	await subscribeToPNS(new AccountUsersPNSService(papiClient));
+}
+
+async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<void>
+{
+	const buildManager = new BuildManagerService(papiClient);
+	for(const tablesName of tablesNames)
+	{
+		await buildManager.build(tablesName);
+	}
+}

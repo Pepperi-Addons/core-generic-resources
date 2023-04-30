@@ -59,7 +59,7 @@ export class PapiService implements IApiService
 		}
 	}
 
-	async searchResource(resourceName: string, body: void)
+	async searchResource(resourceName: string, body: any)
 	{
 		try
 		{
@@ -69,5 +69,10 @@ export class PapiService implements IApiService
 		{
 			throw new ErrorWithStatus(error);
 		}
+	}
+
+	async batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>
+	{
+		throw new Error('Not supported');
 	}
 }

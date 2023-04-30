@@ -1,6 +1,7 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService } from 'core-resources-shared'
 import { TsaService } from './tsa-service/tsa.service';
+import { AdalService } from './services/adal.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -241,7 +242,7 @@ export async function handle_tsa_modifications(client: Client, request: Request)
 
 	const modifiedObjects: { Key: string; OldName: string; }[] = request.body.Message?.ModifiedObjects?.map(modifiedObject => 
 		({ Key: modifiedObject?.ObjectKey, OldName: modifiedObject?.ModifiedFields[0].OldValue }
-	));
+		));
 
 	return await tsaService.modifyTsaFieldsOnSchemas(modifiedObjects);
 }
@@ -340,6 +341,14 @@ function getPapiService(client: Client, request: Request): IApiService
 	case('accounts'):
 	{
 		return new AccountsPapiService(papiClient);
+	}
+	case('users'):
+	{
+		return new AdalService(papiClient);
+	}
+	case('account_users'):
+	{
+		return new AdalService(papiClient);
 	}
 	default:
 	{

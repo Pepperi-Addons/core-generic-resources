@@ -58,9 +58,58 @@ const accountEmployeesSchema: AddonDataScheme = {
 }
 
 const accountUsersSchema: AddonDataScheme = {
-	...accountEmployeesSchema,
 	Name: "account_users",
-	Type: 'papi'
+	Type: 'data',
+	GenericResource: true,
+	DataSourceData: {
+		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+	},
+	SyncData:
+	{
+		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Account',
+			FieldID2: 'User'
+		}
+	},
+	Fields:
+	{
+		Account:
+		{
+			Type: "Resource",
+			Resource: "accounts",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			}
+		},
+		User:
+		{
+			Type: "Resource",
+			Resource: "users",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			}
+		}
+	}
 }
 
 const catalogsSchema: AddonDataScheme = {
@@ -68,11 +117,11 @@ const catalogsSchema: AddonDataScheme = {
 	Type: 'papi',
 	SyncData:
     {
-		Sync: true,
+    	Sync: true,
     },
 	Fields:
     {
-		Key:
+    	Key:
 		{
 			Type: "String",
 			Unique: true
@@ -253,45 +302,92 @@ const employeesSchema: AddonDataScheme = {
 			"Type": "String",
 			"Unique": true
 		},
-    	"InternalID": {
+    	InternalID: {
     		"Type": "Integer",
     		"Unique": true
     	},
-    	"CreationDateTime": {
+    	CreationDateTime: {
     		"Type": "DateTime"
     	},
-    	"Email": {
+    	Email: {
     		"Type": "String"
     	},
-    	"FirstName": {
+    	FirstName: {
     		"Type": "String"
     	},
-		"Name": {
+    	"Name": {
     		"Type": "String"
     	},
-    	"ExternalID": {
+    	ExternalID: {
     		"Type": "String",
     		"Unique": true
     	},
-    	"ModificationDateTime": {
+    	ModificationDateTime: {
     		"Type": "DateTime"
     	},
-    	"Hidden": {
+    	Hidden: {
     		"Type": "Bool"
     	},
-    	"LastName": {
+    	LastName: {
     		"Type": "String"
     	},
-    	"Mobile": {
+    	Mobile: {
     		"Type": "String"
     	}
     }
 }
 
 const usersSchema: AddonDataScheme = {
-	...employeesSchema,
 	Name: 'users',
-	Type: 'papi'
+	Type: 'data',
+	GenericResource: true,
+	DataSourceData: {
+		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+	},
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	Email: {
+    		Type: "String"
+    	},
+    	FirstName: {
+    		Type: "String"
+    	},
+    	ExternalID: {
+    		Type: "String",
+    		Unique: true
+    	},
+    	LastName: {
+    		Type: "String"
+    	},
+    	Name: {
+    		Type: "String"
+    	},
+    	Mobile: {
+    		Type: "String"
+    	},
+    	Phone: {
+    		Type: "String"
+    	},
+    	Profile: {
+    		Type: "Resource",
+    		Resource: "profile",
+    		AddonUUID: config.AddonUUID,
+    		Indexed: true,
+    		IndexedFields: {
+    			Name: {
+    				Type: "String",
+    				Indexed: true
+    			}
+    		}
+    	},
+    	UserType: {
+    		Type: "String"
+    	}
+    }
 }
 
 const itemsSchema: AddonDataScheme = {
@@ -397,20 +493,20 @@ const profilesSchema: AddonDataScheme = {
 			Unique: true
 		
     	},
-		InternalID:
+    	InternalID:
 		{
 			Type: "Integer",
 			Unique: true
 		},
-		Name:
+    	Name:
 		{
 			Type: "String"
 		},
-		ParentInternalID:
+    	ParentInternalID:
 		{
 			Type: "Integer"
 		},
-	}
+    }
 }
 
 const rolesSchema: AddonDataScheme = {
