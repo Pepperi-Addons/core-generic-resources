@@ -1,17 +1,10 @@
-import { BuildService } from './build.service';
 import { PapiContactsGetterService } from '../getters/papiContactsGetter.service';
-import { PapiGetterService } from '../getters/papiGetter.service';
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { IBuildServiceParams } from './iBuildServiceParams';
 
-export class BuildUsersFromContactsService extends BuildService 
+
+export const BuildUsersFromContactsParams: IBuildServiceParams =
 {
-	papiGetterService: PapiGetterService;
-	adalTable = 'users';
-	where = 'IsBuyer=true';
-
-	constructor(papiClient: PapiClient) 
-	{
-		super(papiClient);
-		this.papiGetterService = new PapiContactsGetterService(papiClient);
-	}
+	papiGetterService: PapiContactsGetterService,
+	adalTableName: 'users',
+	whereClause: ""
 }

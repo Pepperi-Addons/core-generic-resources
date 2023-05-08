@@ -1,13 +1,10 @@
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { UsersPNSService } from "./services/pns/usersPNS.service";
 import { AccountUsersPNSService } from "./services/pns/accountUsersPNS.service";
-import { BuildUsersFromContactsService } from './services/builders/buildUsersFromContacts.service';
-import { BuildAccountUsersService } from './services/builders/buildAccountUsers.service';
-import { BuildAccountBuyersService } from './services/builders/buildAccountBuyers.service';
-import { BuildUsersService } from './services/builders/buildUsers.service';
-import { BuildManagerService } from './services/buildManager.service';
+import * as Builders from "./services/builders";
 import { Helper } from 'core-resources-shared';
 import { ContactsPNSService } from './services/pns/contactsPNS.service';
+import { BuildManagerService } from './services/buildManager.service';
 
 export async function update_users(client: Client, request: Request) 
 {
@@ -56,7 +53,8 @@ export async function build_users(client: Client, request: Request)
 	if (request.method == 'POST') 
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuildUsersService(papiClient);
+		const buildServiceParams: Builders.IBuildServiceParams = Builders.BuildUsersParams;
+		const service = new Builders.BuildService(papiClient, buildServiceParams);
 		return await service.buildAdalTable(request.body);
 	}
 	else
@@ -70,7 +68,8 @@ export async function build_users_from_contacts(client: Client, request: Request
 	if (request.method == 'POST')
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuildUsersFromContactsService(papiClient);
+		const buildServiceParams: Builders.IBuildServiceParams = Builders.BuildUsersFromContactsParams;
+		const service = new Builders.BuildService(papiClient, buildServiceParams);
 		return await service.buildAdalTable(request.body);
 	}
 	else
@@ -84,7 +83,8 @@ export async function build_account_users(client: Client, request: Request)
 	if (request.method == 'POST')
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuildAccountUsersService(papiClient);
+		const buildServiceParams: Builders.IBuildServiceParams = Builders.BuildAccountUsersParams;
+		const service = new Builders.BuildService(papiClient, buildServiceParams);
 		return await service.buildAdalTable(request.body);
 	}
 	else
@@ -98,7 +98,8 @@ export async function build_account_buyers(client: Client, request: Request)
 	if (request.method == 'POST')
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuildAccountBuyersService(papiClient);
+		const buildServiceParams: Builders.IBuildServiceParams = Builders.BuildAccountBuyersParams;
+		const service = new Builders.BuildService(papiClient, buildServiceParams);
 		return await service.buildAdalTable(request.body);
 	}
 	else
