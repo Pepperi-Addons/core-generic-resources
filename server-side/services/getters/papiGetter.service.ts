@@ -77,18 +77,18 @@ export abstract class PapiGetterService
     	delete user["UUID"];
     }
 
-    public fixPapiObjects(papiObjects: any[]): any[] 
+    public fixPapiObjects(papiObjects: any[]): any[]
     {
 		console.log("FIXING PAPI OBJECTS");
-    	for(const objIndex in papiObjects)
+    	for (const papiObject of papiObjects)
     	{
-    		this.replaceUUIDWithKey(papiObjects[objIndex]);
-			this.additionalFix(papiObjects[objIndex]);
+    		this.replaceUUIDWithKey(papiObject);
+			this.additionalFix(papiObject);
 			// fix resource type fields
-    		for(const field of this.resourceTypeFields)
+    		for (const field of this.resourceTypeFields)
     		{
     			// based on resource type field structure
-    			papiObjects[objIndex][field] = papiObjects[objIndex][field]?.Data?.UUID;
+    			papiObject[field] = papiObject[field]?.Data?.UUID;
     		}
     	}
     	return papiObjects;

@@ -8,7 +8,7 @@ import { ErrorWithStatus } from './errorWithStatus';
 export class AccountsPapiService extends PapiService implements IAccountsApiService
 {
 	
-	async getResources(resourceName: string, query: string, whereClause: string | undefined)
+	override async getResources(resourceName: string, query: string, whereClause: string | undefined)
 	{
 		const queryAsObject = Helper.queryStringToParams(query);
 		queryAsObject.where = await this.concatFilteringWhereClause(queryAsObject.where)
@@ -16,7 +16,7 @@ export class AccountsPapiService extends PapiService implements IAccountsApiServ
 		return await super.getResources(resourceName, query, whereClause);
 	}
 
-	async getResourceByKey(resourceName: string, key: string, whereClause = ''): Promise<any> 
+	override async getResourceByKey(resourceName: string, key: string, whereClause = ''): Promise<any> 
 	{
 		try
 		{
@@ -30,7 +30,7 @@ export class AccountsPapiService extends PapiService implements IAccountsApiServ
 		}
 	}
 
-	async getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause = '')
+	override async getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause = '')
 	{
 		try
 		{
@@ -44,7 +44,7 @@ export class AccountsPapiService extends PapiService implements IAccountsApiServ
 		}
 	}
 
-	async searchResource(resourceName: string, body: any)
+	override async searchResource(resourceName: string, body: any)
 	{
 		try
 		{
