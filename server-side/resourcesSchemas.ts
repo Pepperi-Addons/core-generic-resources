@@ -1,5 +1,6 @@
 import { AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import config from '../addon.config.json';
+import { UDC_INDEX_NAME } from "./constants";
 
 
 const accountEmployeesSchema: AddonDataScheme = {
@@ -62,7 +63,7 @@ const accountUsersSchema: AddonDataScheme = {
 	Type: 'data',
 	GenericResource: true,
 	DataSourceData: {
-		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+		IndexName: UDC_INDEX_NAME
 	},
 	SyncData:
 	{
@@ -352,7 +353,7 @@ const usersSchema: AddonDataScheme = {
 	Type: 'data',
 	GenericResource: true,
 	DataSourceData: {
-		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+		IndexName: UDC_INDEX_NAME
 	},
 	SyncData:
     {
@@ -541,6 +542,38 @@ const rolesSchema: AddonDataScheme = {
 			"Type": "Integer"
 		},
     }
+}
+
+const roleRolesSchema: AddonDataScheme = {
+	Name: "role_roles",
+	Type: "data",
+	GenericResource: true,
+	DataSourceData: {
+		IndexName: UDC_INDEX_NAME
+	},
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+	{
+		Key: {
+			Type: "String",
+			Unique: true
+		},
+		Role: {
+    		Type: "Resource",
+    		Resource: "role",
+    		AddonUUID: config.AddonUUID,
+    		Indexed: true,
+    	},
+		ParentRole:{
+			Type: "Resource",
+    		Resource: "role",
+    		AddonUUID: config.AddonUUID,
+    		Indexed: true,
+		}
+	}
 }
 
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {

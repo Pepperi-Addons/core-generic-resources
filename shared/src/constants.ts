@@ -4,8 +4,21 @@ export type PapiBatchResponse = [
 
 export const CORE_ADDON_UUID = '00000000-0000-0000-0000-00000000c07e';
 
-export const RESOURCE_TYPES = ['accounts', 'items', 'users', 'catalogs', 'account_users', 'contacts', "employees", "account_employees", "profiles", "roles"];
-export const READONLY_RESOURCES = ['users', 'account_users'];
+export const RESOURCE_TYPES = [
+    'accounts',
+    'items',
+    'users',
+    'catalogs',
+    'account_users',
+    'contacts',
+    'employees',
+    'account_employees',
+    'profiles',
+    'roles',
+    'role_roles'
+];
+
+export const READONLY_RESOURCES = ['users', 'account_users', 'role_roles'];
 export const CORE_BASE_URL = `/addons/api/${CORE_ADDON_UUID}/data_source_api`;
 
 export const NUMBER_OF_USERS_ON_IMPORT_REQUEST = 5;
