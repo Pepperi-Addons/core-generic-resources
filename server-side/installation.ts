@@ -298,6 +298,24 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	// Add profiles and roles references to employees schema
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.43'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		try 
+		{
+			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["employees"]);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	return res;
 }
 

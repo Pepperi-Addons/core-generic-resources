@@ -315,7 +315,7 @@ const employeesSchema: AddonDataScheme = {
     	FirstName: {
     		"Type": "String"
     	},
-    	"Name": {
+    	Name: {
     		"Type": "String"
     	},
     	ExternalID: {
@@ -333,7 +333,17 @@ const employeesSchema: AddonDataScheme = {
     	},
     	Mobile: {
     		"Type": "String"
-    	}
+    	},
+		Profile: {
+    		Type: "Resource",
+    		Resource: "profiles",
+    		AddonUUID: config.AddonUUID,
+    	},
+		Role: {
+			Type: "Resource",
+			Resource: "roles",
+			AddonUUID: config.AddonUUID,	
+		}
     }
 }
 
@@ -374,7 +384,7 @@ const usersSchema: AddonDataScheme = {
     	},
     	Profile: {
     		Type: "Resource",
-    		Resource: "profile",
+    		Resource: "profiles",
     		AddonUUID: config.AddonUUID,
     		Indexed: true,
     		IndexedFields: {
@@ -520,11 +530,11 @@ const rolesSchema: AddonDataScheme = {
     {
     	Key:
 		{
-			Type: "String",
+			Type: "Integer",
 			Unique: true
 		},
-    	InternalID: {
-    		"Type": "Integer",
+    	Name: {
+    		"Type": "String",
     		"Unique": true
     	},
     	ParentInternalID: {
@@ -539,9 +549,9 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'catalogs': catalogsSchema,
 	'accounts': accountsSchema,
 	'contacts': contactsSchema,
-	'users': usersSchema,
-	'employees': employeesSchema,
 	'items': itemsSchema,
 	'profiles': profilesSchema,
-	'roles': rolesSchema
+	'roles': rolesSchema,
+	'users': usersSchema,
+	'employees': employeesSchema,
 }
