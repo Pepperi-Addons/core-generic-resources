@@ -12,7 +12,7 @@ export class SchemaService
      * @param papiClient 
      * @throw In case a resource schema failed to create.
      */
-    public async createCoreSchemas(papiClient: PapiClient): Promise<{schemas: AddonDataScheme[]}>
+    public async createCoreSchemas(): Promise<{schemas: AddonDataScheme[]}>
 
     /**
      * Upsert Core Resources schemas, as listed in resourcesList parameter.
@@ -22,9 +22,9 @@ export class SchemaService
      * @throw In case a resource is passed in resourcesList which is not part of RESOURCE_TYPES.
      * @throw In case a resource schema failed to create.
      */
-    public async createCoreSchemas(papiClient: PapiClient, resourcesList: string[]): Promise<{schemas: AddonDataScheme[]}>
+    public async createCoreSchemas(resourcesList: string[]): Promise<{schemas: AddonDataScheme[]}>
 
-    public async createCoreSchemas(papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES): Promise<{schemas: AddonDataScheme[]}>
+    public async createCoreSchemas(resourcesList: string[] = RESOURCE_TYPES): Promise<{schemas: AddonDataScheme[]}>
     {
         const resObject = { schemas: Array<AddonDataScheme>() };
 
@@ -32,7 +32,7 @@ export class SchemaService
         {
             try 
             {
-                resObject.schemas.push(await papiClient.addons.data.schemes.post(resourceNameToSchemaMap[resource]));
+                resObject.schemas.push(await this.papiClient.addons.data.schemes.post(resourceNameToSchemaMap[resource]));
             }
             catch (error) 
             {
@@ -56,21 +56,20 @@ export class SchemaService
      * console.log(`Created schemas: ${missingSchemas.map(schema => schema.Name)}`);
      */
 
-    public async createMissingSchemas(papiClient: PapiClient): Promise<{schemas: AddonDataScheme[]}>
+    public async createMissingSchemas(): Promise<{schemas: AddonDataScheme[]}>
     {
-        const missingSchemas: Array<string> = await this.getMissingSchemas(papiClient);
-        return await this.createCoreSchemas(papiClient, missingSchemas);
+        const missingSchemas: Array<string> = await this.getMissingSchemas();
+        return await this.createCoreSchemas(missingSchemas);
     }
 
     /**
      * Get a list of missing schemas, as listed in core-resources-shared/lib/shared/src/constants/RESOURCE_TYPES
-     * @param papiClient
      * @return List of missing schemas.
      * 
      */
-    protected async getMissingSchemas(papiClient: PapiClient): Promise<Array<string>>
+    protected async getMissingSchemas(): Promise<Array<string>>
     {
-        const existingSchemas = (await papiClient.addons.data.schemes.get({fields: ['Name']})).map(obj => obj.Name);
+        const existingSchemas = (await this.papiClient.addons.data.schemes.get({fields: ['Name']})).map(obj => obj.Name);
 
         const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
 
