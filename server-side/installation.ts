@@ -262,28 +262,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.26'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		const schemaNames = ['users', 'account_users'];
-		try 
-		{
-			// purging schemas with same names as the new ones, which have different types
-			await purgeGivenSchemas(papiClient, schemaNames);
-			await schemaService.createCoreSchemas(schemaNames)
-			await buildTables(papiClient, schemaNames);
-			await pnsSubscriptions(papiClient);
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
-
-			return res;
-		}
-	}
-
 	// create a new profiles schema
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
 	{
@@ -320,15 +298,24 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// Add new role_roles schema
+	// Try purging existing 'users' and 'account_users' schemas
+	// Create new schemas and run build process for 'users', 'account_users' and 'role_roles' schemas.
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
+		const schemaNames = ['users', 'account_users'];
+
 		try 
 		{
-			await schemaService.createCoreSchemas(['role_roles']);
-			res['resultObject'] = await buildTables(papiClient, ['role_roles']);
+			// purging schemas with same names as the new ones, which have different types
+			await purgeSchemas(papiClient, schemaNames);
+
+			schemaNames.push('role_roles');
+
+			await schemaService.createCoreSchemas(schemaNames)
+			res['resultObject'] = await buildTables(papiClient, schemaNames);
+			await pnsSubscriptions(papiClient);
 		}
 		catch (error) 
 		{
@@ -502,11 +489,17 @@ async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shoul
 	 await papiClient.notification.subscriptions.upsert(subscription);
 }
 
-async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[]): Promise<void>
+async function purgeSchemas(papiClient: PapiClient, schemasNames: string[]): Promise<void>
 {
 	for(const schemaName of schemasNames)
 	{
-		await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
+		try{
+			await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
+		}
+		catch(error)
+		{
+			console.log(`Failed to purge schema '${schemaName}'. Assuming it was previously purged or never existed, continuing installation.`);
+		}
 	}
 }
 
