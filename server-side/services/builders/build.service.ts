@@ -4,16 +4,16 @@ import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 
 
-export class BuildService 
+export class BuildService
 {
 	protected readonly pageSize = 500;
 	protected papiGetterService: PapiGetterService;
 	protected adalService: AdalService;
 
-	constructor(protected papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams)
+	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams)
 	{
-		this.papiGetterService = new this.buildServiceParams.papiGetterService(this.papiClient);
-		this.adalService = new AdalService(this.papiClient);
+		this.papiGetterService = new this.buildServiceParams.papiGetterService(papiClient);
+		this.adalService = new AdalService(papiClient);
 	}
 
 	public async buildAdalTable(body: any): Promise<any>
@@ -24,25 +24,25 @@ export class BuildService
     		let papiObjects: any[];
     		do
     		{
-    			if(!body.fromPage)
+    			if (!body.fromPage)
 				{
 					body.fromPage = 1;
-				} 
+				}
 
     			papiObjects = await this.papiGetterService.getPapiObjectsByPage(this.buildServiceParams.whereClause, body.fromPage, this.pageSize);
-    			console.log("FINISHED GETTING PAPI OBJECTS. RESULTS LENGTH: " + papiObjects.length);
-    			
+    			console.log(`FINISHED GETTING PAPI OBJECTS. RESULTS LENGTH: ${ papiObjects.length}`);
+
 				// fix results
     			const fixedObjects = this.papiGetterService.fixPapiObjects(papiObjects);
-    			console.log("FINISHED FIXING PAPI OBJECTS. RESULTS LENGTH: " + fixedObjects.length);
+    			console.log(`FINISHED FIXING PAPI OBJECTS. RESULTS LENGTH: ${ fixedObjects.length}`);
 
-				// Batch upsert to adal
-    			const batchUpsertResponse = await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjects);
+				
+				await this.upsertToAdal(fixedObjects);
 
     			body.fromPage++;
-    			console.log(`${this.buildServiceParams.adalTableName} PAGE UPSERT FINISHED. BATCH UPSERT RESPONSE: ` + JSON.stringify(batchUpsertResponse));
-        
-    		} while(papiObjects.length == this.pageSize);
+    			console.log(`${this.buildServiceParams.adalTableName} PAGE UPSERT FINISHED.`);
+
+    		} while (papiObjects.length == this.pageSize);
     	}
     	catch (error)
     	{
@@ -50,5 +50,52 @@ export class BuildService
     		res['errorMessage'] = error;
     	}
     	return res;
+	}
+
+	/**
+	 * Uses batch upsert to upload the objects to an ADAL table.
+	 * @param fixedObjects the objects to upload to an ADAL table
+	 */
+	protected async upsertToAdal(fixedObjects: any[])
+	{
+		// Since the fixedObjects array might be larger than the maximum of 500 defined by ADAL,
+		// first split the fixedObjects into array of maximal size
+		const fixedObjectsChunks = this.splitArrayIntoChunks(fixedObjects, this.pageSize);
+
+		// Batch upsert to adal
+		for (const fixedObjectsChunk of fixedObjectsChunks)
+		{
+			const batchUpsertResponse = await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
+			console.log(`${this.buildServiceParams.adalTableName} BATCH UPSERT RESPONSE: ${JSON.stringify(batchUpsertResponse)}`);
+		}
+	}
+
+	/**
+	 * Splits an array of objects into smaller arrays of a maximum size.
+	 * @param arr The array of objects to split.
+	 * @param maxSize The maximum size of each resulting array.
+	 * @returns An array of arrays of objects, where each inner array has a maximum size of maxSize.
+	 */
+	protected splitArrayIntoChunks(arr: any[], maxSize: number): any[][]
+	{
+		const chunks: any[][] = [];
+		let currentChunk: any[] = [];
+
+		for (const item of arr)
+		{
+			currentChunk.push(item);
+			if (currentChunk.length === maxSize)
+			{
+				chunks.push(currentChunk);
+				currentChunk = [];
+			}
+		}
+
+		if (currentChunk.length > 0)
+		{
+			chunks.push(currentChunk);
+		}
+
+		return chunks;
 	}
 }

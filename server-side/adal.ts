@@ -108,6 +108,21 @@ export async function build_account_buyers(client: Client, request: Request)
 	}
 }
 
+export async function build_role_roles(client: Client, request: Request)
+{
+	if (request.method == 'POST')
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const buildServiceParams: Builders.IBuildServiceParams = Builders.BuildRoleRolesParams;
+		const service = new Builders.BuildService(papiClient, buildServiceParams);
+		return await service.buildAdalTable(request.body);
+	}
+	else
+	{
+		throw new Error('Bad request');
+	}
+}
+
 export async function build(client: Client, request: Request) 
 {
 	if (request.method == 'POST')
