@@ -335,16 +335,16 @@ const employeesSchema: AddonDataScheme = {
     	Mobile: {
     		"Type": "String"
     	},
-		Profile: {
+    	Profile: {
     		Type: "Resource",
     		Resource: "profiles",
     		AddonUUID: config.AddonUUID,
     	},
-		Role: {
-			Type: "Resource",
-			Resource: "roles",
-			AddonUUID: config.AddonUUID,	
-		}
+    	Role: {
+    		Type: "Resource",
+    		Resource: "roles",
+    		AddonUUID: config.AddonUUID,	
+    	}
     }
 }
 
@@ -539,8 +539,8 @@ const rolesSchema: AddonDataScheme = {
     		"Unique": true
     	},
     	ParentInternalID: {
-			"Type": "Integer"
-		},
+    		"Type": "Integer"
+    	},
     }
 }
 

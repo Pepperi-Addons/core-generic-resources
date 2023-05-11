@@ -493,7 +493,8 @@ async function purgeSchemas(papiClient: PapiClient, schemasNames: string[]): Pro
 {
 	for(const schemaName of schemasNames)
 	{
-		try{
+		try
+		{
 			await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
 		}
 		catch(error)

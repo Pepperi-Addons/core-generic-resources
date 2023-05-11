@@ -55,7 +55,8 @@ export class PapiRolesGetterService extends PapiGetterService
 		// first create a standard tree representation, where
 		// each InternalID points to its direct children nodes.
 		const internalIdToRole: Map<string, string> = this.createInternalIdToRoleMap(nodes);
-		const treeNodes: TreeNode[] = nodes.map(node => {
+		const treeNodes: TreeNode[] = nodes.map(node => 
+		{
 			return {
 				Role: node.Name,
 				ParentRole: node.ParentInternalID ? internalIdToRole.get(node.ParentInternalID) : undefined
@@ -83,7 +84,8 @@ export class PapiRolesGetterService extends PapiGetterService
     */
 	protected createInternalIdToRoleMap(nodes: PapiRole[]): Map<string, string>
 	{
-		return nodes.reduce((resultMap, node) => {
+		return nodes.reduce((resultMap, node) => 
+		{
 			return resultMap.set(node.InternalID, node.Name);
 		}, new Map<string, string>);
 	}
@@ -98,7 +100,8 @@ export class PapiRolesGetterService extends PapiGetterService
 		const inverseTree = new Map<string, TreeNode[]>();
 
 		// group nodes by parent id
-		const childrenByParent = nodes.reduce((roleToParent, node) => {
+		const childrenByParent = nodes.reduce((roleToParent, node) => 
+		{
 			if (node.ParentRole)
 			{
 				const children = roleToParent.get(node.ParentRole) ?? [];
@@ -110,7 +113,8 @@ export class PapiRolesGetterService extends PapiGetterService
 		}, new Map<string, TreeNode[]>());
 
 		// build inverse tree
-		nodes.forEach((node) => {
+		nodes.forEach((node) => 
+		{
 			inverseTree.set(node.Role, childrenByParent.get(node.Role) ?? []);
 		});
 
@@ -157,7 +161,7 @@ export class PapiRolesGetterService extends PapiGetterService
 	  
 		  for (const child of inverseTree.get(node.Role) ?? [])
 		  {
-			stack.push({ node: child, ancestors: [...ancestors] });
+				stack.push({ node: child, ancestors: [...ancestors] });
 		  }
 		}
 	  }
@@ -174,7 +178,8 @@ export class PapiRolesGetterService extends PapiGetterService
 	{
 		const result: TreeNode[] = []
 		// Add nodes for each ancestor
-		for (const ancestor of ancestors) {
+		for (const ancestor of ancestors) 
+		{
 			result.push({
 				Role: node.Role,
 				ParentRole: ancestor.Role
@@ -191,7 +196,8 @@ export class PapiRolesGetterService extends PapiGetterService
 	 */
 	protected addKeysToTreeNodes(treeNodes: TreeNode[]): KeyedTreeNode[]
 	{
-		return treeNodes.map(treeNode => {
+		return treeNodes.map(treeNode => 
+		{
 			return {
 				...treeNode,
 				Key: createUUID()
