@@ -548,13 +548,6 @@ const roleRolesSchema: AddonDataScheme = {
 	Name: "role_roles",
 	Type: "data",
 	GenericResource: true,
-	DataSourceData: {
-		IndexName: UDC_INDEX_NAME
-	},
-	SyncData:
-    {
-    	Sync: true,
-    },
 	Fields:
 	{
 		Key: {
@@ -565,13 +558,11 @@ const roleRolesSchema: AddonDataScheme = {
     		Type: "Resource",
     		Resource: "role",
     		AddonUUID: config.AddonUUID,
-    		Indexed: true,
     	},
 		ParentRole:{
 			Type: "Resource",
     		Resource: "role",
     		AddonUUID: config.AddonUUID,
-    		Indexed: true,
 		}
 	}
 }
