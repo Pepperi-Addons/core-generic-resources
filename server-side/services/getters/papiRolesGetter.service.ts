@@ -200,7 +200,7 @@ export class PapiRolesGetterService extends PapiGetterService
 		{
 			return {
 				...treeNode,
-				Key: createUUID()
+				Key: `${treeNode.Role}_${treeNode.ParentRole}`
 			};
 		});
 	}
