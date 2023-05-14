@@ -6,7 +6,6 @@ import { PapiGetterService } from "./papiGetter.service";
 interface PapiRole
 {
 	InternalID: string;
-	Name: string;
 	ParentInternalID?: string;
 }
 
@@ -30,7 +29,7 @@ export class PapiRolesGetterService extends PapiGetterService
 
 	public async buildFixedFieldsString(): Promise<string>
 	{
-		return 'InternalID,ParentInternalID,Name';
+		return 'InternalID,ParentInternalID';
 	}
 
 	additionalFix(object: any): void
@@ -54,12 +53,11 @@ export class PapiRolesGetterService extends PapiGetterService
 		// In order to execute DFS (to create all nodes in O(n)), 
 		// first create a standard tree representation, where
 		// each InternalID points to its direct children nodes.
-		const internalIdToRole: Map<string, string> = this.createInternalIdToRoleMap(nodes);
 		const treeNodes: TreeNode[] = nodes.map(node => 
 		{
 			return {
-				Role: node.Name,
-				ParentRole: node.ParentInternalID ? internalIdToRole.get(node.ParentInternalID) : undefined
+				Role: node.InternalID,
+				ParentRole: node.ParentInternalID
 			};
 		});
 		const treeRepresentation = this.createTree(treeNodes);
@@ -75,19 +73,6 @@ export class PapiRolesGetterService extends PapiGetterService
 		}
 
 		return result;
-	}
-
-	/**
-    Creates a mapping between internal IDs and role names for a given list of PapiRole objects.
-    @param {PapiRole[]} nodes - The list of PapiRole objects to create the mapping from.
-    @returns A Map object where the keys are the internal IDs and the values are the role names.
-    */
-	protected createInternalIdToRoleMap(nodes: PapiRole[]): Map<string, string>
-	{
-		return nodes.reduce((resultMap, node) => 
-		{
-			return resultMap.set(node.InternalID, node.Name);
-		}, new Map<string, string>);
 	}
 
 	/**
@@ -122,31 +107,16 @@ export class PapiRolesGetterService extends PapiGetterService
 	}
 
 	/**
- * Performs a recursive depth-first search starting at the specified node.
- * The implementation also adds new nodes for each of the node's direct and indirect ancestors.
- *
- * @param {TreeNode} currentNode - The node to start the search from.
- * @param {Map<string, PapiRole[]>} inverseTree - The inverse tree representation where each node points to its direct children.
- * @param {PapiRole[]} result - The array to add visited nodes to.
- * @param {PapiRole[]} [ancestors=[]] - The array of ancestor nodes to pass down the search path.
- * 
- * @returns {void}
- */
-	protected dfs(currentNode: TreeNode, inverseTree: Map<string, TreeNode[]>, result: TreeNode[], ancestors: TreeNode[] = []): void
-	{
-		result.push(...this.getAllAncestorsNodes(currentNode, ancestors));
-
-		ancestors.push(currentNode);
-
-		for (const child of inverseTree.get(currentNode.Role) ?? [])
-		{
-			this.dfs(child, inverseTree, result, ancestors);
-		}
-
-		// Before returning, remove the added currentNode from the ancestors array
-		ancestors.pop();
-	}
-
+	 * Performs an iterative depth-first search starting at the specified node.
+	 * The implementation also adds new nodes for each of the node's direct and indirect ancestors.
+	 *
+	 * @param {TreeNode} currentNode - The node to start the search from.
+	 * @param {Map<string, PapiRole[]>} inverseTree - The inverse tree representation where each node points to its direct children.
+	 * @param {PapiRole[]} result - The array to add visited nodes to.
+	 * @param {PapiRole[]} [ancestors=[]] - The array of ancestor nodes to pass down the search path.
+	 * 
+	 * @returns {void}
+	 */
 	protected iterativeDfs(currentNode: TreeNode, inverseTree: Map<string, TreeNode[]>, result: TreeNode[], ancestors: TreeNode[] = []): void
 	{
 		const stack: { node: TreeNode, ancestors: TreeNode[] }[] = [{ node: currentNode, ancestors: ancestors }];
@@ -190,7 +160,7 @@ export class PapiRolesGetterService extends PapiGetterService
 	}
 
 	/**
-	 * 
+	 * Adds a Key property to each node in the tree.
 	 * @param {TreeNode[]} treeNodes - The nodes to which a Key property should be added.
 	 * @returns {KeyedTreeNode[]} - The nodes with a unique Key property.
 	 */
