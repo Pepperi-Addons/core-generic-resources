@@ -12,7 +12,7 @@ export class AdalService implements IApiService
 
 	createResource(resourceName: string, body: any) : Promise<any>
 	{
-		throw new Error('Create resource is not supported.');
+		throw new Error(`Creation of '${resourceName}' is not supported`);
 	}
 
 	async getResources(resourceName: string, query: string, whereClause: string | undefined)

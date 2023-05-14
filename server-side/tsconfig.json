@@ -11,7 +11,8 @@
     "noImplicitAny": false,
     "noImplicitOverride": true,
     "allowJs": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "lib": ["ES2020.Promise"]
   },
   "exclude": [
     "./build/**",

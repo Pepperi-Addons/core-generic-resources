@@ -19,7 +19,7 @@ export class BuildManagerService
 	public async build(resource: string): Promise<any>
 	{
 		const resourceBuildingEndpoints = Object.keys(this.resourceFunctionsMap);
-		if (resourceBuildingEndpoints.includes(resource))
+		if (!resourceBuildingEndpoints.includes(resource))
 		{
 			throw new Error(`Invalid resource name. Valid values are: '${resourceBuildingEndpoints.join("',")}'`);
 		}
@@ -27,9 +27,21 @@ export class BuildManagerService
 		const res = { success: true };
 		try
 		{
-			for (const endpoint of resourceBuildingEndpoints)
+			const promises = await Promise.allSettled(resourceBuildingEndpoints.map(endpoint => this.singleBuild(this.resourceFunctionsMap[resource][endpoint])));
+			for (const i in promises)
 			{
-				await this.singleBuild(this.resourceFunctionsMap[resource][endpoint]);
+				const promise = promises[i];
+
+				if (promise.status === 'rejected')
+				{
+					res.success = false;
+					res['errorMessage'] = res['errorMessage'] ? res['errorMessage'] + '\n' + promise.reason : promise.reason;
+				}
+				else
+				{
+					res[this.resourceFunctionsMap[resource][i]] = promise.value;
+				}
+				
 			}
 		}
 		catch (error)
@@ -41,63 +53,15 @@ export class BuildManagerService
 	}
 
 	/**
-    Executes a single asynchronous build process for a given ADAL function and waits for its completion.
+    Executes a single asynchronous build process for a given ADAL function.
     @param funcName - The name of the function to execute.
-    @throws An error if the async execution does not resolve after 30 retries, or if there is an error executing the function.
-    @returns A Promise that resolves to a boolean that represents if the function execution was successful.
     */
-	protected async singleBuild(funcName: string): Promise<void>
+	protected async singleBuild(funcName: string): Promise<any>
 	{
-		const asyncCall = await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 20}, {fromPage: 1});
-		const isAsyncRequestResolved = await this.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
-		if(!isAsyncRequestResolved)
-		{
-			const errorMessage = `Error executing function '${funcName}' in file 'adal'. For more details see audit log: ${asyncCall.ExecutionUUID!}`;
-			console.error(errorMessage);
-			throw new Error(errorMessage);
-		}
-	}
-
-	/** Poll an ActionUUID until it resolves to success our failure. The returned promise resolves to a boolean - true in case the execution was successful, false otherwise.
-	* @param ExecutionUUID the executionUUID which should be polled.
-	* @param interval the time interval in ms which will be waited between polling retries.
-	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 600, allowing for 10 minutes of polling.
-	*/
-	protected async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 600): Promise<boolean>
-	{
-		let attempts = 0;
-
-		const executePoll = async (resolve, reject) =>
-		{
-			const result = await papiClient.auditLogs.uuid(ExecutionUUID).get();
-			attempts++;
-
-			if (this.isAsyncExecutionOver(result))
-			{
-				return resolve(result.Status.Name === 'Success');
-			}
-			else if (maxAttempts && attempts === maxAttempts)
-			{
-				console.log(`Exceeded max attempts polling ${ExecutionUUID}`);
-
-				return resolve(false);
-			}
-			else
-			{
-				setTimeout(executePoll, interval, resolve, reject);
-			}
-		};
-
-		return new Promise<boolean>(executePoll);
-	}
-
-	/**
-	 * Determines whether or not an audit log has finished executing.
-	 * @param auditLog - The audit log to poll
-	 * @returns 
-	 */
-	protected isAsyncExecutionOver(auditLog: any): boolean
-	{
-		return auditLog != null && (auditLog.Status.Name === 'Failure' || auditLog.Status.Name === 'Success');
+		// The reason we don't poll this async call, is because the 
+		// distributor's NUC might be down, and awaiting for it to
+		// load might take longer than 10 minutes (which is the timeout
+		// for an installation request)
+		return await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 20}, {fromPage: 1});
 	}
 }

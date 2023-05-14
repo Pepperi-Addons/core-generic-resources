@@ -499,7 +499,7 @@ async function purgeSchemas(papiClient: PapiClient, schemasNames: string[]): Pro
 		}
 		catch(error)
 		{
-			console.log(`Failed to purge schema '${schemaName}'. Assuming it was previously purged or never existed, continuing installation.`);
+			console.log(`Failed to purge schema '${schemaName}'. Assuming it was previously purged or never existed, continuing installation. Error: ${error instanceof Error ? error.message : 'Unknown error'}'}}`);
 		}
 	}
 }

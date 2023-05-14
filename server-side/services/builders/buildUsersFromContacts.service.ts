@@ -6,5 +6,5 @@ export const BuildUsersFromContactsParams: IBuildServiceParams =
 {
 	papiGetterService: PapiContactsGetterService,
 	adalTableName: 'users',
-	whereClause: ""
+	whereClause: "IsBuyer=true"
 }
