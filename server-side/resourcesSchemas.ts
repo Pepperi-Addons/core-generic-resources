@@ -91,7 +91,8 @@ const accountUsersSchema: AddonDataScheme = {
     				Type: "String",
     				Indexed: true
     			}
-			}
+			},
+			ApplySystemFilter: true
 		},
 		User:
 		{
@@ -108,7 +109,8 @@ const accountUsersSchema: AddonDataScheme = {
     				Type: "String",
     				Indexed: true
     			}
-			}
+			},
+			ApplySystemFilter: true
 		}
 	}
 }
@@ -531,15 +533,16 @@ const rolesSchema: AddonDataScheme = {
     {
     	Key:
 		{
-			Type: "Integer",
+			Type: "String",
 			Unique: true
 		},
-    	Name: {
-    		"Type": "String",
-    		"Unique": true
+    	Name:
+		{
+    		"Type": "String"
     	},
-    	ParentInternalID: {
-    		"Type": "Integer"
+    	ParentInternalID:
+		{
+    		"Type": "String"
     	},
     }
 }
@@ -548,6 +551,10 @@ const roleRolesSchema: AddonDataScheme = {
 	Name: "role_roles",
 	Type: "data",
 	GenericResource: true,
+	SyncData:
+	{
+		Sync: true,
+	},
 	Fields:
 	{
 		Key: {
@@ -558,11 +565,13 @@ const roleRolesSchema: AddonDataScheme = {
     		Type: "Resource",
     		Resource: "role",
     		AddonUUID: config.AddonUUID,
+			ApplySystemFilter: true,
     	},
 		ParentRole:{
 			Type: "Resource",
     		Resource: "role",
     		AddonUUID: config.AddonUUID,
+			ApplySystemFilter: true,
 		}
 	}
 }
@@ -578,4 +587,5 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'roles': rolesSchema,
 	'users': usersSchema,
 	'employees': employeesSchema,
+	'role_roles': roleRolesSchema,
 }
