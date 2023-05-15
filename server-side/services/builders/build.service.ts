@@ -21,10 +21,7 @@ export class BuildService
     	const res = { success: true };
     	try
     	{
-    		if(this.buildServiceParams.shouldCleanBuild)
-			{
-				await this.hideAdalItems();
-			}
+			await this.hideAdalItems();
 			
 			let papiObjects: any[];
     		do
@@ -63,31 +60,34 @@ export class BuildService
 
 	protected async hideAdalItems()
 	{
-		let objects: AddonData[];
-		const page = 1;
-		do
+		if(this.buildServiceParams.shouldCleanBuild)
 		{
-			const searchOptions: SearchBody = {
-				Page: page,
-				PageSize: this.pageSize,
-				Fields: ["Key"]
-			};
-
-			
-			objects = (await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions)).Objects;
-			console.log(`HIDING ${objects.length} OBJECTS IN ${this.buildServiceParams.adalTableName}`);
-			
-			// For each object, set the Hidden field to true, and set ExpirationDateTime to now
-			for (const object of objects)
+			let objects: AddonData[];
+			const page = 1;
+			do
 			{
-				object.Hidden = true;
-				object.ExpirationDateTime = new Date().toISOString();
-			}
+				const searchOptions: SearchBody = {
+					Page: page,
+					PageSize: this.pageSize,
+					Fields: ["Key"]
+				};
 
-			// Batch upsert to adal
-			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, objects);
+				
+				objects = (await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions)).Objects;
+				console.log(`HIDING ${objects.length} OBJECTS IN ${this.buildServiceParams.adalTableName}`);
+				
+				// For each object, set the Hidden field to true, and set ExpirationDateTime to now
+				for (const object of objects)
+				{
+					object.Hidden = true;
+					object.ExpirationDateTime = new Date().toISOString();
+				}
+
+				// Batch upsert to adal
+				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, objects);
+			}
+			while (objects.length > 0);
 		}
-		while (objects.length > 0);
 	}
 
 	/**
