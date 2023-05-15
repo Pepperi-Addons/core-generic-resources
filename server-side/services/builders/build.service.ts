@@ -63,7 +63,7 @@ export class BuildService
 		if(this.buildServiceParams.shouldCleanBuild)
 		{
 			let objects: AddonData[];
-			const page = 1;
+			let page = 1;
 			do
 			{
 				const searchOptions: SearchBody = {
@@ -85,6 +85,8 @@ export class BuildService
 
 				// Batch upsert to adal
 				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, objects);
+
+				page++;
 			}
 			while (objects.length > 0);
 		}
