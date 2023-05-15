@@ -1,33 +1,48 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import config from '../../addon.config.json';
 
-export class BuildManagerService 
+export class BuildManagerService
 {
-
-	protected papiClient: PapiClient;
-	protected resourceFunctionsMap: any = {
+	/**
+	A map between ADAL resource name and the endpoints needed
+	in order to build that ADAL table.
+	*/
+	protected resourceFunctionsMap: {[key: string]: string[]} = {
 		users: ['build_users', 'build_users_from_contacts'],
-		account_users: ['build_account_users', 'build_account_buyers']
-	}
+		account_users: ['build_account_users', 'build_account_buyers'],
+		role_roles: ['build_role_roles']
+	};
 
-	constructor(papiClient: PapiClient)
-	{
-		this.papiClient = papiClient;
-	}
+	constructor(protected papiClient: PapiClient)
+	{}
 
 	public async build(resource: string): Promise<any>
 	{
-		if(resource != 'users' && resource != 'account_users')
+		const resourceBuildingEndpoints = Object.keys(this.resourceFunctionsMap);
+		if (!resourceBuildingEndpoints.includes(resource))
 		{
-			throw new Error('Invalid resource name. Valid values are: users, account_users');
+			throw new Error(`Invalid resource name. Valid values are: '${resourceBuildingEndpoints.join("',")}'`);
 		}
-		const firstFunc = this.resourceFunctionsMap[resource][0];
-		const secondFunc = this.resourceFunctionsMap[resource][1];
+
 		const res = { success: true };
 		try
 		{
-			res[firstFunc] = await this.singleBuild(firstFunc);
-			res[secondFunc] = await this.singleBuild(secondFunc);
+			const promises = await Promise.allSettled(resourceBuildingEndpoints.map(endpoint => this.singleBuild(this.resourceFunctionsMap[resource][endpoint])));
+			for (const i in promises)
+			{
+				const promise = promises[i];
+
+				if (promise.status === 'rejected')
+				{
+					res.success = false;
+					res['errorMessage'] = res['errorMessage'] ? res['errorMessage'] + '\n' + promise.reason : promise.reason;
+				}
+				else
+				{
+					res[this.resourceFunctionsMap[resource][i]] = promise.value;
+				}
+				
+			}
 		}
 		catch (error)
     	{
@@ -37,9 +52,16 @@ export class BuildManagerService
 		return res;
 	}
 
-	private async singleBuild(funcName: string)
+	/**
+    Executes a single asynchronous build process for a given ADAL function.
+    @param funcName - The name of the function to execute.
+    */
+	protected async singleBuild(funcName: string): Promise<any>
 	{
+		// The reason we don't poll this async call, is because the 
+		// distributor's NUC might be down, and awaiting for it to
+		// load might take longer than 10 minutes (which is the timeout
+		// for an installation request)
 		return await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 20}, {fromPage: 1});
 	}
-
 }

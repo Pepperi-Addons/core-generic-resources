@@ -1,5 +1,6 @@
 import { AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import config from '../addon.config.json';
+import { UDC_INDEX_NAME } from "./constants";
 
 
 const accountEmployeesSchema: AddonDataScheme = {
@@ -62,7 +63,7 @@ const accountUsersSchema: AddonDataScheme = {
 	Type: 'data',
 	GenericResource: true,
 	DataSourceData: {
-		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+		IndexName: UDC_INDEX_NAME
 	},
 	SyncData:
 	{
@@ -90,7 +91,8 @@ const accountUsersSchema: AddonDataScheme = {
     				Type: "String",
     				Indexed: true
     			}
-			}
+			},
+			ApplySystemFilter: true
 		},
 		User:
 		{
@@ -107,7 +109,8 @@ const accountUsersSchema: AddonDataScheme = {
     				Type: "String",
     				Indexed: true
     			}
-			}
+			},
+			ApplySystemFilter: true
 		}
 	}
 }
@@ -334,16 +337,16 @@ const employeesSchema: AddonDataScheme = {
     	Mobile: {
     		"Type": "String"
     	},
-		Profile: {
+    	Profile: {
     		Type: "Resource",
     		Resource: "profiles",
     		AddonUUID: config.AddonUUID,
     	},
-		Role: {
-			Type: "Resource",
-			Resource: "roles",
-			AddonUUID: config.AddonUUID,	
-		}
+    	Role: {
+    		Type: "Resource",
+    		Resource: "roles",
+    		AddonUUID: config.AddonUUID,	
+    	}
     }
 }
 
@@ -352,7 +355,7 @@ const usersSchema: AddonDataScheme = {
 	Type: 'data',
 	GenericResource: true,
 	DataSourceData: {
-		IndexName: "122c0e9d-c240-4865-b446-f37ece866c22_data"
+		IndexName: UDC_INDEX_NAME
 	},
 	SyncData:
     {
@@ -530,17 +533,47 @@ const rolesSchema: AddonDataScheme = {
     {
     	Key:
 		{
-			Type: "Integer",
+			Type: "String",
 			Unique: true
 		},
-    	Name: {
-    		"Type": "String",
-    		"Unique": true
+    	Name:
+		{
+    		"Type": "String"
     	},
-    	ParentInternalID: {
-			"Type": "Integer"
-		},
+    	ParentInternalID:
+		{
+    		"Type": "String"
+    	},
     }
+}
+
+const roleRolesSchema: AddonDataScheme = {
+	Name: "role_roles",
+	Type: "data",
+	GenericResource: true,
+	SyncData:
+	{
+		Sync: true,
+	},
+	Fields:
+	{
+		Key: {
+			Type: "String",
+			Unique: true
+		},
+		Role: {
+    		Type: "Resource",
+    		Resource: "role",
+    		AddonUUID: config.AddonUUID,
+			ApplySystemFilter: true,
+    	},
+		ParentRole:{
+			Type: "Resource",
+    		Resource: "role",
+    		AddonUUID: config.AddonUUID,
+			ApplySystemFilter: true,
+		}
+	}
 }
 
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
@@ -554,4 +587,5 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'roles': rolesSchema,
 	'users': usersSchema,
 	'employees': employeesSchema,
+	'role_roles': roleRolesSchema,
 }

@@ -4,13 +4,13 @@ export const TSA_CREATION_SUBSCRIPTION_NAME = 'core-resources-TSA-creation';
 export const TSA_MODIFICATION_SUBSCRIPTION_NAME = 'core-resources-TSA-modification';
 
 export const OwnerObjectTypeIDToResourceTypeMap: Map<number, string> = new Map([
-    [35, 'accounts'],
-    [7, 'items'],
-    [54, 'catalogs'],
-    [33, 'contacts'],
-    [23, 'employees'],
-    [116, 'profiles']
-    ]);
+	[35, 'accounts'],
+	[7, 'items'],
+	[54, 'catalogs'],
+	[33, 'contacts'],
+	[23, 'employees'],
+	[116, 'profiles']
+]);
 
 /**
  * Returns the ADAL field type for a given populatable object type
@@ -20,26 +20,26 @@ export const OwnerObjectTypeIDToResourceTypeMap: Map<number, string> = new Map([
  */
 export function getAdalFieldTypeFromPopulatableObjectType(populatableObjectType: number): SchemeFieldType
 {
-    switch(populatableObjectType)
-    {
-        case 1:
-        case 7:
-        case 8:
-        case 9:
-        case 10:
-            return 'String';
-        case 2:
-        case 3:
-            return 'DateTime';
-        case 4:
-            return 'Integer';
-        case 5:
-            return 'Double';
-        case 6: 
-            return 'Bool';
-        default:
-            return 'String';
-    }
+	switch(populatableObjectType)
+	{
+	case 1:
+	case 7:
+	case 8:
+	case 9:
+	case 10:
+		return 'String';
+	case 2:
+	case 3:
+		return 'DateTime';
+	case 4:
+		return 'Integer';
+	case 5:
+		return 'Double';
+	case 6: 
+		return 'Bool';
+	default:
+		return 'String';
+	}
 }
 
 export type TSA = { 
