@@ -60,4 +60,9 @@ export class PapiGetterTestWrapperService extends PapiGetterService
 
 		return res;
 	}
+
+	public override fixPapiObjects(papiObjects: any[]): any[]
+	{
+		return this.wrappedPapiGetter.fixPapiObjects(papiObjects);
+	}
 }
