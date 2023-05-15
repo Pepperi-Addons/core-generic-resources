@@ -1,4 +1,4 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, PapiClient, SearchBody } from '@pepperi-addons/papi-sdk';
 import { PapiGetterService } from '../getters/papiGetter.service';
 import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
@@ -21,7 +21,12 @@ export class BuildService
     	const res = { success: true };
     	try
     	{
-    		let papiObjects: any[];
+    		if(this.buildServiceParams.shouldCleanBuild)
+			{
+				await this.hideAdalItems();
+			}
+			
+			let papiObjects: any[];
     		do
     		{
     			if (!body.fromPage)
@@ -50,6 +55,39 @@ export class BuildService
     		res['errorMessage'] = error;
     	}
     	return res;
+	}
+
+	/**
+	 * Hides all objects in an ADAL table by setting the Hidden field to true and setting ExpirationDateTime to now.
+	 */
+
+	protected async hideAdalItems()
+	{
+		let objects: AddonData[];
+		const page = 1;
+		do
+		{
+			const searchOptions: SearchBody = {
+				Page: page,
+				PageSize: this.pageSize,
+				Fields: ["Key"]
+			};
+
+			
+			objects = (await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions)).Objects;
+			console.log(`HIDING ${objects.length} OBJECTS IN ${this.buildServiceParams.adalTableName}`);
+			
+			// For each object, set the Hidden field to true, and set ExpirationDateTime to now
+			for (const object of objects)
+			{
+				object.Hidden = true;
+				object.ExpirationDateTime = new Date().toISOString();
+			}
+
+			// Batch upsert to adal
+			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, objects);
+		}
+		while (objects.length > 0);
 	}
 
 	/**

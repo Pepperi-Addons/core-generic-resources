@@ -6,5 +6,6 @@ export const BuildRoleRolesParams: IBuildServiceParams =
 {
 	papiGetterService: PapiRolesGetterService,
 	adalTableName: 'role_roles',
-	whereClause: ""
+	whereClause: "",
+	shouldCleanBuild: true
 }

@@ -109,8 +109,8 @@ export async function build(client: Client, request: Request)
  * @throws Error if the method is not supported
  * @returns A promise that resolves to the result of the build
  */
- async function buildSpecificTable(client: Client, request: Request, buildServiceParams: Builders.IBuildServiceParams): Promise<any>
- {
+async function buildSpecificTable(client: Client, request: Request, buildServiceParams: Builders.IBuildServiceParams): Promise<any>
+{
 	 switch (request.method)
 	 {
 	 case 'POST':
@@ -123,7 +123,7 @@ export async function build(client: Client, request: Request)
 		 throw new Error(`Unsupported method: ${request.method}`);
 	 }
 	 }
- }
+}
 
 /**
  * Returns a build service, based on the passed buildServiceParams
