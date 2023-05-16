@@ -6,6 +6,9 @@ import { Helper } from 'core-resources-shared';
 import { ContactsPNSService } from './services/pns/contactsPNS.service';
 import { BuildManagerService } from './services/buildManager.service';
 import { IBuildServiceParams } from './services/builders';
+import { TestBody } from './services/integrationTests/entities';
+import { BuildTestService } from './services/integrationTests/buildTest.service';
+import { BuildManagerTestService } from './services/integrationTests/buildManagerTest.service';
 
 export async function update_users(client: Client, request: Request) 
 {
@@ -91,7 +94,16 @@ export async function build(client: Client, request: Request)
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuildManagerService(papiClient);
+		let service: BuildManagerService;
+		if(request.body?.IsTest)
+		{
+			service = new BuildManagerTestService(papiClient, request.body);
+		}
+		else
+		{
+			service = new BuildManagerService(papiClient);
+		}
+
 		return await service.build(request.query?.resource);
 	}
 	default:
@@ -115,7 +127,7 @@ async function buildSpecificTable(client: Client, request: Request, buildService
 	 {
 	 case 'POST':
 	 {
-		 const service = getBuildService(client, buildServiceParams);
+		 const service = getBuildService(client, buildServiceParams, request.body);
 		 return await service.buildAdalTable(request.body);
 	 }
 	 default:
@@ -131,10 +143,19 @@ async function buildSpecificTable(client: Client, request: Request, buildService
  * @param iBuildServiceParams 
  * @returns {Builders.BuildService} - A build service
  */
-function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams): Builders.BuildService
+function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams, requestBody: TestBody): Builders.BuildService
 {
+	let buildService: Builders.BuildService;
 	const papiClient = Helper.getPapiClient(client);
-	const buildServiceParams: Builders.IBuildServiceParams = iBuildServiceParams;
-	const service = new Builders.BuildService(papiClient, buildServiceParams);
-	return service;
+
+	if(requestBody?.IsTest)
+	{
+		buildService = new BuildTestService(papiClient, iBuildServiceParams, requestBody);
+	}
+	else
+	{
+		buildService = new Builders.BuildService(papiClient, iBuildServiceParams);
+	}
+
+	return buildService;
 }
