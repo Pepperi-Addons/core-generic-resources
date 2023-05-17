@@ -3,18 +3,14 @@ import { PapiClient } from '@pepperi-addons/papi-sdk';
 
 export abstract class PapiGetterService 
 {
-
-	protected papiClient: PapiClient;
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(papiClient: PapiClient)
-	{
-		this.papiClient = papiClient;
-	}
+	constructor(protected papiClient: PapiClient)
+	{}
 
 	// this function makes sure the fields string is built only once
-	private async getRequestedFieldsString(): Promise<string>
+	protected async getRequestedFieldsString(): Promise<string>
 	{
 		if(!this._requestedFields)
 		{
@@ -27,7 +23,7 @@ export abstract class PapiGetterService
     abstract buildFixedFieldsString(): Promise<string>; 
     abstract additionalFix(object): void;
 
-    private async getPapiObjects(body: any, additionalFieldsString?: string): Promise<any[]> 
+    protected async getPapiObjects(body: any, additionalFieldsString?: string): Promise<any[]> 
     {
 		console.log("GETTING PAPI OBJECTS");
     	console.log(body);
@@ -71,27 +67,26 @@ export abstract class PapiGetterService
     	return fields;
     }
 
-    private replaceUUIDWithKey(user): void
+    protected replaceUUIDWithKey(user): void
     {
     	user["Key"] = user["UUID"];
     	delete user["UUID"];
     }
 
-    public fixPapiObjects(papiObjects: any[]): any[] 
+    public fixPapiObjects(papiObjects: any[]): any[]
     {
 		console.log("FIXING PAPI OBJECTS");
-    	for(const objIndex in papiObjects)
+    	for (const papiObject of papiObjects)
     	{
-    		this.replaceUUIDWithKey(papiObjects[objIndex]);
-			this.additionalFix(papiObjects[objIndex]);
+    		this.replaceUUIDWithKey(papiObject);
+			this.additionalFix(papiObject);
 			// fix resource type fields
-    		for(const field of this.resourceTypeFields)
+    		for (const field of this.resourceTypeFields)
     		{
     			// based on resource type field structure
-    			papiObjects[objIndex][field] = papiObjects[objIndex][field]?.Data?.UUID;
+    			papiObject[field] = papiObject[field]?.Data?.UUID;
     		}
     	}
     	return papiObjects;
     }
-
 }

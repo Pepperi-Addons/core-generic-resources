@@ -53,6 +53,11 @@ export async function get_roles_by_key(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "roles");
 }
+
+export async function get_role_roles_by_key(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "role_roles");
+}
 // #endregion
 
 // #region GET/POST
@@ -106,6 +111,11 @@ export async function roles(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "roles");
 }
+
+export async function role_roles(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "role_roles");
+}
 // #endregion
 
 // #region get by unique field
@@ -157,6 +167,11 @@ export async function get_profiles_by_unique_field(client: Client, request: Requ
 export async function get_roles_by_unique_field(client: Client, request: Request)
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "roles");
+}
+
+export async function get_role_roles_by_unique_field(client: Client, request: Request)
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "role_roles");
 }
 
 async function getByUniqueFieldFunctionAdapter(client: Client, request: Request, resourceName: string)
@@ -214,6 +229,11 @@ export async function profiles_search(client: Client, request: Request)
 export async function roles_search(client: Client, request: Request)
 {
 	return await searchFunctionAdapter(client, request, "roles");
+}
+
+export async function role_roles_search(client: Client, request: Request)
+{
+	return await searchFunctionAdapter(client, request, "role_roles");
 }
 
 async function searchFunctionAdapter(client: Client, request: Request, resourceName: string)
@@ -338,15 +358,13 @@ function getPapiService(client: Client, request: Request): IApiService
 	const papiClient = Helper.getPapiClient(client);
 	switch(request.query?.resource_name)
 	{
-	case('accounts'):
+	case 'accounts':
 	{
 		return new AccountsPapiService(papiClient);
 	}
-	case('users'):
-	{
-		return new AdalService(papiClient);
-	}
-	case('account_users'):
+	case 'users':
+	case 'account_users':
+	case 'role_roles':
 	{
 		return new AdalService(papiClient);
 	}

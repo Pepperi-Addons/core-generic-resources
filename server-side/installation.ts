@@ -20,6 +20,8 @@ import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
 import { ContactsPNSService } from './services/pns/contactsPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
+import { resourceNameToSchemaMap } from './resourcesSchemas';
+
 
 export async function install(client: Client, request: Request): Promise<any> 
 {
@@ -30,16 +32,15 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	try 
 	{
-		res['resultObject'] = await schemaService.createCoreSchemas(papiClient);
+		res['resultObject'] = await schemaService.createCoreSchemas();
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		await buildTables(papiClient, ['users', 'account_users']);
+		await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
 		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
 	{
-
 		res.success = false;
 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 	}
@@ -79,7 +80,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		try
 		{
 			// Switch to hardcoded schemas
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient);
+			res['resultObject'] = await schemaService.createCoreSchemas();
 			// account_users DIMX relations should be updated with the new (empty) relative url
 			await createDimxRelations(client, papiClient, ["account_users"]);
 		}
@@ -122,7 +123,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			// For more information please see the following:
 			// https://pepperi.atlassian.net/browse/DI-22492
 			// https://pepperi.atlassian.net/browse/DI-22490
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["accounts", "contacts"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["accounts", "contacts"]);
 		}
 		catch (error) 
 		{
@@ -157,7 +158,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		try 
 		{
 
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["employees", "account_employees"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["employees", "account_employees"]);
 			await createDimxRelations(client, papiClient, ["employees", "account_employees"]);
 
 		}
@@ -177,7 +178,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		try 
 		{
 
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["account_employees"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["account_employees"]);
 
 		}
 		catch (error) 
@@ -196,7 +197,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		try 
 		{
 
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["roles"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["roles"]);
 			await createDimxRelations(client, papiClient, ["roles"]);
 
 
@@ -234,7 +235,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		{
 			const schemaService = new SchemaService(papiClient);
 			// Update 'employees' schema to contain 'Name' field
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["employees"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["employees"]);
 		}
 		catch (error) 
 		{
@@ -261,15 +262,14 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.26'))
+	// create a new profiles schema
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
 	{
 		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
 		try 
 		{
-			// purging schemas with same names as the new ones, which have different types
-			await purgeGivenSchemas(papiClient, ['users', 'account_users']);
-			await buildTables(papiClient, ['users', 'account_users']);
-			await pnsSubscriptions(papiClient);
+			res['resultObject'] = await schemaService.createCoreSchemas(["profiles"]);
 		}
 		catch (error) 
 		{
@@ -280,14 +280,43 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// create a new profiles schema
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
+	// Add profiles and roles references to employees schema
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.43'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
 		try 
 		{
-			res['resultObject'] = await schemaService.createCoreSchemas(papiClient, ["profiles"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["employees"]);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	// Try purging existing 'users' and 'account_users' schemas
+	// Create new schemas and run build process for 'users', 'account_users' and 'role_roles' schemas.
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		const schemaNames = ['users', 'account_users'];
+
+		try 
+		{
+			// purging schemas with same names as the new ones, which have different types
+			await purgeSchemas(papiClient, schemaNames);
+
+			schemaNames.push('role_roles');
+
+			// create new schemas, including for 'roles' which has changed.
+			await schemaService.createCoreSchemas([...schemaNames, 'roles']);
+			res['resultObject'] = await buildTables(papiClient, schemaNames);
+			await pnsSubscriptions(papiClient);
 		}
 		catch (error) 
 		{
@@ -461,11 +490,18 @@ async function upsertSubscriptionToTsaModification(papiClient: PapiClient, shoul
 	 await papiClient.notification.subscriptions.upsert(subscription);
 }
 
-async function purgeGivenSchemas(papiClient: PapiClient, schemasNames: string[]): Promise<void>
+async function purgeSchemas(papiClient: PapiClient, schemasNames: string[]): Promise<void>
 {
 	for(const schemaName of schemasNames)
 	{
-		await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
+		try
+		{
+			await papiClient.post(`/addons/data/schemes/${schemaName}/purge`);
+		}
+		catch(error)
+		{
+			console.log(`Failed to purge schema '${schemaName}'. Assuming it was previously purged or never existed, continuing installation. Error: ${error instanceof Error ? error.message : 'Unknown error'}'}}`);
+		}
 	}
 }
 
