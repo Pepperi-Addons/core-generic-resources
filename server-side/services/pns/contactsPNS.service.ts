@@ -3,6 +3,7 @@ import { BasePNSService } from './basePNS.service';
 import { PapiContactsGetterService } from '../getters/papiContactsGetter.service';
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
+import config from '../../../addon.config.json'
 
 // split this into usersPNS and contactsPNS
 export class ContactsPNSService extends BasePNSService
@@ -41,8 +42,8 @@ export class ContactsPNSService extends BasePNSService
 		{
 			if(!contact.IsBuyer && contactsContainedInUsers.Objects.find(user => user.Key==contact.Key)) 
 			{
-				// hard delete the contact, which is no longer a user
-				await this.papiClient.post(`/users/${contact.Key}/hard_delete`);
+				// hard delete the contact(which is no longer a user) from adal users
+				await this.papiClient.post(`/addons/data/${config.AddonUUID}/users/${contact.Key}/hard_delete`, {Force: true});
 			}
 			else if(contact.IsBuyer)
 			{
