@@ -1,5 +1,6 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import config from '../../addon.config.json';
+import { AsyncResultObject } from '../constants';
 
 export class BuildManagerService
 {
@@ -16,7 +17,7 @@ export class BuildManagerService
 	constructor(protected papiClient: PapiClient)
 	{}
 
-	public async build(resource: string): Promise<any>
+	public async build(resource: string): Promise<AsyncResultObject>
 	{
 		const supportedResources = Object.keys(this.resourceFunctionsMap);
 		if (!supportedResources.includes(resource))
@@ -24,7 +25,7 @@ export class BuildManagerService
 			throw new Error(`Invalid resource name. Valid values are: '${supportedResources.join("',")}'`);
 		}
 
-		const res = { success: true };
+		const res: AsyncResultObject = { success: true };
 		try
 		{
 			
@@ -37,19 +38,14 @@ export class BuildManagerService
 				if (promise.status === 'rejected')
 				{
 					res.success = false;
-					res['errorMessage'] = res['errorMessage'] ? res['errorMessage'] + '\n' + promise.reason : promise.reason;
-				}
-				else
-				{
-					res[this.resourceFunctionsMap[resource][i]] = promise.value;
-				}
-				
+					res.errorMessage = res.errorMessage ? res.errorMessage + '\n' + promise.reason : promise.reason;
+				}		
 			}
 		}
 		catch (error)
     	{
     		res.success = false;
-    		res['errorMessage'] = error;
+    		res.errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     	}
 		return res;
 	}
@@ -81,7 +77,7 @@ export class BuildManagerService
 	/** Poll an ActionUUID until it resolves to success our failure. The returned promise resolves to a boolean - true in case the execution was successful, false otherwise.
 	* @param ExecutionUUID the executionUUID which should be polled.
 	* @param interval the time interval in ms which will be waited between polling retries.
-	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 600, allowing for 9 minutes of polling, allowing graceful exit for install. 
+	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 540, allowing for 9 minutes of polling, allowing graceful exit for install. 
 	*/
 	protected async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
 	{
