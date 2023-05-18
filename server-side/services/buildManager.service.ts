@@ -18,16 +18,17 @@ export class BuildManagerService
 
 	public async build(resource: string): Promise<any>
 	{
-		const resourceBuildingEndpoints = Object.keys(this.resourceFunctionsMap);
-		if (!resourceBuildingEndpoints.includes(resource))
+		const supportedResources = Object.keys(this.resourceFunctionsMap);
+		if (!supportedResources.includes(resource))
 		{
-			throw new Error(`Invalid resource name. Valid values are: '${resourceBuildingEndpoints.join("',")}'`);
+			throw new Error(`Invalid resource name. Valid values are: '${supportedResources.join("',")}'`);
 		}
 
 		const res = { success: true };
 		try
 		{
-			const promises = await Promise.allSettled(resourceBuildingEndpoints.map(endpoint => this.singleBuild(this.resourceFunctionsMap[resource][endpoint])));
+			
+			const promises = await Promise.allSettled(this.resourceFunctionsMap[resource].map(endpoint => this.singleBuild(endpoint)));
 			for (const i in promises)
 			{
 				const promise = promises[i];
