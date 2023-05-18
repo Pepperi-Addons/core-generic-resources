@@ -272,7 +272,10 @@ const usersSchema: AddonDataScheme = {
     	},
     	"Mobile": {
     		"Type": "String"
-    	}
+    	},
+		Name: {
+			"Type": "String"
+		},
     }
 }
 
