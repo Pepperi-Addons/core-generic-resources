@@ -1,4 +1,4 @@
-import { AddonData, PapiClient, SearchBody } from '@pepperi-addons/papi-sdk';
+import { AddonData, PapiClient, SearchBody, SearchData } from '@pepperi-addons/papi-sdk';
 import { PapiGetterService } from '../getters/papiGetter.service';
 import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
@@ -57,38 +57,37 @@ export class BuildService
 	/**
 	 * Hides all objects in an ADAL table by setting the Hidden field to true and setting ExpirationDateTime to now.
 	 */
-
 	protected async hideAdalItems()
 	{
 		if(this.buildServiceParams.shouldCleanBuild)
 		{
-			let objects: AddonData[];
-			let page = 1;
+			let searchResponse: SearchData<AddonData>;
+			let NextPageKey: string | undefined = undefined;
+			const now = new Date().toISOString();
+
 			do
 			{
 				const searchOptions: SearchBody = {
-					Page: page,
-					PageSize: this.pageSize,
+					...(NextPageKey && {PageKey: NextPageKey}),
 					Fields: ["Key"]
 				};
 
-				
-				objects = (await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions)).Objects;
-				console.log(`HIDING ${objects.length} OBJECTS IN ${this.buildServiceParams.adalTableName}`);
+				searchResponse = await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions);
+				console.log(`HIDING ${searchResponse.Objects.length} OBJECTS IN ${this.buildServiceParams.adalTableName}`);
 				
 				// For each object, set the Hidden field to true, and set ExpirationDateTime to now
-				for (const object of objects)
+				for (const object of searchResponse.Objects)
 				{
 					object.Hidden = true;
-					object.ExpirationDateTime = new Date().toISOString();
+					object.ExpirationDateTime = now;
 				}
 
 				// Batch upsert to adal
-				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, objects);
+				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, searchResponse.Objects);
 
-				page++;
+				NextPageKey = searchResponse.NextPageKey;
 			}
-			while (objects.length > 0);
+			while (NextPageKey);
 		}
 	}
 
