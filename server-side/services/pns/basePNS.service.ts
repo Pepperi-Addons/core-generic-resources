@@ -30,6 +30,7 @@ export abstract class BasePNSService
     			Name: params.Name,
     			FilterPolicy: {
     				Action:[params.Action],
+					ModifiedFields: params.ModifiedFields,
     				Resource:[params.Resource],
     				AddonUUID:[CORE_ADDON_UUID]
     			}

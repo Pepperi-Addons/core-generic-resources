@@ -1,19 +1,19 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { BasePNSService } from './basePNS.service';
-import { PapiAccountUsersGetterService } from '../getters/papiAccountUsersGetter.service';
+import { AccountUsersGetterService } from '../getters/accountUsersGetter.service';
 import { PnsParams } from '../../models/metadata';
 import { AdalService } from '../adal.service';
-
+import { AccountBuyersGetterService } from '../getters/accountBuyersGetter.service';
 
 export class AccountUsersPNSService extends BasePNSService 
 {
-	protected papiAccountUsersService: PapiAccountUsersGetterService;
+	protected papiAccountUsersService: AccountUsersGetterService;
 	protected adalService: AdalService;
 
 	constructor(papiClient: PapiClient) 
 	{
 		super(papiClient);
-		this.papiAccountUsersService = new PapiAccountUsersGetterService(papiClient);
+		this.papiAccountUsersService = new AccountUsersGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
 	}
 
@@ -36,9 +36,17 @@ export class AccountUsersPNSService extends BasePNSService
 		console.log("ACCOUNT USERS UPDATE PNS TRIGGERED");
 		const accountUsersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("ACCOUNT USERS UUIDS: " + JSON.stringify(accountUsersUUIDs));
-		let updatedPapiAccountUsers = await this.papiAccountUsersService.getPapiObjectsByUUIDs(accountUsersUUIDs);
+		let updatedPapiAccountUsers = await this.papiAccountUsersService.getObjectsByKeys(accountUsersUUIDs);
+
 		// check if missing results, then search in account_buyers
-		updatedPapiAccountUsers = this.papiAccountUsersService.fixPapiObjects(updatedPapiAccountUsers);
+		if(updatedPapiAccountUsers.length < accountUsersUUIDs.length) 
+		{
+			const missingUUIDs = accountUsersUUIDs.filter(uuid => !updatedPapiAccountUsers.find(user => user.UUID == uuid));
+			const accountBuyersService = new AccountBuyersGetterService(this.papiClient);
+			const missingAccountUsers = await accountBuyersService.getObjectsByKeys(missingUUIDs);
+			updatedPapiAccountUsers = updatedPapiAccountUsers.concat(missingAccountUsers);
+		}
+		updatedPapiAccountUsers = this.papiAccountUsersService.fixObjects(updatedPapiAccountUsers);
 		const batchUpsertResponse = await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
 		console.log("ACCOUNT USERS UPDATE PNS FINISHED. BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
 	}

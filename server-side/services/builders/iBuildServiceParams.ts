@@ -1,9 +1,9 @@
 import { PapiClient } from "@pepperi-addons/papi-sdk";
-import { PapiGetterService } from "../getters/papiGetter.service";
+import { BaseGetterService } from "../getters/baseGetter.service";
 
 export interface IBuildServiceParams
 {
-    papiGetterService: new(papiClient: PapiClient) => PapiGetterService;
+    baseGetterService: new(papiClient: PapiClient) => BaseGetterService;
 	adalTableName: string;
 	whereClause: string; 
 }

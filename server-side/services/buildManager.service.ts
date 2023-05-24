@@ -8,7 +8,7 @@ export class BuildManagerService
 	in order to build that ADAL table.
 	*/
 	protected resourceFunctionsMap: {[key: string]: string[]} = {
-		users: ['build_users', 'build_users_from_contacts'],
+		users: ['build_users', 'build_users_from_buyers'],
 		account_users: ['build_account_users', 'build_account_buyers'],
 		role_roles: ['build_role_roles']
 	};

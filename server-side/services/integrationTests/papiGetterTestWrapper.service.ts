@@ -1,14 +1,42 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { PapiGetterService } from '../getters/papiGetter.service';
+import { BaseGetterService } from '../getters/baseGetter.service';
 import { TestBody } from './entities';
+import { IApiService } from 'core-resources-shared';
 
+class emptyiApiService implements IApiService 
+{
+	createResource(resourceName: string, body: any): Promise<any> 
+	{
+		return  Promise.resolve({});
+	}
+	getResources(resourceName: string, query: string, whereClause: string | undefined): Promise<Array<any>>
+	{
+		return  Promise.resolve([]);
+	}
+	getResourceByKey(resourceName: string, key: string, whereClause: undefined): Promise<any> 
+	{
+		return  Promise.resolve({});
+	}
+	getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined): Promise<any>
+	{
+		return  Promise.resolve({});
+	}
+	searchResource(resourceName: string, body: any): Promise<{Objects: Array<any>;Count?: number;}>
+	{
+		return  Promise.resolve({Objects: []});
+	}
+	batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>
+	{
+		return  Promise.resolve([]);
+	}
+}
 
-export class PapiGetterTestWrapperService extends PapiGetterService
+export class PapiGetterTestWrapperService extends BaseGetterService
 {
 
-	constructor(papiClient: PapiClient, protected wrappedPapiGetter: PapiGetterService, protected testBody: TestBody)
+	constructor(papiClient: PapiClient, protected wrappedPapiGetter: BaseGetterService, protected testBody: TestBody)
 	{
-		super(papiClient);
+		super(papiClient, new emptyiApiService());
 	}
 
 	public getResourceName(): string
@@ -26,7 +54,7 @@ export class PapiGetterTestWrapperService extends PapiGetterService
 		this.wrappedPapiGetter.additionalFix(object);
 	}
 
-	public override async getPapiObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any[]>
+	public override async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any[]>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the page and pageSize
 		// Page and pageSize are 1-based
@@ -39,13 +67,13 @@ export class PapiGetterTestWrapperService extends PapiGetterService
 		}
 		else
 		{
-			res = await this.wrappedPapiGetter.getPapiObjectsByPage(whereClause, page, pageSize, additionalFields);
+			res = await this.wrappedPapiGetter.getObjectsByPage(whereClause, page, pageSize, additionalFields);
 		}
 
 		return res;
 	}
 
-	public override async getPapiObjectsByUUIDs(UUIDs: string[], additionalFields?: string): Promise<any[]>
+	public override async getObjectsByKeys(UUIDs: string[], additionalFields?: string): Promise<any[]>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the UUIDs
 		let res: any;
@@ -55,14 +83,14 @@ export class PapiGetterTestWrapperService extends PapiGetterService
 		}
 		else
 		{
-			res = await this.wrappedPapiGetter.getPapiObjectsByUUIDs(UUIDs, additionalFields);
+			res = await this.wrappedPapiGetter.getObjectsByKeys(UUIDs, additionalFields);
 		}
 
 		return res;
 	}
 
-	public override fixPapiObjects(papiObjects: any[]): any[]
+	public override fixObjects(papiObjects: any[]): any[]
 	{
-		return this.wrappedPapiGetter.fixPapiObjects(papiObjects);
+		return this.wrappedPapiGetter.fixObjects(papiObjects);
 	}
 }

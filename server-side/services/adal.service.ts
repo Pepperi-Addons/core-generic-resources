@@ -3,6 +3,7 @@ import { ErrorWithStatus } from 'core-resources-shared';
 import { IApiService } from 'core-resources-shared';
 import config from '../../addon.config.json'
 import { Helper } from 'core-resources-shared';
+import { resourceNameToSchemaMap } from '../resourcesSchemas';
 
 
 export class AdalService implements IApiService
@@ -44,6 +45,7 @@ export class AdalService implements IApiService
 	{
 		try
 		{
+			this.validateUniqueKeyPrerequisites(resourceName, uniqueFieldId, value);
 			const returnedObjects = await this.papiClient.addons.data.uuid(config.AddonUUID).table(resourceName).find({where: `${uniqueFieldId}='${value}'`});
 			if(returnedObjects.length > 0) 
 			{
@@ -77,5 +79,21 @@ export class AdalService implements IApiService
 	async batchUpsert(resourceName: string,objects: any[]) 
 	{
 		return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resourceName}`, {Objects: objects});
+	}
+
+	validateUniqueKeyPrerequisites(resourceName: string, requestedFieldId: string, requestedValue: string)
+	{
+		const schemeFields = resourceNameToSchemaMap[resourceName].Fields ?? {};
+		const uniqueFields = Object.keys(schemeFields).filter(field => schemeFields[field].Unique);
+		uniqueFields.push('Key');
+		if (!(requestedFieldId && requestedValue))
+		{
+			throw new Error(`Missing the required field_id or value query parameters.`);
+		}
+
+		if(!uniqueFields.includes(requestedFieldId))
+		{
+			throw new Error(`The field_id query parameter is not valid. Supported field_ids are: ${uniqueFields.join(", ")}`);
+		}
 	}
 }

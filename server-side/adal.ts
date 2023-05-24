@@ -3,7 +3,7 @@ import { UsersPNSService } from "./services/pns/usersPNS.service";
 import { AccountUsersPNSService } from "./services/pns/accountUsersPNS.service";
 import * as Builders from "./services/builders";
 import { Helper } from 'core-resources-shared';
-import { ContactsPNSService } from './services/pns/contactsPNS.service';
+import { BuyersPNSService } from './services/pns/buyersPNS.service';
 import { BuildManagerService } from './services/buildManager.service';
 import { IBuildServiceParams } from './services/builders';
 import { TestBody } from './services/integrationTests/entities';
@@ -27,14 +27,14 @@ export async function update_users(client: Client, request: Request)
 	}
 }
 
-export async function update_users_from_contacts(client: Client, request: Request) 
+export async function update_users_from_buyers(client: Client, request: Request) 
 {
 	switch(request.method)
 	{
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new ContactsPNSService(papiClient);
+		const service = new BuyersPNSService(papiClient);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -66,9 +66,9 @@ export async function build_users(client: Client, request: Request)
 	return await buildSpecificTable(client, request, Builders.BuildUsersParams);
 }
 
-export async function build_users_from_contacts(client: Client, request: Request) 
+export async function build_users_from_buyers(client: Client, request: Request) 
 {
-	return await buildSpecificTable(client, request, Builders.BuildUsersFromContactsParams);
+	return await buildSpecificTable(client, request, Builders.BuildUsersFromBuyersParams);
 }
 
 export async function build_account_users(client: Client, request: Request) 

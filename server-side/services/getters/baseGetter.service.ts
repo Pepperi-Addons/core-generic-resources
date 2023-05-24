@@ -1,13 +1,16 @@
 /* eslint-disable indent */
 import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { IApiService } from 'core-resources-shared';
+import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
-export abstract class PapiGetterService 
+export abstract class BaseGetterService 
 {
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(protected papiClient: PapiClient)
-	{}
+	constructor(protected papiClient: PapiClient, protected iApiService: IApiService)
+	{
+	}
 
 	// this function makes sure the fields string is built only once
 	protected async getRequestedFieldsString(): Promise<string>
@@ -23,62 +26,53 @@ export abstract class PapiGetterService
     abstract buildFixedFieldsString(): Promise<string>; 
     abstract additionalFix(object): void;
 
-    protected async getPapiObjects(body: any, additionalFieldsString?: string): Promise<any[]> 
+    protected async getObjects(body: any, additionalFieldsString?: string): Promise<any> 
     {
-		console.log("GETTING PAPI OBJECTS");
+		console.log("GETTING OBJECTS");
     	console.log(body);
     	const fieldsString = await this.getRequestedFieldsString();
     	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
 		body["IncludeDeleted"] = true;
 		body["OrderBy"] = "CreationDateTime";
-    	const papiObjects = await this.papiClient.post(`/${this.getResourceName()}/search`, body);
-		console.log("FINISHED GETTING PAPI OBJECTS");
-    	return papiObjects;
+		const objects = await this.iApiService.searchResource(this.getResourceName(), body);
+		console.log("FINISHED GETTING OBJECTS");
+    	return objects;
     }
 
-    public async getPapiObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any[]>
+    public async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any>
     {
     	const body = {
     		PageSize: pageSize,
     		Page: page,
     		Where: whereClause
     	}
-    	return await this.getPapiObjects(body, additionalFields);
+    	return await this.getObjects(body, additionalFields);
     }
 
-    public async getPapiObjectsByUUIDs(UUIDs: string[], additionalFields?: string): Promise<any[]>
+    public async getObjectsByKeys(Keys: string[], additionalFields?: string): Promise<any[]>
     {
-    	const body = { UUIDList: UUIDs };
-    	return await this.getPapiObjects(body, additionalFields);
+    	const body = { KeyList: Keys };
+    	return await this.getObjects(body, additionalFields);
     }
 
     protected async getSchemeFields(schemeName: string): Promise<string[]>
     {
-    	const scheme = await this.papiClient.addons.data.schemes.name(schemeName).get();
+    	const scheme = resourceNameToSchemaMap[schemeName];
     	// save fields of type "Resource" for later use
     	for(const fieldName in scheme.Fields)
     	{
     		if(scheme.Fields[fieldName].Type == "Resource") this.resourceTypeFields.push(fieldName);
     	}
-    	let fields = Object.keys(scheme.Fields as any);
-    	fields = fields.filter(f => f != 'Key');
-    	fields.push('UUID');
+    	const fields = Object.keys(scheme.Fields as any);
 		fields.push('Hidden');
     	return fields;
     }
 
-    protected replaceUUIDWithKey(user): void
+    public fixObjects(papiObjects: any[]): any[]
     {
-    	user["Key"] = user["UUID"];
-    	delete user["UUID"];
-    }
-
-    public fixPapiObjects(papiObjects: any[]): any[]
-    {
-		console.log("FIXING PAPI OBJECTS");
+		console.log("FIXING OBJECTS");
     	for (const papiObject of papiObjects)
     	{
-    		this.replaceUUIDWithKey(papiObject);
 			this.additionalFix(papiObject);
 			// fix resource type fields
     		for (const field of this.resourceTypeFields)

@@ -18,7 +18,7 @@ import { SchemaService } from './schema.service';
 import { UsersPNSService } from './services/pns/usersPNS.service';
 import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
-import { ContactsPNSService } from './services/pns/contactsPNS.service';
+import { BuyersPNSService } from './services/pns/buyersPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 
@@ -513,7 +513,7 @@ async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 {
 	await subscribeToPNS(new UsersPNSService(papiClient));
-	await subscribeToPNS(new ContactsPNSService(papiClient));
+	await subscribeToPNS(new BuyersPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }
 

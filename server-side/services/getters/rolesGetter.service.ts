@@ -1,6 +1,7 @@
-import { v4 as createUUID } from 'uuid';
-
-import { PapiGetterService } from "./papiGetter.service";
+/* eslint-disable @typescript-eslint/no-empty-function */
+import { PapiClient } from "@pepperi-addons/papi-sdk";
+import { BaseGetterService } from "./baseGetter.service";
+import { PapiService } from 'core-resources-shared';
 
 
 interface PapiRole
@@ -20,8 +21,13 @@ interface KeyedTreeNode extends TreeNode
 	Key: string
 }
 
-export class PapiRolesGetterService extends PapiGetterService
+export class RolesGetterService extends BaseGetterService
 {
+	constructor(papiClient: PapiClient)
+	{
+		super(papiClient, new PapiService(papiClient));
+	}
+	
 	getResourceName(): string
 	{
 		return 'roles';
@@ -35,7 +41,7 @@ export class PapiRolesGetterService extends PapiGetterService
 	additionalFix(object: any): void
 	{}
 
-	public override fixPapiObjects(nodes: PapiRole[]): KeyedTreeNode[]
+	public override fixObjects(nodes: PapiRole[]): KeyedTreeNode[]
 	{
 		const treeNodes: TreeNode[] = this.flattenTree(nodes);
 		const keyedTreeNodes: KeyedTreeNode[] = this.addKeysToTreeNodes(treeNodes);
