@@ -27,5 +27,6 @@ export class BuyersGetterService extends BaseGetterService
 	{
 		object["UserType"] = "Buyer";
 		object["Name"] = `${object["FirstName"]} ${object["LastName"]}`;
+		delete object["User"];
 	}
 }

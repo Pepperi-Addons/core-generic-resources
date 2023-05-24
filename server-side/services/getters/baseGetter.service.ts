@@ -34,9 +34,9 @@ export abstract class BaseGetterService
     	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
 		body["IncludeDeleted"] = true;
 		body["OrderBy"] = "CreationDateTime";
-		const objects = await this.iApiService.searchResource(this.getResourceName(), body);
+		const searchResponse = await this.iApiService.searchResource(this.getResourceName(), body);
 		console.log("FINISHED GETTING OBJECTS");
-    	return objects;
+    	return searchResponse.Objects;
     }
 
     public async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any>

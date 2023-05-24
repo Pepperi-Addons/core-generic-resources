@@ -44,6 +44,23 @@ export async function update_users_from_buyers(client: Client, request: Request)
 	}
 }
 
+export async function update_users_state(client: Client, request: Request) 
+{
+	switch(request.method)
+	{
+	case 'POST':
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const service = new BuyersPNSService(papiClient);
+		return await service.updateUsersState(request.body);
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
 export async function update_account_users(client: Client, request: Request) 
 {
 	switch(request.method)
