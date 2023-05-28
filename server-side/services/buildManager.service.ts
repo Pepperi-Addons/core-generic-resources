@@ -28,7 +28,7 @@ export class BuildManagerService
 		const res: AsyncResultObject = { success: true };
 		try
 		{
-			
+			console.log(`Trying to build table '${resource}' using functions '${this.resourceFunctionsMap[resource].join("', '")}' in file 'adal'...`);
 			const promises = await Promise.allSettled(this.resourceFunctionsMap[resource].map(endpoint => this.singleBuild(endpoint)));
 
 			for (let i = 0; i < promises.length; i++)
@@ -58,6 +58,7 @@ export class BuildManagerService
     */
 	protected async singleBuild(funcName: string): Promise<void>
 	{
+		console.log(`Trying to build table using function '${funcName}' in file 'adal'...`);
 		const asyncCall = await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 1}, {fromPage: 1});
 		if(!asyncCall)
 		{
@@ -65,6 +66,7 @@ export class BuildManagerService
 			console.error(errorMessage);
 			throw new Error(errorMessage);
 		}
+
 		const isAsyncRequestResolved = await this.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{
@@ -72,6 +74,8 @@ export class BuildManagerService
 			console.error(errorMessage);
 			throw new Error(errorMessage);
 		}
+
+		console.log(`Successfully executed function '${funcName}' in file 'adal'.`);
 	}
 
 	/** Poll an ActionUUID until it resolves to success our failure. The returned promise resolves to a boolean - true in case the execution was successful, false otherwise.
@@ -85,11 +89,13 @@ export class BuildManagerService
 
 		const executePoll = async (resolve, reject) =>
 		{
+			console.log(`Polling ${ExecutionUUID}, attempt number ${attempts} out of ${maxAttempts}`);
 			const result = await papiClient.auditLogs.uuid(ExecutionUUID).get();
 			attempts++;
 
 			if (this.isAsyncExecutionOver(result))
 			{
+				console.log(`Finished polling ${ExecutionUUID}, it's status is ${result.Status.Name}`);
 				return resolve(result.Status.Name === 'Success');
 			}
 			else if (maxAttempts && attempts === maxAttempts)

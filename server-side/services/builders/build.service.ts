@@ -2,6 +2,7 @@ import { AddonData, PapiClient, SearchBody, SearchData } from '@pepperi-addons/p
 import { PapiGetterService } from '../getters/papiGetter.service';
 import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
+import { AsyncResultObject } from '../../constants';
 
 
 export class BuildService
@@ -16,9 +17,9 @@ export class BuildService
 		this.adalService = new AdalService(papiClient);
 	}
 
-	public async buildAdalTable(body: any): Promise<any>
+	public async buildAdalTable(body: any): Promise<AsyncResultObject>
 	{
-    	const res = { success: true };
+    	const res: AsyncResultObject = { success: true };
     	try
     	{
 			await this.hideAdalItems();
@@ -49,7 +50,7 @@ export class BuildService
     	catch (error)
     	{
     		res.success = false;
-    		res['errorMessage'] = error;
+    		res.errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     	}
     	return res;
 	}
@@ -57,10 +58,12 @@ export class BuildService
 	/**
 	 * Hides all objects in an ADAL table by setting the Hidden field to true and setting ExpirationDateTime to now.
 	 */
-	protected async hideAdalItems()
+	protected async hideAdalItems(): Promise<void>
 	{
 		if(this.buildServiceParams.shouldCleanBuild)
 		{
+			console.log(`HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
+			
 			let searchResponse: SearchData<AddonData>;
 			let NextPageKey: string | undefined = undefined;
 			const now = new Date().toISOString();
@@ -88,6 +91,8 @@ export class BuildService
 				NextPageKey = searchResponse.NextPageKey;
 			}
 			while (NextPageKey);
+
+			console.log(`FINISHED HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
 		}
 	}
 
@@ -95,7 +100,7 @@ export class BuildService
 	 * Uses batch upsert to upload the objects to an ADAL table.
 	 * @param fixedObjects the objects to upload to an ADAL table
 	 */
-	protected async upsertToAdal(fixedObjects: any[])
+	protected async upsertToAdal(fixedObjects: any[]): Promise<void>
 	{
 		// Since the fixedObjects array might be larger than the maximum of 500 defined by ADAL,
 		// first split the fixedObjects into array of maximal size
@@ -105,7 +110,7 @@ export class BuildService
 		for (const fixedObjectsChunk of fixedObjectsChunks)
 		{
 			const batchUpsertResponse = await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-			console.log(`${this.buildServiceParams.adalTableName} BATCH UPSERT RESPONSE: ${JSON.stringify(batchUpsertResponse)}`);
+			console.log(`Successfully upserted ${batchUpsertResponse.length} objects to ${this.buildServiceParams.adalTableName}`);
 		}
 	}
 
