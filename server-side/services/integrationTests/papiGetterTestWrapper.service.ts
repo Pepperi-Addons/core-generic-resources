@@ -3,7 +3,9 @@ import { BaseGetterService } from '../getters/baseGetter.service';
 import { TestBody } from './entities';
 import { IApiService } from 'core-resources-shared';
 
-class emptyiApiService implements IApiService 
+// The wrapper service should provide an iApiService so we created this empty one,
+// The actual implementation will come from the wrapped papi getter.
+class emptyiApiService implements IApiService
 {
 	createResource(resourceName: string, body: any): Promise<any> 
 	{

@@ -1,5 +1,4 @@
-/* eslint-disable indent */
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, PapiClient } from '@pepperi-addons/papi-sdk';
 import { IApiService } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
@@ -26,20 +25,20 @@ export abstract class BaseGetterService
     abstract buildFixedFieldsString(): Promise<string>; 
     abstract additionalFix(object): void;
 
-    protected async getObjects(body: any, additionalFieldsString?: string): Promise<any> 
+    protected async getObjects(body: any, additionalFieldsString?: string): Promise<AddonData[]> 
     {
-		console.log("GETTING OBJECTS");
+    	console.log("GETTING OBJECTS");
     	console.log(body);
     	const fieldsString = await this.getRequestedFieldsString();
     	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
-		body["IncludeDeleted"] = true;
-		body["OrderBy"] = "CreationDateTime";
-		const searchResponse = await this.iApiService.searchResource(this.getResourceName(), body);
-		console.log("FINISHED GETTING OBJECTS");
+    	body["IncludeDeleted"] = true;
+    	body["OrderBy"] = "CreationDateTime";
+    	const searchResponse = await this.iApiService.searchResource(this.getResourceName(), body);
+    	console.log("FINISHED GETTING OBJECTS");
     	return searchResponse.Objects;
     }
 
-    public async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any>
+    public async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<AddonData[]>
     {
     	const body = {
     		PageSize: pageSize,
@@ -49,7 +48,7 @@ export abstract class BaseGetterService
     	return await this.getObjects(body, additionalFields);
     }
 
-    public async getObjectsByKeys(Keys: string[], additionalFields?: string): Promise<any[]>
+    public async getObjectsByKeys(Keys: string[], additionalFields?: string): Promise<AddonData[]>
     {
     	const body = { KeyList: Keys };
     	return await this.getObjects(body, additionalFields);
@@ -64,17 +63,17 @@ export abstract class BaseGetterService
     		if(scheme.Fields[fieldName].Type == "Resource") this.resourceTypeFields.push(fieldName);
     	}
     	const fields = Object.keys(scheme.Fields as any);
-		fields.push('Hidden');
+    	fields.push('Hidden');
     	return fields;
     }
 
     public fixObjects(papiObjects: any[]): any[]
     {
-		console.log("FIXING OBJECTS");
+    	console.log("FIXING OBJECTS");
     	for (const papiObject of papiObjects)
     	{
-			this.additionalFix(papiObject);
-			// fix resource type fields
+    		this.additionalFix(papiObject);
+    		// fix resource type fields
     		for (const field of this.resourceTypeFields)
     		{
     			// based on resource type field structure

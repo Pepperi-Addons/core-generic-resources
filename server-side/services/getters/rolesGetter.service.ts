@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { PapiClient } from "@pepperi-addons/papi-sdk";
 import { BaseGetterService } from "./baseGetter.service";
 import { PapiService } from 'core-resources-shared';
@@ -39,7 +38,9 @@ export class RolesGetterService extends BaseGetterService
 	}
 
 	additionalFix(object: any): void
-	{}
+	{
+		return;
+	}
 
 	public override fixObjects(nodes: PapiRole[]): KeyedTreeNode[]
 	{

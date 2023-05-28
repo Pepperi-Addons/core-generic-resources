@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-function */
 import { PapiService } from "core-resources-shared";
 import { BaseGetterService } from "./baseGetter.service";
 import { PapiClient } from "@pepperi-addons/papi-sdk";
@@ -22,5 +21,7 @@ export class AccountUsersGetterService extends BaseGetterService
 	}
 
 	additionalFix(object): void
-	{}
+	{
+		return;
+	}
 }
