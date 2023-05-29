@@ -65,8 +65,8 @@ export class BuildService
 		// Batch upsert to adal
 		for (const fixedObjectsChunk of fixedObjectsChunks)
 		{
-			const batchUpsertResponse = await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-			console.log(`${this.buildServiceParams.adalTableName} BATCH UPSERT RESPONSE: ${JSON.stringify(batchUpsertResponse)}`);
+			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
+			console.log(`CHUNK UPSERTED TO ${this.buildServiceParams.adalTableName} TABLE`);
 		}
 	}
 

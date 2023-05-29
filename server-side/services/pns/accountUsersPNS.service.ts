@@ -47,7 +47,7 @@ export class AccountUsersPNSService extends BasePNSService
 			updatedPapiAccountUsers = updatedPapiAccountUsers.concat(missingAccountUsers);
 		}
 		updatedPapiAccountUsers = this.papiAccountUsersService.fixObjects(updatedPapiAccountUsers);
-		const batchUpsertResponse = await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
-		console.log("ACCOUNT USERS UPDATE PNS FINISHED. BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
+		await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
+		console.log("ACCOUNT USERS UPDATE PNS FINISHED");
 	}
 }

@@ -1,7 +1,7 @@
 import { PnsParams, User } from '../../models/metadata';
 import { BasePNSService } from './basePNS.service';
 import { BuyersGetterService } from '../getters/buyersGetter.service';
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
 import config from '../../../addon.config.json'
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
@@ -31,7 +31,6 @@ export class BuyersPNSService extends BasePNSService
 			{AddonRelativeURL: "/adal/update_users_state", Name: "buyersUserFieldChanged", Action: "update", Resource: "buyers", ModifiedFields: ["User"]},
 			{AddonRelativeURL: "/adal/insert_users_from_buyers", Name: "buyersAdded", Action: "insert", Resource: "buyers"}
 		]
-		// TODO: fix the calls from adal.ts endpoints accordingly
 	}
 
 	async updateAdalTable(messageFromPNS: any): Promise<void>
@@ -41,8 +40,8 @@ export class BuyersPNSService extends BasePNSService
 		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
 		const updatedBuyers = await this.buyersGetterService.getObjectsByKeys(buyersKeys);
 		const fixedBuyers = this.buyersGetterService.fixObjects(updatedBuyers);
-		const batchUpsertResponse = await this.adalService.batchUpsert('users', fixedBuyers);
-		console.log("BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
+		await this.adalService.batchUpsert('users', fixedBuyers);
+		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
 
 	async updateUsersState(messageFromPNS: any): Promise<void>
@@ -52,7 +51,7 @@ export class BuyersPNSService extends BasePNSService
 		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
 		const updatedBuyers = await this.buyersGetterService.getObjectsByKeys(buyersKeys, 'User');
 		const buyersContainedInUsers = await this.adalService.searchResource('users', {KeyList: buyersKeys});
-		const newUsers: User[] = [];
+		const newUsers: AddonData[] = [];
 		for(const buyer of updatedBuyers)
 		{
 			if(!buyer.User && buyersContainedInUsers.Objects.find(user => user.Key==buyer.Key)) 
@@ -68,8 +67,8 @@ export class BuyersPNSService extends BasePNSService
 		if(newUsers.length > 0)
 		{
 			const fixedBuyers = this.buyersGetterService.fixObjects(newUsers);
-			const batchUpsertResponse = await this.adalService.batchUpsert('users', fixedBuyers);
-			console.log("BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
+			await this.adalService.batchUpsert('users', fixedBuyers);
+			console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
 		}
 
 	}

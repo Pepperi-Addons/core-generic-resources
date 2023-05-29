@@ -33,7 +33,7 @@ export class UsersPNSService extends BasePNSService
 		console.log("USERS UUIDS: " + JSON.stringify(usersUUIDs));
 		let updatedPapiUsers = await this.papiUsersService.getObjectsByKeys(usersUUIDs);
 		updatedPapiUsers = this.papiUsersService.fixObjects(updatedPapiUsers);
-		const batchUpsertResponse = await this.adalService.batchUpsert('users', updatedPapiUsers);
-		console.log("USERS UPDATE PNS FINISHED. BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
+		await this.adalService.batchUpsert('users', updatedPapiUsers);
+		console.log("USERS UPDATE PNS FINISHED");
 	}
 }
