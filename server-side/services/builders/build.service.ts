@@ -1,5 +1,5 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
-import { PapiGetterService } from '../getters/papiGetter.service';
+import { BaseGetterService } from '../getters/baseGetter.service';
 import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 
@@ -7,12 +7,12 @@ import { IBuildServiceParams } from './iBuildServiceParams';
 export class BuildService
 {
 	protected readonly pageSize = 500;
-	protected papiGetterService: PapiGetterService;
+	protected baseGetterService: BaseGetterService;
 	protected adalService: AdalService;
 
 	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams)
 	{
-		this.papiGetterService = new this.buildServiceParams.papiGetterService(papiClient);
+		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
 	}
 
@@ -29,12 +29,12 @@ export class BuildService
 					body.fromPage = 1;
 				}
 
-    			papiObjects = await this.papiGetterService.getPapiObjectsByPage(this.buildServiceParams.whereClause, body.fromPage, this.pageSize);
-    			console.log(`FINISHED GETTING PAPI OBJECTS. RESULTS LENGTH: ${ papiObjects.length}`);
+    			papiObjects = await this.baseGetterService.getObjectsByPage(this.buildServiceParams.whereClause, body.fromPage, this.pageSize);
+    			console.log(`FINISHED GETTING PAPI OBJECTS. RESULTS LENGTH: ${papiObjects.length}`);
 
 				// fix results
-    			const fixedObjects = this.papiGetterService.fixPapiObjects(papiObjects);
-    			console.log(`FINISHED FIXING PAPI OBJECTS. RESULTS LENGTH: ${ fixedObjects.length}`);
+    			const fixedObjects = this.baseGetterService.fixObjects(papiObjects);
+    			console.log(`FINISHED FIXING PAPI OBJECTS. RESULTS LENGTH: ${fixedObjects.length}`);
 
 				
 				await this.upsertToAdal(fixedObjects);
@@ -65,8 +65,8 @@ export class BuildService
 		// Batch upsert to adal
 		for (const fixedObjectsChunk of fixedObjectsChunks)
 		{
-			const batchUpsertResponse = await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-			console.log(`${this.buildServiceParams.adalTableName} BATCH UPSERT RESPONSE: ${JSON.stringify(batchUpsertResponse)}`);
+			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
+			console.log(`CHUNK UPSERTED TO ${this.buildServiceParams.adalTableName} TABLE`);
 		}
 	}
 

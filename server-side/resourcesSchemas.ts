@@ -115,6 +115,63 @@ const accountUsersSchema: AddonDataScheme = {
 	}
 }
 
+const accountBuyersSchema: AddonDataScheme = {
+	Name: "account_buyers",
+	Type: 'data',
+	GenericResource: true,
+	DataSourceData: {
+		IndexName: UDC_INDEX_NAME
+	},
+	SyncData:
+	{
+		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Account',
+			FieldID2: 'User'
+		}
+	},
+	Fields:
+	{
+		Account:
+		{
+			Type: "Resource",
+			Resource: "accounts",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			},
+			ApplySystemFilter: true
+		},
+		User:
+		{
+			Type: "Resource",
+			Resource: "users",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			},
+			ApplySystemFilter: true
+		}
+	}
+}
+
 const catalogsSchema: AddonDataScheme = {
 	Name: "catalogs",
 	Type: 'papi',
@@ -579,6 +636,7 @@ const roleRolesSchema: AddonDataScheme = {
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'account_employees': accountEmployeesSchema,
 	'account_users': accountUsersSchema,
+	'account_buyers': accountBuyersSchema,
 	'catalogs': catalogsSchema,
 	'accounts': accountsSchema,
 	'contacts': contactsSchema,

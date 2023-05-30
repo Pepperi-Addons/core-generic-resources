@@ -12,6 +12,6 @@ export class BuildTestService extends BuildService
 	{
 		super(papiClient, buildServiceParams);
 		// Override the papiGetterService that's initiated in super with a test wrapper
-		this.papiGetterService = new PapiGetterTestWrapperService(papiClient, this.papiGetterService, testBody);
+		this.baseGetterService = new PapiGetterTestWrapperService(papiClient, this.baseGetterService, testBody);
 	}
 }
