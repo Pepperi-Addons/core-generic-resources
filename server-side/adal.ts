@@ -82,9 +82,9 @@ export async function build_account_buyers(client: Client, request: Request): Pr
 	return await buildSpecificTable(client, request, Builders.BuildAccountBuyersParams);
 }
 
-export async function build_role_roles(client: Client, request: Request): Promise<AsyncResultObject>
+export async function clean_build_role_roles(client: Client, request: Request): Promise<AsyncResultObject>
 {
-	return await buildSpecificTable(client, request, Builders.BuildRoleRolesParams);
+	return await cleanBuildSpecificTable(client, request, Builders.BuildRoleRolesParams);
 }
 
 
@@ -136,6 +136,30 @@ async function buildSpecificTable(client: Client, request: Request, buildService
 		 throw new Error(`Unsupported method: ${request.method}`);
 	 }
 	 }
+}
+
+/**
+ * Clear and then build a specific table, based on the passed buildServiceParams
+ * @param client 
+ * @param request 
+ * @param buildServiceParams 
+ * @throws Error if the method is not supported
+ * @returns A promise that resolves to the result of the build
+ */
+async function cleanBuildSpecificTable(client: Client, request: Request, buildServiceParams: Builders.IBuildServiceParams): Promise<AsyncResultObject>
+{
+	  switch (request.method)
+	  {
+	  case 'POST':
+	  {
+		  const service = getBuildService(client, buildServiceParams, request.body);
+		  return await service.cleanBuildAdalTable(request.body);
+	  }
+	  default:
+	  {
+		  throw new Error(`Unsupported method: ${request.method}`);
+	  }
+	  }
 }
 
 /**

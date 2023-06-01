@@ -17,13 +17,29 @@ export class BuildService
 		this.adalService = new AdalService(papiClient);
 	}
 
+	/**
+	 * Hides all items in the ADAL table, and build the table again.
+	 * @param body - used to pass the fromPage parameter. Must be the entire body of the request,
+	 * to support retries in an async call.
+	 * @returns {AsyncResultObject} - A promise that resolves to the result of the build
+	 */
+	public async cleanBuildAdalTable(body: any): Promise<AsyncResultObject>
+	{
+		let res: AsyncResultObject = await this.hideAdalItems();
+
+		if (res.success)
+		{
+			res = await this.buildAdalTable(body);
+		}
+
+		return res;	
+	}
+
 	public async buildAdalTable(body: any): Promise<AsyncResultObject>
 	{
     	const res: AsyncResultObject = { success: true };
     	try
-    	{
-			await this.hideAdalItems();
-			
+    	{			
 			let papiObjects: any[];
     		do
     		{
@@ -58,16 +74,17 @@ export class BuildService
 	/**
 	 * Hides all objects in an ADAL table by setting the Hidden field to true and setting ExpirationDateTime to now.
 	 */
-	protected async hideAdalItems(): Promise<void>
+	protected async hideAdalItems(): Promise<AsyncResultObject>
 	{
-		if(this.buildServiceParams.shouldCleanBuild)
-		{
-			console.log(`HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
-			
-			let searchResponse: SearchData<AddonData>;
-			let NextPageKey: string | undefined = undefined;
-			const now = new Date().toISOString();
+		console.log(`HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
+		
+		const res: AsyncResultObject = { success: true };
 
+		let searchResponse: SearchData<AddonData>;
+		let NextPageKey: string | undefined = undefined;
+		const now = new Date().toISOString();
+		try
+		{
 			do
 			{
 				const searchOptions: SearchBody = {
@@ -91,9 +108,18 @@ export class BuildService
 				NextPageKey = searchResponse.NextPageKey;
 			}
 			while (NextPageKey);
-
-			console.log(`FINISHED HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
 		}
+		catch (error)
+		{
+			res.success = false;
+			res.errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+			console.log(`HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName} FAILED: ${res.errorMessage}`);
+			return res;
+		}
+
+		console.log(`FINISHED HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
+		
+		return res;
 	}
 
 	/**
