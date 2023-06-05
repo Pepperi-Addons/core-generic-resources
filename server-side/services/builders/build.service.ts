@@ -1,8 +1,7 @@
-import { AddonData, PapiClient, SearchBody, SearchData } from '@pepperi-addons/papi-sdk';
+import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { PapiGetterService } from '../getters/papiGetter.service';
 import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
-import { AsyncResultObject } from '../../constants';
 
 
 export class BuildService
@@ -17,30 +16,12 @@ export class BuildService
 		this.adalService = new AdalService(papiClient);
 	}
 
-	/**
-	 * Hides all items in the ADAL table, and build the table again.
-	 * @param body - used to pass the fromPage parameter. Must be the entire body of the request,
-	 * to support retries in an async call.
-	 * @returns {AsyncResultObject} - A promise that resolves to the result of the build
-	 */
-	public async cleanBuildAdalTable(body: any): Promise<AsyncResultObject>
+	public async buildAdalTable(body: any): Promise<any>
 	{
-		let res: AsyncResultObject = await this.hideAdalItems();
-
-		if (res.success)
-		{
-			res = await this.buildAdalTable(body);
-		}
-
-		return res;	
-	}
-
-	public async buildAdalTable(body: any): Promise<AsyncResultObject>
-	{
-    	const res: AsyncResultObject = { success: true };
+    	const res = { success: true };
     	try
-    	{			
-			let papiObjects: any[];
+    	{
+    		let papiObjects: any[];
     		do
     		{
     			if (!body.fromPage)
@@ -66,67 +47,16 @@ export class BuildService
     	catch (error)
     	{
     		res.success = false;
-    		res.errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
+    		res['errorMessage'] = error;
     	}
     	return res;
-	}
-
-	/**
-	 * Hides all objects in an ADAL table by setting the Hidden field to true and setting ExpirationDateTime to now.
-	 */
-	protected async hideAdalItems(): Promise<AsyncResultObject>
-	{
-		console.log(`HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
-		
-		const res: AsyncResultObject = { success: true };
-
-		let searchResponse: SearchData<AddonData>;
-		let NextPageKey: string | undefined = undefined;
-		const now = new Date().toISOString();
-		try
-		{
-			do
-			{
-				const searchOptions: SearchBody = {
-					...(NextPageKey && {PageKey: NextPageKey}),
-					Fields: ["Key"]
-				};
-
-				searchResponse = await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions);
-				console.log(`HIDING ${searchResponse.Objects.length} OBJECTS IN ${this.buildServiceParams.adalTableName}`);
-				
-				// For each object, set the Hidden field to true, and set ExpirationDateTime to now
-				for (const object of searchResponse.Objects)
-				{
-					object.Hidden = true;
-					object.ExpirationDateTime = now;
-				}
-
-				// Batch upsert to adal
-				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, searchResponse.Objects);
-
-				NextPageKey = searchResponse.NextPageKey;
-			}
-			while (NextPageKey);
-		}
-		catch (error)
-		{
-			res.success = false;
-			res.errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-			console.log(`HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName} FAILED: ${res.errorMessage}`);
-			return res;
-		}
-
-		console.log(`FINISHED HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
-		
-		return res;
 	}
 
 	/**
 	 * Uses batch upsert to upload the objects to an ADAL table.
 	 * @param fixedObjects the objects to upload to an ADAL table
 	 */
-	protected async upsertToAdal(fixedObjects: any[]): Promise<void>
+	protected async upsertToAdal(fixedObjects: any[])
 	{
 		// Since the fixedObjects array might be larger than the maximum of 500 defined by ADAL,
 		// first split the fixedObjects into array of maximal size
@@ -136,7 +66,7 @@ export class BuildService
 		for (const fixedObjectsChunk of fixedObjectsChunks)
 		{
 			const batchUpsertResponse = await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-			console.log(`Successfully upserted ${batchUpsertResponse.length} objects to ${this.buildServiceParams.adalTableName}`);
+			console.log(`${this.buildServiceParams.adalTableName} BATCH UPSERT RESPONSE: ${JSON.stringify(batchUpsertResponse)}`);
 		}
 	}
 
