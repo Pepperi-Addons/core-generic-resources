@@ -21,7 +21,6 @@ import { BasePNSService } from './services/pns/basePNS.service';
 import { ContactsPNSService } from './services/pns/contactsPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
-import { AsyncResultObject } from './constants';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -33,12 +32,11 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	try 
 	{
-		res['resultObject'] = {};
-		res['resultObject']['createSchemas'] = await schemaService.createCoreSchemas();
+		res['resultObject'] = await schemaService.createCoreSchemas();
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		res['resultObject']['buildTables'] = await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
+		await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
 		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
@@ -519,26 +517,11 @@ async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }
 
-async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<AsyncResultObject>
+async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<void>
 {
-	const resultObject: AsyncResultObject = {success: true};
 	const buildManager = new BuildManagerService(papiClient);
-
-	const promises = await Promise.allSettled(tablesNames.map(tableName => buildManager.build(tableName)));
-	
-	for (const promise of promises)
+	for(const tablesName of tablesNames)
 	{
-		if(promise.status === 'rejected')
-		{
-			resultObject.success = false;
-			resultObject.errorMessage = promise.reason instanceof Error ? promise.reason.message : 'Unknown error';
-		}
-		else
-		{
-			resultObject.success = resultObject.success && promise.value.success;
-			resultObject.errorMessage = resultObject.errorMessage ? `${resultObject.errorMessage}/n ${promise.value.errorMessage}` : promise.value.errorMessage;
-		}
+		await buildManager.build(tablesName);
 	}
-
-	return resultObject;
 }
