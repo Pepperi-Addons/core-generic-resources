@@ -9,6 +9,7 @@ import { IBuildServiceParams } from './services/builders';
 import { TestBody } from './services/integrationTests/entities';
 import { BuildTestService } from './services/integrationTests/buildTest.service';
 import { BuildManagerTestService } from './services/integrationTests/buildManagerTest.service';
+import { AsyncResultObject } from './constants';
 
 export async function update_users(client: Client, request: Request) 
 {
@@ -61,33 +62,33 @@ export async function update_account_users(client: Client, request: Request)
 	}
 }
 
-export async function build_users(client: Client, request: Request) 
+export async function build_users(client: Client, request: Request): Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildUsersParams);
 }
 
-export async function build_users_from_contacts(client: Client, request: Request) 
+export async function build_users_from_contacts(client: Client, request: Request): Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildUsersFromContactsParams);
 }
 
-export async function build_account_users(client: Client, request: Request) 
+export async function build_account_users(client: Client, request: Request): Promise<AsyncResultObject> 
 {
 	return await buildSpecificTable(client, request, Builders.BuildAccountUsersParams);
 }
 
-export async function build_account_buyers(client: Client, request: Request) 
+export async function build_account_buyers(client: Client, request: Request): Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildAccountBuyersParams);
 }
 
-export async function build_role_roles(client: Client, request: Request)
+export async function clean_build_role_roles(client: Client, request: Request): Promise<AsyncResultObject>
 {
-	return await buildSpecificTable(client, request, Builders.BuildRoleRolesParams);
+	return await cleanBuildSpecificTable(client, request, Builders.BuildRoleRolesParams);
 }
 
 
-export async function build(client: Client, request: Request) 
+export async function build(client: Client, request: Request): Promise<AsyncResultObject> 
 {
 	switch(request.method)
 	{
@@ -121,7 +122,7 @@ export async function build(client: Client, request: Request)
  * @throws Error if the method is not supported
  * @returns A promise that resolves to the result of the build
  */
-async function buildSpecificTable(client: Client, request: Request, buildServiceParams: Builders.IBuildServiceParams): Promise<any>
+async function buildSpecificTable(client: Client, request: Request, buildServiceParams: Builders.IBuildServiceParams): Promise<AsyncResultObject>
 {
 	 switch (request.method)
 	 {
@@ -135,6 +136,30 @@ async function buildSpecificTable(client: Client, request: Request, buildService
 		 throw new Error(`Unsupported method: ${request.method}`);
 	 }
 	 }
+}
+
+/**
+ * Clear and then build a specific table, based on the passed buildServiceParams
+ * @param client 
+ * @param request 
+ * @param buildServiceParams 
+ * @throws Error if the method is not supported
+ * @returns A promise that resolves to the result of the build
+ */
+async function cleanBuildSpecificTable(client: Client, request: Request, buildServiceParams: Builders.IBuildServiceParams): Promise<AsyncResultObject>
+{
+	  switch (request.method)
+	  {
+	  case 'POST':
+	  {
+		  const service = getBuildService(client, buildServiceParams, request.body);
+		  return await service.cleanBuildAdalTable(request.body);
+	  }
+	  default:
+	  {
+		  throw new Error(`Unsupported method: ${request.method}`);
+	  }
+	  }
 }
 
 /**
