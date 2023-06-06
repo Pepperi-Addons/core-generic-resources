@@ -1,20 +1,19 @@
 import { PnsParams } from '../../models/metadata';
 import { BasePNSService } from './basePNS.service';
-import { PapiUsersGetterService } from '../getters/papiUsersGetter.service';
+import { UsersGetterService } from '../getters/usersGetter.service';
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
 
 export class UsersPNSService extends BasePNSService
 {
 
-	protected papiUsersService: PapiUsersGetterService;
+	protected papiUsersService: UsersGetterService;
 	protected adalService: AdalService;
-
 
 	constructor(papiClient: PapiClient)
 	{
 		super(papiClient);
-		this.papiUsersService = new PapiUsersGetterService(papiClient);
+		this.papiUsersService = new UsersGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
 	}
 
@@ -32,9 +31,9 @@ export class UsersPNSService extends BasePNSService
 		console.log("USERS UPDATE PNS TRIGGERED");
 		const usersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("USERS UUIDS: " + JSON.stringify(usersUUIDs));
-		let updatedPapiUsers = await this.papiUsersService.getPapiObjectsByUUIDs(usersUUIDs);
-		updatedPapiUsers = this.papiUsersService.fixPapiObjects(updatedPapiUsers);
-		const batchUpsertResponse = await this.adalService.batchUpsert('users', updatedPapiUsers);
-		console.log("USERS UPDATE PNS FINISHED. BATCH UPSERT RESPONSE: " + JSON.stringify(batchUpsertResponse));
+		let updatedPapiUsers = await this.papiUsersService.getObjectsByKeys(usersUUIDs);
+		updatedPapiUsers = this.papiUsersService.fixObjects(updatedPapiUsers);
+		await this.adalService.batchUpsert('users', updatedPapiUsers);
+		console.log("USERS UPDATE PNS FINISHED");
 	}
 }

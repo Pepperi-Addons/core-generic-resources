@@ -1,10 +1,10 @@
-import { PapiAccountUsersGetterService } from '../getters/papiAccountUsersGetter.service';
+import { AccountUsersGetterService } from '../getters/accountUsersGetter.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 
 
 export const BuildAccountUsersParams: IBuildServiceParams =
 {
-	papiGetterService: PapiAccountUsersGetterService,
+	baseGetterService: AccountUsersGetterService,
 	adalTableName: 'account_users',
 	whereClause: ""
 }
