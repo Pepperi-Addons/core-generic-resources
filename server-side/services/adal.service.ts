@@ -1,4 +1,4 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { BatchApiResponse, PapiClient } from '@pepperi-addons/papi-sdk';
 import { ErrorWithStatus } from 'core-resources-shared';
 import { IApiService } from 'core-resources-shared';
 import config from '../../addon.config.json'
@@ -76,9 +76,16 @@ export class AdalService implements IApiService
 		}
 	}
 
-	async batchUpsert(resourceName: string,objects: any[]) 
+	async batchUpsert(resourceName: string,objects: any[]): Promise<BatchApiResponse[]> 
 	{
-		return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resourceName}`, {Objects: objects});
+		let res: BatchApiResponse[] = [];
+
+		if(objects.length > 0) // ADAL doesn't support empty batch
+		{
+			res = await this.papiClient.addons.data.uuid(config.AddonUUID).table(resourceName).batch(objects);
+		}
+		
+		return res;
 	}
 
 	validateUniqueKeyPrerequisites(resourceName: string, requestedFieldId: string, requestedValue: string)

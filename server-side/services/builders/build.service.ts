@@ -135,11 +135,8 @@ export class BuildService
 		// Batch upsert to adal
 		for (const fixedObjectsChunk of fixedObjectsChunks)
 		{
-			if(fixedObjectsChunk.length > 0)
-			{
-				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-				console.log(`CHUNK UPSERTED TO ${this.buildServiceParams.adalTableName} TABLE`);
-			}
+			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
+			console.log(`CHUNK UPSERTED TO ${this.buildServiceParams.adalTableName} TABLE`);
 		}
 	}
 
