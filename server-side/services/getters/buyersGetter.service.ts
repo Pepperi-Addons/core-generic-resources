@@ -1,17 +1,17 @@
 import { PapiClient } from "@pepperi-addons/papi-sdk";
-import { AdalService } from "../adal.service";
 import { BaseGetterService } from "./baseGetter.service";
+import { ISearchService } from "core-resources-shared";
 
 export class BuyersGetterService extends BaseGetterService
 { 
 	constructor(papiClient: PapiClient)
 	{
-		super(papiClient, new AdalService(papiClient));
+		super(papiClient, new SearchBuyersService(papiClient), "User != ''");
 	}
-	
-	getResourceName(): string 
+
+	getResourceName(): string
 	{
-		return 'buyers';
+		return 'Buyers';
 	}
 
 	async buildFixedFieldsString(): Promise<string> 
@@ -28,5 +28,15 @@ export class BuyersGetterService extends BaseGetterService
 		object["UserType"] = "Buyer";
 		object["Name"] = `${object["FirstName"]} ${object["LastName"]}`;
 		delete object["User"];
+	}
+}
+
+class SearchBuyersService implements ISearchService
+{
+	constructor(private papiClient: PapiClient)
+	{}
+	async searchResource(resourceName: string, body: any): Promise<{Objects: Array<any>;Count?: number;}>
+	{
+		return await this.papiClient.resources.resource(resourceName).search(body);
 	}
 }

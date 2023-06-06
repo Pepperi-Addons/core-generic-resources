@@ -160,9 +160,9 @@ async function buildSpecificTable(client: Client, request: Request, buildService
  * @param iBuildServiceParams 
  * @returns {Builders.BuildService} - A build service
  */
-function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams, requestBody: TestBody): Builders.BuildService
+function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams, requestBody: TestBody): Builders.BaseBuildService
 {
-	let buildService: Builders.BuildService;
+	let buildService: Builders.BaseBuildService;
 	const papiClient = Helper.getPapiClient(client);
 
 	if(requestBody?.IsTest)
@@ -171,7 +171,7 @@ function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParam
 	}
 	else
 	{
-		buildService = new Builders.BuildService(papiClient, iBuildServiceParams);
+		buildService = new Builders.BaseBuildService(papiClient, iBuildServiceParams);
 	}
 
 	return buildService;

@@ -1,4 +1,6 @@
-export interface IApiService
+import { ISearchService } from "./iSearch.service";
+
+export interface IApiService extends ISearchService
 {
     createResource(resourceName: string, body: any): Promise<any>;
 
