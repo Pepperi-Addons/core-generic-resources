@@ -82,7 +82,8 @@ export class BuildService
 
 		let searchResponse: SearchData<AddonData>;
 		let NextPageKey: string | undefined = undefined;
-		const now = new Date().toISOString();
+		// ExpirationDateTime must be a future time, otherwise an exception is thrown
+		const minuteFromNow = new Date(new Date().getTime() + new Date(1000 * 60).getTime());
 		try
 		{
 			do
@@ -99,7 +100,7 @@ export class BuildService
 				for (const object of searchResponse.Objects)
 				{
 					object.Hidden = true;
-					object.ExpirationDateTime = now;
+					object.ExpirationDateTime = minuteFromNow;
 				}
 
 				// Batch upsert to adal
