@@ -66,7 +66,7 @@ export class AdalService implements IApiService
 			if(body.UniqueFieldID && body.UniqueFieldList.length > 0) 
 			{
 				const valuesString = body.UniqueFieldList.map(field => `'${field}'`).join(',');
-				if(body.Where && body.Where.length > 0)
+				if(body.Where?.length > 0)
 				{
 					body.Where = `${body.Where} AND ${body.UniqueFieldID} in (${valuesString})`;
 				}
