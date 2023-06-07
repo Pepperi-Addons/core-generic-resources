@@ -63,8 +63,8 @@ export class RolesGetterService extends BaseGetterService
 		const treeNodes: TreeNode[] = nodes.map(node => 
 		{
 			return {
-				Role: node.InternalID,
-				ParentRole: node.ParentInternalID
+				Role: node.InternalID.toString(),
+				ParentRole: node.ParentInternalID?.toString()
 			};
 		});
 		const treeRepresentation = this.createTree(treeNodes);
