@@ -82,7 +82,7 @@ export class AdalService implements IApiService
 
 		if(objects.length > 0) // ADAL doesn't support empty batch
 		{
-			res = await this.papiClient.addons.data.uuid(config.AddonUUID).table(resourceName).batch(objects);
+			res = await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resourceName}`, {Objects: objects});
 		}
 		
 		return res;
