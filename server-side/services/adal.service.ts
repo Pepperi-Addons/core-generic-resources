@@ -8,7 +8,7 @@ import { resourceNameToSchemaMap } from '../resourcesSchemas';
 
 export class AdalService implements IApiService
 {
-	constructor(protected papiClient: PapiClient)
+	constructor(private papiClient: PapiClient)
 	{}
 
 	createResource(resourceName: string, body: any) : Promise<any>
@@ -66,7 +66,14 @@ export class AdalService implements IApiService
 			if(body.UniqueFieldID && body.UniqueFieldList.length > 0) 
 			{
 				const valuesString = body.UniqueFieldList.map(field => `'${field}'`).join(',');
-				body.Where = `${body.Where} AND ${body.UniqueFieldID} in (${valuesString})`;
+				if(body.Where?.length > 0)
+				{
+					body.Where = `${body.Where} AND ${body.UniqueFieldID} in (${valuesString})`;
+				}
+				else
+				{
+					body.Where = `${body.UniqueFieldID} in (${valuesString})`;
+				}
 			}
 			return await this.papiClient.addons.data.search.uuid(config.AddonUUID).table(resourceName).post(body);
 		}
@@ -76,7 +83,7 @@ export class AdalService implements IApiService
 		}
 	}
 
-	async batchUpsert(resourceName: string,objects: any[]) 
+	async batchUpsert(resourceName: string,objects: any[])
 	{
 		return await this.papiClient.post(`/addons/data/batch/${config.AddonUUID}/${resourceName}`, {Objects: objects});
 	}

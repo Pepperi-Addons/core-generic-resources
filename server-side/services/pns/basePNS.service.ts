@@ -32,7 +32,7 @@ export abstract class BasePNSService
     				Action:[params.Action],
 					ModifiedFields: params.ModifiedFields,
     				Resource:[params.Resource],
-    				AddonUUID:[CORE_ADDON_UUID]
+    				AddonUUID:[params.AddonUUID ?? CORE_ADDON_UUID]
     			}
     		})
     	}

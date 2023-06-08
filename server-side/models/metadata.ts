@@ -24,6 +24,7 @@ export interface PnsParams {
     Name: string,
     Action: ActionType,
     Resource: string,
-	ModifiedFields?: string[]
+	ModifiedFields?: string[],
+	AddonUUID?: string
 }
 

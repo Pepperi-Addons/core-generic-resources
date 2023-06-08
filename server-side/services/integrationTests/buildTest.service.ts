@@ -1,12 +1,12 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 
 import { IBuildServiceParams } from '../builders/iBuildServiceParams';
-import { BuildService } from '../builders/build.service';
+import { BaseBuildService } from '../builders/build.service';
 import { TestBody } from './entities';
 import { PapiGetterTestWrapperService } from './papiGetterTestWrapper.service';
 
 
-export class BuildTestService extends BuildService
+export class BuildTestService extends BaseBuildService
 {
 	constructor(papiClient: PapiClient, buildServiceParams: IBuildServiceParams, protected testBody: TestBody)
 	{

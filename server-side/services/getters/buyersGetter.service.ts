@@ -1,17 +1,17 @@
 import { PapiClient } from "@pepperi-addons/papi-sdk";
-import { AdalService } from "../adal.service";
 import { BaseGetterService } from "./baseGetter.service";
+import { GenericResourceSearchService } from "../genericResourceSearch.service";
 
 export class BuyersGetterService extends BaseGetterService
 { 
 	constructor(papiClient: PapiClient)
 	{
-		super(papiClient, new AdalService(papiClient));
+		super(papiClient, new GenericResourceSearchService(papiClient), "User != ''");
 	}
-	
-	getResourceName(): string 
+
+	getResourceName(): string
 	{
-		return 'buyers';
+		return 'Buyers';
 	}
 
 	async buildFixedFieldsString(): Promise<string> 
