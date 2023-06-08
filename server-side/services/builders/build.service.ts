@@ -90,7 +90,8 @@ export class BuildService
 			{
 				const searchOptions: SearchBody = {
 					...(NextPageKey && {PageKey: NextPageKey}),
-					Fields: ["Key"]
+					Fields: ["Key"],
+					PageSize: this.pageSize
 				};
 
 				searchResponse = await this.adalService.searchResource(this.buildServiceParams.adalTableName, searchOptions);
@@ -133,11 +134,22 @@ export class BuildService
 		// first split the fixedObjects into array of maximal size
 		const fixedObjectsChunks = this.splitArrayIntoChunks(fixedObjects, this.pageSize);
 
-		// Batch upsert to adal
-		for (const fixedObjectsChunk of fixedObjectsChunks)
+		// Concurrently batch upsert to adal
+		const maxConcurrentRequests = 5;
+		
+		for (let i = 0; i < fixedObjectsChunks.length; i += maxConcurrentRequests)
 		{
-			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-			console.log(`CHUNK UPSERTED TO ${this.buildServiceParams.adalTableName} TABLE`);
+			const end = Math.min(i + maxConcurrentRequests, fixedObjectsChunks.length);
+			const concurrentBatchRequests = fixedObjectsChunks.slice(i, end).map(chunk => this.adalService.batchUpsert(this.buildServiceParams.adalTableName, chunk));
+			
+			const concurrentBatchResults = await Promise.allSettled(concurrentBatchRequests);
+
+			concurrentBatchResults.forEach((result, index) => {
+				if (result.status === 'rejected')
+				{
+					throw new Error(`Error batch upserting to ADAL: ${result.reason}`);
+				}
+			});
 		}
 	}
 
