@@ -56,7 +56,7 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		this.wrappedPapiGetter.additionalFix(object);
 	}
 
-	public override async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<any[]>
+	public override async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<any[]>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the page and pageSize
 		// Page and pageSize are 1-based
@@ -69,7 +69,7 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		}
 		else
 		{
-			res = await this.wrappedPapiGetter.getObjectsByPage(whereClause, page, pageSize, additionalFields);
+			res = await this.wrappedPapiGetter.getObjectsByPage(page, pageSize, additionalFields);
 		}
 
 		return res;

@@ -11,6 +11,7 @@ export class BuyersPNSService extends BasePNSService
 
 	protected buyersGetterService: BuyersGetterService;
 	protected adalService: AdalService;
+	private udcAddonUUID = "122c0e9d-c240-4865-b446-f37ece866c22";
 
 	constructor(papiClient: PapiClient)
 	{
@@ -27,9 +28,29 @@ export class BuyersPNSService extends BasePNSService
 
 		// for users maintenance
 		return [
-			{AddonRelativeURL: "/adal/update_users_from_buyers", Name: "buyersChanged", Action: "update", Resource: "buyers", ModifiedFields: regularFields},
-			{AddonRelativeURL: "/adal/update_users_state", Name: "buyersUserFieldChanged", Action: "update", Resource: "buyers", ModifiedFields: ["User"]},
-			{AddonRelativeURL: "/adal/insert_users_from_buyers", Name: "buyersAdded", Action: "insert", Resource: "buyers"}
+			{
+				AddonRelativeURL: "/adal/update_users_from_buyers",
+				Name: "buyersChanged",
+				Action: "update",
+				Resource: "Buyers",
+				ModifiedFields: regularFields,
+				AddonUUID: this.udcAddonUUID
+			},
+			{
+				AddonRelativeURL: "/adal/update_users_state", 
+				Name: "buyersUserFieldChanged", 
+				Action: "update", 
+				Resource: "Buyers", 
+				ModifiedFields: ["User"], 
+				AddonUUID: this.udcAddonUUID
+			},
+			{
+				AddonRelativeURL: "/adal/insert_users_from_buyers",
+				 Name: "buyersAdded", 
+				 Action: "insert", 
+				 Resource: "Buyers",
+				 AddonUUID: this.udcAddonUUID
+			}
 		]
 	}
 

@@ -1,5 +1,5 @@
 import { AddonData, PapiClient } from '@pepperi-addons/papi-sdk';
-import { IApiService } from 'core-resources-shared';
+import { ISearchService } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export abstract class BaseGetterService 
@@ -7,7 +7,7 @@ export abstract class BaseGetterService
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(protected papiClient: PapiClient, protected iApiService: IApiService)
+	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService, private whereClause: string = "")
 	{
 	}
 
@@ -33,17 +33,17 @@ export abstract class BaseGetterService
     	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
     	body["IncludeDeleted"] = true;
     	body["OrderBy"] = "CreationDateTime";
-    	const searchResponse = await this.iApiService.searchResource(this.getResourceName(), body);
+    	const searchResponse = await this.iSearchService.searchResource(this.getResourceName(), body);
     	console.log("FINISHED GETTING OBJECTS");
     	return searchResponse.Objects;
     }
 
-    public async getObjectsByPage(whereClause: string, page: number, pageSize: number, additionalFields?: string): Promise<AddonData[]>
+    public async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<AddonData[]>
     {
     	const body = {
     		PageSize: pageSize,
     		Page: page,
-    		Where: whereClause
+    		Where: this.whereClause
     	}
     	return await this.getObjects(body, additionalFields);
     }

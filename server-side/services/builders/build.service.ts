@@ -1,21 +1,46 @@
-import { AddonData, PapiClient, SearchBody, SearchData } from '@pepperi-addons/papi-sdk';
+import { AddonData, BatchApiResponse, PapiClient, SearchBody, SearchData } from '@pepperi-addons/papi-sdk';
 import { BaseGetterService } from '../getters/baseGetter.service';
-import { AdalService } from '../adal.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 import { AsyncResultObject } from '../../constants';
+import { BuildService, BuildOperations } from '@pepperi-addons/modelsdk';
+import { AdalService } from '../adal.service';
 
 
-export class BuildService
+export class BaseBuildService implements BuildOperations<AddonData, string, any>
 {
 	protected readonly pageSize = 500;
 	protected baseGetterService: BaseGetterService;
+	protected buildService: BuildService<AddonData, AddonData, any>;
 	protected adalService: AdalService;
 
-	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams)
+
+	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams) 
 	{
 		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
+		this.buildService = new BuildService(buildServiceParams.adalTableName, this);
 	}
+
+	//#region BuildService implementation
+
+	// These functions are exposed here so they can be called from the buildService object,
+	// while retaining the 'this' scope of the BaseBuildService class.
+
+	async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<AddonData[]>
+	{
+		return await this.baseGetterService.getObjectsByPage(page, pageSize, additionalFields);
+	}
+
+	fixObjects(objects: AddonData[]): string[]
+	{
+		return this.baseGetterService.fixObjects(objects);
+	}
+
+	async batchUpsert(resourceName: string, objects: string[]): Promise<BatchApiResponse[]>
+	{
+		return await this.adalService.batchUpsert(resourceName, objects);
+	}
+	//#endregion
 
 	/**
 	 * Hides all items in the ADAL table, and build the table again.
@@ -37,38 +62,7 @@ export class BuildService
 
 	public async buildAdalTable(body: any): Promise<AsyncResultObject>
 	{
-    	const res: AsyncResultObject = { success: true };
-    	try
-    	{			
-			let papiObjects: any[];
-    		do
-    		{
-    			if (!body.fromPage)
-				{
-					body.fromPage = 1;
-				}
-
-    			papiObjects = await this.baseGetterService.getObjectsByPage(this.buildServiceParams.whereClause, body.fromPage, this.pageSize);
-    			console.log(`FINISHED GETTING PAPI OBJECTS. RESULTS LENGTH: ${papiObjects.length}`);
-
-				// fix results
-    			const fixedObjects = this.baseGetterService.fixObjects(papiObjects);
-    			console.log(`FINISHED FIXING PAPI OBJECTS. RESULTS LENGTH: ${fixedObjects.length}`);
-
-				
-				await this.upsertToAdal(fixedObjects);
-
-    			body.fromPage++;
-    			console.log(`${this.buildServiceParams.adalTableName} PAGE UPSERT FINISHED.`);
-
-    		} while (papiObjects.length == this.pageSize);
-    	}
-    	catch (error)
-    	{
-    		res.success = false;
-    		res.errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
-    	}
-    	return res;
+    	return await this.buildService.buildTable(body);
 	}
 
 	/**
@@ -81,7 +75,7 @@ export class BuildService
 		const res: AsyncResultObject = { success: true };
 
 		let searchResponse: SearchData<AddonData>;
-		let NextPageKey: string | undefined = undefined;
+		let nextPageKey: string | undefined = undefined;
 		// ExpirationDateTime must be a future time, otherwise an exception is thrown
 		const minuteFromNow = new Date(new Date().getTime() + new Date(1000 * 60).getTime());
 		try
@@ -89,7 +83,7 @@ export class BuildService
 			do
 			{
 				const searchOptions: SearchBody = {
-					...(NextPageKey && {PageKey: NextPageKey}),
+					...(nextPageKey && {PageKey: nextPageKey}),
 					Fields: ["Key"],
 					PageSize: this.pageSize
 				};
@@ -107,9 +101,9 @@ export class BuildService
 				// Batch upsert to adal
 				await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, searchResponse.Objects);
 
-				NextPageKey = searchResponse.NextPageKey;
+				nextPageKey = searchResponse.NextPageKey;
 			}
-			while (NextPageKey);
+			while (nextPageKey);
 		}
 		catch (error)
 		{
@@ -122,52 +116,5 @@ export class BuildService
 		console.log(`FINISHED HIDING ALL OBJECTS IN ${this.buildServiceParams.adalTableName}`);
 		
 		return res;
-	}
-
-	/**
-	 * Uses batch upsert to upload the objects to an ADAL table.
-	 * @param fixedObjects the objects to upload to an ADAL table
-	 */
-	protected async upsertToAdal(fixedObjects: any[]): Promise<void>
-	{
-		// Since the fixedObjects array might be larger than the maximum of 500 defined by ADAL,
-		// first split the fixedObjects into array of maximal size
-		const fixedObjectsChunks = this.splitArrayIntoChunks(fixedObjects, this.pageSize);
-
-		// Batch upsert to adal
-		for (const fixedObjectsChunk of fixedObjectsChunks)
-		{
-			await this.adalService.batchUpsert(this.buildServiceParams.adalTableName, fixedObjectsChunk);
-			console.log(`CHUNK UPSERTED TO ${this.buildServiceParams.adalTableName} TABLE`);
-		}
-	}
-
-	/**
-	 * Splits an array of objects into smaller arrays of a maximum size.
-	 * @param arr The array of objects to split.
-	 * @param maxSize The maximum size of each resulting array.
-	 * @returns An array of arrays of objects, where each inner array has a maximum size of maxSize.
-	 */
-	protected splitArrayIntoChunks(arr: any[], maxSize: number): any[][]
-	{
-		const chunks: any[][] = [];
-		let currentChunk: any[] = [];
-
-		for (const item of arr)
-		{
-			currentChunk.push(item);
-			if (currentChunk.length === maxSize)
-			{
-				chunks.push(currentChunk);
-				currentChunk = [];
-			}
-		}
-
-		if (currentChunk.length > 0)
-		{
-			chunks.push(currentChunk);
-		}
-
-		return chunks;
 	}
 }

@@ -5,6 +5,5 @@ import { IBuildServiceParams } from './iBuildServiceParams';
 export const BuildAccountBuyersParams: IBuildServiceParams =
 {
 	baseGetterService: AccountBuyersGetterService,
-	adalTableName: 'account_users',
-	whereClause: ""
+	adalTableName: 'account_users'
 }
