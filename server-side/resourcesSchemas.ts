@@ -394,6 +394,9 @@ const employeesSchema: AddonDataScheme = {
     	Mobile: {
     		"Type": "String"
     	},
+		Phone: {
+			"Type": "String"
+		},
     	Profile: {
     		Type: "Resource",
     		Resource: "profiles",
