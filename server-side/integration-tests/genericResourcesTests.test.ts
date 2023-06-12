@@ -18,7 +18,8 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 	{
 		describe(this.title, async () => 
 		{
-            for (const testData of GenericResourcesTestsData) {
+            for (const testData of GenericResourcesTestsData)
+            {
                 await this.genericResourceTests(it, expect, this.coreResourcesService, testData);
             }
 		})
