@@ -282,8 +282,8 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// Add profiles and roles references to employees schema
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.43'))
+	// Add profiles and roles references to employees schema, as well as new Phone field
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.56'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
