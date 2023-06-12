@@ -3,7 +3,7 @@ import { BaseGetterService } from "./baseGetter.service";
 import { PapiService } from 'core-resources-shared';
 
 
-interface PapiRole
+export interface PapiRole
 {
 	InternalID: string;
 	ParentInternalID?: string;
@@ -15,7 +15,7 @@ interface TreeNode
 	ParentRole?: string
 }
 
-interface KeyedTreeNode extends TreeNode
+export interface RoleRole extends TreeNode
 {
 	Key: string
 }
@@ -42,10 +42,10 @@ export class RolesGetterService extends BaseGetterService
 		return;
 	}
 
-	public override fixObjects(nodes: PapiRole[]): KeyedTreeNode[]
+	public override fixObjects(nodes: PapiRole[]): RoleRole[]
 	{
 		const treeNodes: TreeNode[] = this.flattenTree(nodes);
-		const keyedTreeNodes: KeyedTreeNode[] = this.addKeysToTreeNodes(treeNodes);
+		const keyedTreeNodes: RoleRole[] = this.addKeysToTreeNodes(treeNodes);
 		return keyedTreeNodes;
 	}
 
@@ -169,9 +169,9 @@ export class RolesGetterService extends BaseGetterService
 	/**
 	 * Adds a Key property to each node in the tree.
 	 * @param {TreeNode[]} treeNodes - The nodes to which a Key property should be added.
-	 * @returns {KeyedTreeNode[]} - The nodes with a unique Key property.
+	 * @returns {RoleRole[]} - The nodes with a unique Key property.
 	 */
-	protected addKeysToTreeNodes(treeNodes: TreeNode[]): KeyedTreeNode[]
+	protected addKeysToTreeNodes(treeNodes: TreeNode[]): RoleRole[]
 	{
 		return treeNodes.map(treeNode => 
 		{
