@@ -22,6 +22,7 @@ import { BuyersPNSService } from './services/pns/buyersPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
+import { DowngradeService } from './downgrade.service';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -334,7 +335,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 export async function downgrade(client: Client, request: Request): Promise<any> 
 {
-	return { success: true, resultObject: {} }
+	const res: AsyncResultObject = { success: true };
+	// If downgrading to version lower than 0.7.0
+	// Purge existing schemas and create new ones
+	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '0.7.0'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const downgradeService = new DowngradeService(papiClient, client);
+		try
+		{
+			await downgradeService.downgrade();
+		}
+		catch (error)
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+		}
+	}
+
+	return res;
 }
 
 async function createDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
@@ -343,7 +362,7 @@ async function createDimxRelations(client: Client, papiClient: PapiClient, resou
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
+export async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
 {
 	const isHidden = true;
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
