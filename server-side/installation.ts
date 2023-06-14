@@ -21,6 +21,7 @@ import { BasePNSService } from './services/pns/basePNS.service';
 import { BuyersPNSService } from './services/pns/buyersPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
+import { AsyncResultObject } from './constants';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -32,11 +33,12 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	try 
 	{
-		res['resultObject'] = await schemaService.createCoreSchemas();
+		res['resultObject'] = {};
+		res['resultObject']['createSchemas'] = await schemaService.createCoreSchemas();
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
+		res['resultObject']['buildTables'] = await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
 		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
@@ -526,11 +528,26 @@ async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 	});
 }
 
-async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<void>
+async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<AsyncResultObject>
 {
+	const resultObject: AsyncResultObject = {success: true};
 	const buildManager = new BuildManagerService(papiClient);
-	for(const tablesName of tablesNames)
+
+	const promises = await Promise.allSettled(tablesNames.map(tableName => buildManager.build(tableName)));
+	
+	for (const promise of promises)
 	{
-		await buildManager.build(tablesName);
+		if(promise.status === 'rejected')
+		{
+			resultObject.success = false;
+			resultObject.errorMessage = promise.reason instanceof Error ? promise.reason.message : 'Unknown error';
+		}
+		else
+		{
+			resultObject.success = resultObject.success && promise.value.success;
+			resultObject.errorMessage = resultObject.errorMessage ? `${resultObject.errorMessage}/n ${promise.value.errorMessage}` : promise.value.errorMessage;
+		}
 	}
+
+	return resultObject;
 }

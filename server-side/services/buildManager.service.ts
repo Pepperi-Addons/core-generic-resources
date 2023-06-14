@@ -11,7 +11,7 @@ export class BuildManagerService
 	protected resourceFunctionsMap: {[key: string]: string[]} = {
 		users: ['build_users', 'build_users_from_buyers'],
 		account_users: ['build_account_users', 'build_account_buyers'],
-		role_roles: ['build_role_roles']
+		role_roles: ['clean_build_role_roles']
 	};
 
 	constructor(protected papiClient: PapiClient)
