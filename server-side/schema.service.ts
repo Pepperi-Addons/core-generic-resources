@@ -9,14 +9,12 @@ export class SchemaService
 
 	/**
      * Upsert all Core Resources schemas listed in core-resources-shared/lib/shared/src/constants/RESOURCE_TYPES
-     * @param papiClient 
      * @throw In case a resource schema failed to create.
      */
 	public async createCoreSchemas(): Promise<{schemas: AddonDataScheme[]}>
 
 	/**
      * Upsert Core Resources schemas, as listed in resourcesList parameter.
-     * @param papiClient 
      * @param resourcesList List of resource names which will be upserted.
      * 
      * @throw In case a resource is passed in resourcesList which is not part of RESOURCE_TYPES.
@@ -24,19 +22,31 @@ export class SchemaService
      */
 	public async createCoreSchemas(resourcesList: string[]): Promise<{schemas: AddonDataScheme[]}>
 
-	public async createCoreSchemas(resourcesList: string[] = RESOURCE_TYPES): Promise<{schemas: AddonDataScheme[]}>
+	/**
+     * Upsert the passed AddonDataSchemas.
+     * @param addonDataScheme List of AddonDataScheme to be upserted.
+     * 
+     * @throw In case a resource schema failed to create.
+     */
+	 public async createCoreSchemas(addonDataScheme: AddonDataScheme[]): Promise<{schemas: AddonDataScheme[]}>
+
+	public async createCoreSchemas(resourcesList: string[] | AddonDataScheme[] = RESOURCE_TYPES): Promise<{schemas: AddonDataScheme[]}>
 	{
 		const resObject = { schemas: Array<AddonDataScheme>() };
 
-		for (const resource of resourcesList) 
+		const addonDataSchemas: AddonDataScheme[] = resourcesList.length > 0 && typeof resourcesList[0] === "string" ? resourcesList.map(el => resourceNameToSchemaMap[el]) : resourcesList as AddonDataScheme[];
+
+		for (const schema of addonDataSchemas) 
 		{
 			try 
 			{
-				resObject.schemas.push(await this.papiClient.addons.data.schemes.post(resourceNameToSchemaMap[resource]));
+				console.log(`Creating schema ${schema.Name}...`);
+				resObject.schemas.push(await this.papiClient.addons.data.schemes.post(schema));
+				console.log(`Schema ${schema.Name} created successfully.`);
 			}
 			catch (error) 
 			{
-				const errorMessage = `Failed to create schema ${resource}: ${error instanceof Error ? error.message : 'Unknown error occurred.'}`;
+				const errorMessage = `Failed to create schema ${schema.Name}: ${error instanceof Error ? error.message : 'Unknown error occurred.'}`;
 				console.error(errorMessage);
 				throw new Error(errorMessage);
 			}
@@ -47,7 +57,6 @@ export class SchemaService
 
 	/**
      * Create missing Core Resources schemas, as listed in core-resources-shared/lib/shared/src/constants/RESOURCE_TYPES
-     * @param papiClient
      * @throw In case a resource schema failed to create.
      * @return List of created schemas.
      * 
@@ -74,5 +83,29 @@ export class SchemaService
 		const missingSchemas: Array<string> = RESOURCE_TYPES.filter(resource => !existingSchemas.includes(resource));
 
 		return missingSchemas;
+	}
+
+	/**
+	 * Purge all schemas owned by the addon.
+	 * @throw In case a resource schema failed to delete.
+	 */
+	public async purgeAllSchemas(): Promise<void>
+	{
+		const schemas = await this.papiClient.addons.data.schemes.get({fields: ['Name']});
+		for (const schema of schemas)
+		{
+			try
+			{
+				console.log(`Purging schema ${schema.Name}...`);
+				await this.papiClient.post(`/addons/data/schemes/${schema.Name}/purge`, {});
+				console.log(`Schema ${schema.Name} purged.`);
+			}
+			catch (error)
+			{
+				const errorMessage = `Failed to delete schema ${schema.Name}: ${error instanceof Error ? error.message : 'Unknown error occurred.'}`;
+				console.error(errorMessage);
+				throw new Error(errorMessage);
+			}
+		}
 	}
 }

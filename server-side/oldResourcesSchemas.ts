@@ -1,175 +1,57 @@
 import { AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import config from '../addon.config.json';
-import { UDC_INDEX_NAME } from "./constants";
 
-
-const accountEmployeesSchema: AddonDataScheme = {
-	Name: "account_employees",
+const accountUsersSchema: AddonDataScheme = {
+	Name: "account_users",
 	Type: 'papi',
 	SyncData:
-	{
-		Sync: true,
-		Associative:
-		{
-			FieldID1: 'Account',
-			FieldID2: 'User'
-		}
-	},
+    {
+    	Sync: true,
+    	Associative:
+        {
+        	FieldID1: 'Account',
+		    FieldID2: 'User'
+        }
+    },
 	Fields:
-	{
-		Key:
+    {
+    	Key:
 		{
 			"Type": "String",
 			"Unique": true
 		},
-		Account:
+
+    	Account:
 		{
 			"Type": "Resource",
 			"Resource": "accounts",
 			"AddonUUID": config.AddonUUID
 		},
-		User:
+    	User:
 		{
 			"Type": "Resource",
 			"Resource": "users",
 			"AddonUUID": config.AddonUUID
 		},
-		InternalID:
+    	InternalID:
 		{
 			"Type": "Integer",
 			"Unique": true
+
 		},
-		Hidden:
+    	Hidden:
 		{
 			"Type": "Bool"
 		},
-		ModificationDateTime:
+    	ModificationDateTime:
 		{
 			"Type": "DateTime"
 		},
-		CreationDateTime:
+    	CreationDateTime:
 		{
-			"Type": "DateTime"
-		},
-		FromERPIntegration:
-		{
-			Type: "Bool"
+			"Type": "DateTime"		
 		}
-	}
-}
-
-const accountUsersSchema: AddonDataScheme = {
-	Name: "account_users",
-	Type: 'data',
-	GenericResource: true,
-	DataSourceData: {
-		IndexName: UDC_INDEX_NAME
-	},
-	SyncData:
-	{
-		Sync: true,
-		Associative:
-		{
-			FieldID1: 'Account',
-			FieldID2: 'User'
-		}
-	},
-	Fields:
-	{
-		Account:
-		{
-			Type: "Resource",
-			Resource: "accounts",
-			AddonUUID: config.AddonUUID,
-			Indexed: true,
-			IndexedFields: {
-				Name: {
-    				Type: "String",
-    				Indexed: true
-    			},
-				ExternalID: {
-    				Type: "String",
-    				Indexed: true
-    			}
-			},
-			ApplySystemFilter: true
-		},
-		User:
-		{
-			Type: "Resource",
-			Resource: "users",
-			AddonUUID: config.AddonUUID,
-			Indexed: true,
-			IndexedFields: {
-				Name: {
-    				Type: "String",
-    				Indexed: true
-    			},
-				ExternalID: {
-    				Type: "String",
-    				Indexed: true
-    			}
-			},
-			ApplySystemFilter: true
-		}
-	}
-}
-
-const accountBuyersSchema: AddonDataScheme = {
-	Name: "account_buyers",
-	Type: 'data',
-	GenericResource: true,
-	DataSourceData: {
-		IndexName: UDC_INDEX_NAME
-	},
-	SyncData:
-	{
-		Sync: true,
-		Associative:
-		{
-			FieldID1: 'Account',
-			FieldID2: 'User'
-		}
-	},
-	Fields:
-	{
-		Account:
-		{
-			Type: "Resource",
-			Resource: "accounts",
-			AddonUUID: config.AddonUUID,
-			Indexed: true,
-			IndexedFields: {
-				Name: {
-    				Type: "String",
-    				Indexed: true
-    			},
-				ExternalID: {
-    				Type: "String",
-    				Indexed: true
-    			}
-			},
-			ApplySystemFilter: true
-		},
-		User:
-		{
-			Type: "Resource",
-			Resource: "users",
-			AddonUUID: config.AddonUUID,
-			Indexed: true,
-			IndexedFields: {
-				Name: {
-    				Type: "String",
-    				Indexed: true
-    			},
-				ExternalID: {
-    				Type: "String",
-    				Indexed: true
-    			}
-			},
-			ApplySystemFilter: true
-		}
-	}
+    }
 }
 
 const catalogsSchema: AddonDataScheme = {
@@ -183,8 +65,8 @@ const catalogsSchema: AddonDataScheme = {
     {
     	Key:
 		{
-			Type: "String",
-			Unique: true
+			"Type": "String",
+			"Unique": true
 		},
     	InternalID: {
     		"Type": "Integer",
@@ -348,8 +230,8 @@ const contactsSchema: AddonDataScheme = {
     }
 }
 
-const employeesSchema: AddonDataScheme = {
-	Name: "employees",
+const usersSchema: AddonDataScheme = {
+	Name: "users",
 	Type: 'papi',
 	SyncData:
     {
@@ -362,103 +244,34 @@ const employeesSchema: AddonDataScheme = {
 			"Type": "String",
 			"Unique": true
 		},
-    	InternalID: {
+    	"InternalID": {
     		"Type": "Integer",
     		"Unique": true
     	},
-    	CreationDateTime: {
+    	"CreationDateTime": {
     		"Type": "DateTime"
     	},
-    	Email: {
+    	"Email": {
     		"Type": "String"
     	},
-    	FirstName: {
+    	"FirstName": {
     		"Type": "String"
     	},
-    	Name: {
-    		"Type": "String"
-    	},
-    	ExternalID: {
+    	"ExternalID": {
     		"Type": "String",
     		"Unique": true
     	},
-    	ModificationDateTime: {
+    	"ModificationDateTime": {
     		"Type": "DateTime"
     	},
-    	Hidden: {
+    	"Hidden": {
     		"Type": "Bool"
     	},
-    	LastName: {
+    	"LastName": {
     		"Type": "String"
     	},
-    	Mobile: {
+    	"Mobile": {
     		"Type": "String"
-    	},
-    	Phone: {
-    		"Type": "String"
-    	},
-    	Profile: {
-    		Type: "Resource",
-    		Resource: "profiles",
-    		AddonUUID: config.AddonUUID,
-    	},
-    	Role: {
-    		Type: "Resource",
-    		Resource: "roles",
-    		AddonUUID: config.AddonUUID,	
-    	}
-    }
-}
-
-const usersSchema: AddonDataScheme = {
-	Name: 'users',
-	Type: 'data',
-	GenericResource: true,
-	DataSourceData: {
-		IndexName: UDC_INDEX_NAME
-	},
-	SyncData:
-    {
-    	Sync: true,
-    },
-	Fields:
-    {
-    	Email: {
-    		Type: "String"
-    	},
-    	FirstName: {
-    		Type: "String"
-    	},
-    	ExternalID: {
-    		Type: "String",
-    		Unique: true
-    	},
-    	LastName: {
-    		Type: "String"
-    	},
-    	Name: {
-    		Type: "String"
-    	},
-    	Mobile: {
-    		Type: "String"
-    	},
-    	Phone: {
-    		Type: "String"
-    	},
-    	Profile: {
-    		Type: "Resource",
-    		Resource: "profiles",
-    		AddonUUID: config.AddonUUID,
-    		Indexed: true,
-    		IndexedFields: {
-    			Name: {
-    				Type: "String",
-    				Indexed: true
-    			}
-    		}
-    	},
-    	UserType: {
-    		Type: "String"
     	}
     }
 }
@@ -551,102 +364,15 @@ const itemsSchema: AddonDataScheme = {
     }
 }
 
-const profilesSchema: AddonDataScheme = {
-	Name: "profiles",
-	Type: 'papi',
-	SyncData:
-    {
-    	Sync: true,
-    },
-	Fields:
-    {
-    	Key:
-		{
-			Type: "String",
-			Unique: true
-		
-    	},
-    	InternalID:
-		{
-			Type: "Integer",
-			Unique: true
-		},
-    	Name:
-		{
-			Type: "String"
-		},
-    	ParentInternalID:
-		{
-			Type: "Integer"
-		},
-    }
-}
-
-const rolesSchema: AddonDataScheme = {
-	Name: "roles",
-	Type: 'papi',
-	SyncData:
-    {
-    	Sync: true,
-    },
-	Fields:
-    {
-    	Key:
-		{
-			Type: "String",
-			Unique: true
-		},
-    	Name:
-		{
-    		"Type": "String"
-    	},
-    	ParentInternalID:
-		{
-    		"Type": "String"
-    	},
-    }
-}
-
-const roleRolesSchema: AddonDataScheme = {
-	Name: "role_roles",
-	Type: "data",
-	GenericResource: true,
-	SyncData:
-	{
-		Sync: true,
-	},
-	Fields:
-	{
-		Key: {
-			Type: "String",
-			Unique: true
-		},
-		Role: {
-    		Type: "Resource",
-    		Resource: "role",
-    		AddonUUID: config.AddonUUID,
-			ApplySystemFilter: true,
-    	},
-		ParentRole:{
-			Type: "Resource",
-    		Resource: "role",
-    		AddonUUID: config.AddonUUID,
-			ApplySystemFilter: true,
-		}
-	}
-}
-
-export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
-	'account_employees': accountEmployeesSchema,
+/**
+ * Map of old Core Resources 0.6 resource names to their schemas.
+ * - The resource names and the schemas were taken from the data in the following commit: 4ec5937
+ */
+export const oldResourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'account_users': accountUsersSchema,
-	'account_buyers': accountBuyersSchema,
 	'catalogs': catalogsSchema,
 	'accounts': accountsSchema,
 	'contacts': contactsSchema,
-	'items': itemsSchema,
-	'profiles': profilesSchema,
-	'roles': rolesSchema,
 	'users': usersSchema,
-	'employees': employeesSchema,
-	'role_roles': roleRolesSchema,
+	'items': itemsSchema,
 }

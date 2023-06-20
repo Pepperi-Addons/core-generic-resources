@@ -334,7 +334,15 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 export async function downgrade(client: Client, request: Request): Promise<any> 
 {
-	return { success: true, resultObject: {} }
+	const res: AsyncResultObject = { success: true };
+
+	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '0.7.0'))
+	{
+		res.success = false;
+		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
+	}
+
+	return res;
 }
 
 async function createDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
@@ -343,7 +351,7 @@ async function createDimxRelations(client: Client, papiClient: PapiClient, resou
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
+export async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
 {
 	const isHidden = true;
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
