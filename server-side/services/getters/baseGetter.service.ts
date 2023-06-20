@@ -7,7 +7,7 @@ export abstract class BaseGetterService
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService, private whereClause: string = "")
+	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService)
 	{
 	}
 
@@ -42,7 +42,6 @@ export abstract class BaseGetterService
     {
     	const body = {
     		PageSize: pageSize,
-    		Where: this.whereClause,
     		...(typeof page === 'string' ? {PageKey: page} : {Page: page})
     	}
     	return await this.getObjects(body, additionalFields);
