@@ -6,7 +6,7 @@ export class BuyersGetterService extends BaseGetterService
 { 
 	constructor(papiClient: PapiClient)
 	{
-		super(papiClient, new GenericResourceSearchService(papiClient), "User != ''");
+		super(papiClient, new GenericResourceSearchService(papiClient));
 	}
 
 	getResourceName(): string
@@ -25,8 +25,26 @@ export class BuyersGetterService extends BaseGetterService
 
 	additionalFix(object: any): void
 	{
-		object["UserType"] = "Buyer";
-		object["Name"] = `${object["FirstName"]} ${object["LastName"]}`;
-		delete object["User"];
+		return;
+	}
+
+	public override fixObjects(papiObjects: any[]): any[]
+	{
+		// Filter out non-Users
+		let res = papiObjects.filter(obj => obj["User"]);
+
+		// Use super's logic
+		res = super.fixObjects(res);
+
+		// Add Name field
+		res.forEach(obj => obj["Name"] = `${obj["FirstName"]} ${obj["LastName"]}`);
+
+		// Delete User field
+		res.forEach(obj => delete obj["User"]);
+
+		// Add UserType field
+		res.forEach(obj => obj["UserType"] = "Buyer");
+
+		return res;
 	}
 }
