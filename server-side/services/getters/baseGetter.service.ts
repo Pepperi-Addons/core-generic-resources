@@ -38,12 +38,12 @@ export abstract class BaseGetterService
     	return searchResponse;
     }
 
-    public async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
+    public async getObjectsByPage(page: number | string, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
     {
     	const body = {
     		PageSize: pageSize,
-    		Page: page,
-    		Where: this.whereClause
+    		Where: this.whereClause,
+    		...(typeof page === 'string' ? {PageKey: page} : {Page: page})
     	}
     	return await this.getObjects(body, additionalFields);
     }
