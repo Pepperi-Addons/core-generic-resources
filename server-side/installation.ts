@@ -22,7 +22,6 @@ import { BuyersPNSService } from './services/pns/buyersPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
-import { DowngradeService } from './downgrade.service';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -336,21 +335,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 export async function downgrade(client: Client, request: Request): Promise<any> 
 {
 	const res: AsyncResultObject = { success: true };
-	// If downgrading to version lower than 0.7.0
-	// Purge existing schemas and create new ones
+
 	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '0.7.0'))
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const downgradeService = new DowngradeService(papiClient, client);
-		try
-		{
-			await downgradeService.downgrade();
-		}
-		catch (error)
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
-		}
+		res.success = false;
+		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
 	}
 
 	return res;
