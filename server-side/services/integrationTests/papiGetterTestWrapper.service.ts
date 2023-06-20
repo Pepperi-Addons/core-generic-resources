@@ -1,4 +1,4 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
 import { BaseGetterService } from '../getters/baseGetter.service';
 import { TestBody } from './entities';
 import { IApiService } from 'core-resources-shared';
@@ -56,16 +56,18 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		this.wrappedPapiGetter.additionalFix(object);
 	}
 
-	public override async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<any[]>
+	public override async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the page and pageSize
 		// Page and pageSize are 1-based
-		let res: any[];
+		let res: SearchData<AddonData>;
 		if(this.testBody.TestInputObjects && this.testBody.TestInputObjects[this.getResourceName()])
 		{
 			const startIndex = (page - 1) * pageSize;
 			const endIndex = startIndex + pageSize - 1;
-			res = this.testBody.TestInputObjects[this.getResourceName()].slice(startIndex, endIndex);
+			res = {
+				Objects: this.testBody.TestInputObjects[this.getResourceName()].slice(startIndex, endIndex)
+			};
 		}
 		else
 		{
@@ -75,7 +77,7 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		return res;
 	}
 
-	public override async getObjectsByKeys(UUIDs: string[], additionalFields?: string): Promise<any[]>
+	public override async getObjectsByKeys(UUIDs: string[], additionalFields?: string): Promise<SearchData<AddonData>>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the UUIDs
 		let res: any;
