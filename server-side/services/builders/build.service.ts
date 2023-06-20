@@ -2,15 +2,16 @@ import { AddonData, BatchApiResponse, PapiClient, SearchBody, SearchData } from 
 import { BaseGetterService } from '../getters/baseGetter.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 import { AsyncResultObject } from '../../constants';
-import { BuildService, BuildOperations } from '@pepperi-addons/modelsdk';
+import { BuildOperations as EtlOperations} from '@pepperi-addons/modelsdk';
+import { BuildService as EtlService } from '@pepperi-addons/modelsdk/dist/builders/build';
 import { AdalService } from '../adal.service';
 
 
-export class BaseBuildService implements BuildOperations<AddonData, string, any>
+export class BaseBuildService implements EtlOperations<AddonData, AddonData, any>
 {
 	protected readonly pageSize = 500;
 	protected baseGetterService: BaseGetterService;
-	protected buildService: BuildService<AddonData, AddonData, any>;
+	protected etlService: EtlService<AddonData, AddonData, any>;
 	protected adalService: AdalService;
 
 
@@ -18,7 +19,12 @@ export class BaseBuildService implements BuildOperations<AddonData, string, any>
 	{
 		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
-		this.buildService = new BuildService(buildServiceParams.adalTableName, this);
+		this.etlService = new buildServiceParams.etlService(buildServiceParams.adalTableName, this);
+	}
+
+	getObjectsByPage(page: number, pageSize: number, additionalFields?: string | undefined): Promise<AddonData[]>
+	{
+		throw new Error('Method not implemented.');
 	}
 
 	//#region BuildService implementation
@@ -26,17 +32,17 @@ export class BaseBuildService implements BuildOperations<AddonData, string, any>
 	// These functions are exposed here so they can be called from the buildService object,
 	// while retaining the 'this' scope of the BaseBuildService class.
 
-	async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<AddonData[]>
+	async searchObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
 	{
 		return await this.baseGetterService.getObjectsByPage(page, pageSize, additionalFields);
 	}
 
-	fixObjects(objects: AddonData[]): string[]
+	fixObjects(objects: AddonData[]): AddonData[]
 	{
 		return this.baseGetterService.fixObjects(objects);
 	}
 
-	async batchUpsert(resourceName: string, objects: string[]): Promise<BatchApiResponse[]>
+	async batchUpsert(resourceName: string, objects: AddonData[]): Promise<BatchApiResponse[]>
 	{
 		return await this.adalService.batchUpsert(resourceName, objects);
 	}
@@ -62,7 +68,7 @@ export class BaseBuildService implements BuildOperations<AddonData, string, any>
 
 	public async buildAdalTable(body: any): Promise<AsyncResultObject>
 	{
-    	return await this.buildService.buildTable(body);
+    	return await this.etlService.buildTable(body);
 	}
 
 	/**

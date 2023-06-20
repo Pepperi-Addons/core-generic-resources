@@ -59,8 +59,11 @@ export class BuyersPNSService extends BasePNSService
 		console.log("USERS UPDATE FROM BUYERS PNS TRIGGERED");
 		const buyersKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
-		const updatedBuyers = await this.buyersGetterService.getObjectsByKeys(buyersKeys);
+
+		const buyersByKeysRes = await this.buyersGetterService.getObjectsByKeys(buyersKeys);
+		const updatedBuyers = buyersByKeysRes.Objects;
 		const fixedBuyers = this.buyersGetterService.fixObjects(updatedBuyers);
+
 		await this.adalService.batchUpsert('users', fixedBuyers);
 		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
@@ -70,7 +73,8 @@ export class BuyersPNSService extends BasePNSService
 		console.log("USERS STATE UPDATE FROM BUYERS PNS TRIGGERED");
 		const buyersKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
-		const updatedBuyers = await this.buyersGetterService.getObjectsByKeys(buyersKeys, 'User');
+		const updatedBuyersByKeysRes = await this.buyersGetterService.getObjectsByKeys(buyersKeys, 'User');
+		const updatedBuyers = updatedBuyersByKeysRes.Objects;
 		const buyersContainedInUsers = await this.adalService.searchResource('users', {KeyList: buyersKeys});
 		const newUsers: AddonData[] = [];
 		for(const buyer of updatedBuyers)
