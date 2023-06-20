@@ -36,7 +36,8 @@ export class AccountUsersPNSService extends BasePNSService
 		console.log("ACCOUNT USERS UPDATE PNS TRIGGERED");
 		const accountUsersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("ACCOUNT USERS UUIDS: " + JSON.stringify(accountUsersUUIDs));
-		let updatedPapiAccountUsers = await this.papiAccountUsersService.getObjectsByKeys(accountUsersUUIDs);
+		const accountUsersByKeysRes = await this.papiAccountUsersService.getObjectsByKeys(accountUsersUUIDs);
+		let updatedPapiAccountUsers = accountUsersByKeysRes.Objects;
 
 		// check if missing results, then search in account_buyers
 		if(updatedPapiAccountUsers.length < accountUsersUUIDs.length) 

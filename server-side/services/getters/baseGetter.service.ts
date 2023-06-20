@@ -1,4 +1,4 @@
-import { AddonData, PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
 import { ISearchService } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
@@ -7,7 +7,7 @@ export abstract class BaseGetterService
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService, private whereClause: string = "")
+	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService)
 	{
 	}
 
@@ -25,7 +25,7 @@ export abstract class BaseGetterService
     abstract buildFixedFieldsString(): Promise<string>; 
     abstract additionalFix(object): void;
 
-    protected async getObjects(body: any, additionalFieldsString?: string): Promise<AddonData[]> 
+    protected async getObjects(body: any, additionalFieldsString?: string): Promise<SearchData<AddonData>> 
     {
     	console.log("GETTING OBJECTS");
     	console.log(body);
@@ -35,20 +35,19 @@ export abstract class BaseGetterService
     	body["OrderBy"] = "CreationDateTime";
     	const searchResponse = await this.iSearchService.searchResource(this.getResourceName(), body);
     	console.log("FINISHED GETTING OBJECTS");
-    	return searchResponse.Objects;
+    	return searchResponse;
     }
 
-    public async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<AddonData[]>
+    public async getObjectsByPage(page: number | string, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
     {
     	const body = {
     		PageSize: pageSize,
-    		Page: page,
-    		Where: this.whereClause
+    		...(typeof page === 'string' ? {PageKey: page} : {Page: page})
     	}
     	return await this.getObjects(body, additionalFields);
     }
 
-    public async getObjectsByKeys(Keys: string[], additionalFields?: string): Promise<AddonData[]>
+    public async getObjectsByKeys(Keys: string[], additionalFields?: string): Promise<SearchData<AddonData>>
     {
     	const body = { KeyList: Keys };
     	return await this.getObjects(body, additionalFields);
