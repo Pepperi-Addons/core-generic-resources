@@ -2,9 +2,9 @@ import { AddonData, BatchApiResponse, PapiClient, SearchBody, SearchData } from 
 import { BaseGetterService } from '../getters/baseGetter.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 import { AsyncResultObject } from '../../constants';
-import { BuildOperations as EtlOperations } from '@pepperi-addons/modelsdk';
-import { AdalService } from '../adal.service';
+import { BuildOperations as EtlOperations} from '@pepperi-addons/modelsdk';
 import { BuildService as EtlService } from '@pepperi-addons/modelsdk/dist/builders/build';
+import { AdalService } from '../adal.service';
 
 
 export class BaseBuildService implements EtlOperations<AddonData, AddonData, any>
@@ -20,6 +20,11 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
 		this.etlService = new buildServiceParams.etlService(buildServiceParams.adalTableName, this);
+	}
+
+	getObjectsByPage(page: number, pageSize: number, additionalFields?: string | undefined): Promise<AddonData[]>
+	{
+		throw new Error('Method not implemented.');
 	}
 
 	//#region BuildService implementation
