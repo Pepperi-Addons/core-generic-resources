@@ -31,7 +31,8 @@ export class UsersPNSService extends BasePNSService
 		console.log("USERS UPDATE PNS TRIGGERED");
 		const usersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("USERS UUIDS: " + JSON.stringify(usersUUIDs));
-		let updatedPapiUsers = await this.papiUsersService.getObjectsByKeys(usersUUIDs);
+		const updatedPapiUsersByKeysRes = await this.papiUsersService.getObjectsByKeys(usersUUIDs);
+		let updatedPapiUsers = updatedPapiUsersByKeysRes.Objects;
 		updatedPapiUsers = this.papiUsersService.fixObjects(updatedPapiUsers);
 		await this.adalService.batchUpsert('users', updatedPapiUsers);
 		console.log("USERS UPDATE PNS FINISHED");
