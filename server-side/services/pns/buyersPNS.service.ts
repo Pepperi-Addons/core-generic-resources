@@ -77,22 +77,25 @@ export class BuyersPNSService extends BasePNSService
 		const updatedBuyers = updatedBuyersByKeysRes.Objects;
 		const buyersContainedInUsers = await this.adalService.searchResource('users', {KeyList: buyersKeys});
 		const newUsers: AddonData[] = [];
+		const noLongerUsers: AddonData[] = [];
 		for(const buyer of updatedBuyers)
 		{
 			if(!buyer.User && buyersContainedInUsers.Objects.find(user => user.Key==buyer.Key)) 
 			{
-				// hard delete the buyer(which is no longer a user) from adal users
-				await this.papiClient.post(`/addons/data/${config.AddonUUID}/users/${buyer.Key}/hard_delete`, {Force: true});
+				// buyer is being hided from adal users because he is no longer a user
+				buyer.Hidden = true;
+				noLongerUsers.push(buyer);
 			}
 			else if(buyer.User)
 			{
 				newUsers.push(buyer);
 			}
 		}
-		if(newUsers.length > 0)
+		const usersToUpsert = newUsers.concat(noLongerUsers);
+		if(usersToUpsert.length > 0)
 		{
-			const fixedBuyers = this.buyersGetterService.fixObjects(newUsers);
-			await this.adalService.batchUpsert('users', fixedBuyers);
+			const fixedUsers = this.buyersGetterService.fixObjects(usersToUpsert);
+			await this.adalService.batchUpsert('users', fixedUsers);
 			console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
 		}
 
