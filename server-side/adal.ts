@@ -45,7 +45,7 @@ export async function update_users_from_buyers(client: Client, request: Request)
 	}
 }
 
-export async function update_users_state(client: Client, request: Request) 
+export async function buyers_active_state_changed(client: Client, request: Request) 
 {
 	switch(request.method)
 	{
@@ -53,7 +53,7 @@ export async function update_users_state(client: Client, request: Request)
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const service = new BuyersPNSService(papiClient);
-		return await service.updateUsersState(request.body);
+		return await service.buyersActiveStateChanged(request.body);
 	}
 	default:
 	{
