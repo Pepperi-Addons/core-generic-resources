@@ -64,6 +64,7 @@ export abstract class BaseGetterService
     	}
     	const fields = Object.keys(scheme.Fields as any);
     	fields.push('Hidden');
+    	fields.push('Key');
     	return fields;
     }
 

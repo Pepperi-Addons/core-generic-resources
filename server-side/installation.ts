@@ -525,15 +525,6 @@ async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 	await subscribeToPNS(new UsersPNSService(papiClient));
 	await subscribeToPNS(new BuyersPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
-
-	// remove previous contacts subscription
-	await papiClient.notification.subscriptions.upsert({
-		AddonUUID: AddonUUID,
-		Name: 'papiContactsChanged',
-		AddonRelativeURL: '',
-		FilterPolicy: {},
-		Hidden: true
-	});
 }
 
 async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<AsyncResultObject>

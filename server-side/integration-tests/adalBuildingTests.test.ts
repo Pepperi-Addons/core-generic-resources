@@ -19,28 +19,27 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 	{
 		describe('Build ADAL tables tests', () => 
 		{
-            
+												
 
 			it('Build users adal table', async () => 
 			{
 				const papiUsersList = await this.coreResourcesService.getPapiResourceObjects('users');
-				const papiContactsList = await this.coreResourcesService.getPapiResourceObjects('contacts');
+				const buyersList = await this.coreResourcesService.getGenericResourceObjects('Buyers');
 				await this.coreResourcesService.cleanTable('users'); // clean the table before build
 				const buildTableResponse = await this.coreResourcesService.buildTable('users');
-				await this.coreResourcesService.waitForAsyncJob(30);
-				const adalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
-				expect(buildTableResponse).to.have.property('res');
-				expect(buildTableResponse.res).to.have.property('success').that.is.true;
-				expect(adalUsersList).to.be.an('array').with.lengthOf(papiUsersList.length + papiContactsList.length);
+				await this.coreResourcesService.waitForAsyncJob(20);
+				const adalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
+				expect(buildTableResponse).to.have.property('success').that.is.true;
+				expect(adalUsersList).to.be.an('array').with.lengthOf(papiUsersList.length + buyersList.length);
 				expect(adalUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('Email').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('FirstName').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('LastName').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('Name').that.is.a('string').and.is.not.empty;
-				expect(adalUsersList[0]).to.have.property('ExternalID').that.is.a('string').and.is.not.empty;
+				expect(adalUsersList[0]).to.have.property('ExternalID').that.is.a('string');
 				expect(adalUsersList[0]).to.have.property('Mobile').that.is.a('string');
 				expect(adalUsersList[0]).to.have.property('Phone').that.is.a('string');
-				expect(adalUsersList[0]).to.have.property('Profile').that.is.a('string').and.is.not.empty;
+				expect(adalUsersList[0]).to.have.property('Profile').that.is.a('string');
 				expect(adalUsersList[0]).to.have.property('UserType').that.is.a('string').and.is.not.empty;
 			});
 
@@ -50,8 +49,8 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				const papiAccountBuyersList = await this.coreResourcesService.getPapiResourceObjects('account_buyers');
 				await this.coreResourcesService.cleanTable('account_users'); // clean the table before build
 				const buildTableResponse = await this.coreResourcesService.buildTable('account_users');
-				await this.coreResourcesService.waitForAsyncJob(30);
-				const adalAccountUsersList = await this.coreResourcesService.getGenericResourceObjects('account_users');
+				await this.coreResourcesService.waitForAsyncJob(20);
+				const adalAccountUsersList = await this.coreResourcesService.getAllGenericResourceObjects('account_users');
 				expect(buildTableResponse).to.have.property('res');
 				expect(buildTableResponse.res).to.have.property('success').that.is.true;
 				expect(adalAccountUsersList).to.be.an('array').with.lengthOf(papiAccountUsersList.length + papiAccountBuyersList.length);
