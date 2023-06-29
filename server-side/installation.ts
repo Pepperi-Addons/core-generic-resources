@@ -300,21 +300,16 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// Try purging existing 'users' and 'account_users' schemas
-	// Create new schemas and run build process for 'users', 'account_users' and 'role_roles' schemas.
+	// Create new schemas and run build process for 'role_roles' schemas.
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		const schemaNames = ['users', 'account_users'];
-
+		//const schemaNames = ['users', 'account_users'];
+		const schemaNames = ['role_roles'];
+		
 		try 
 		{
-			// purging schemas with same names as the new ones, which have different types
-			await purgeSchemas(papiClient, schemaNames);
-
-			schemaNames.push('role_roles');
-
 			// create new schemas, including for 'roles' which has changed.
 			await schemaService.createCoreSchemas([...schemaNames, 'roles']);
 			res['resultObject'] = await buildTables(papiClient, schemaNames);
