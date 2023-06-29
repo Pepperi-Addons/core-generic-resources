@@ -307,13 +307,12 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		const schemaService = new SchemaService(papiClient);
 		//const schemaNames = ['users', 'account_users'];
 		const schemaNames = ['role_roles'];
-		
+
 		try 
 		{
 			// create new schemas, including for 'roles' which has changed.
 			await schemaService.createCoreSchemas([...schemaNames, 'roles']);
 			res['resultObject'] = await buildTables(papiClient, schemaNames);
-			await pnsSubscriptions(papiClient);
 		}
 		catch (error) 
 		{
