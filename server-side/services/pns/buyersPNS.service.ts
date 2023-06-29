@@ -1,9 +1,8 @@
-import { PnsParams, User } from '../../models/metadata';
+import { PnsParams } from '../../models/metadata';
 import { BasePNSService } from './basePNS.service';
 import { BuyersGetterService } from '../getters/buyersGetter.service';
 import { AddonData, PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
-import config from '../../../addon.config.json'
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export class BuyersPNSService extends BasePNSService
@@ -37,11 +36,11 @@ export class BuyersPNSService extends BasePNSService
 				AddonUUID: this.udcAddonUUID
 			},
 			{
-				AddonRelativeURL: "/adal/update_users_state", 
-				Name: "buyersUserFieldChanged", 
+				AddonRelativeURL: "/adal/buyers_active_state_changed", 
+				Name: "buyersActiveFieldChanged",
 				Action: "update", 
-				Resource: "Buyers", 
-				ModifiedFields: ["User"], 
+				Resource: "Buyers",
+				ModifiedFields: ["Active"], 
 				AddonUUID: this.udcAddonUUID
 			},
 			{
@@ -68,25 +67,25 @@ export class BuyersPNSService extends BasePNSService
 		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
 
-	async updateUsersState(messageFromPNS: any): Promise<void>
+	async buyersActiveStateChanged(messageFromPNS: any): Promise<void>
 	{
-		console.log("USERS STATE UPDATE FROM BUYERS PNS TRIGGERED");
+		console.log("BUYERS ACTIVE STATE PNS TRIGGERED");
 		const buyersKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
-		const updatedBuyersByKeysRes = await this.buyersGetterService.getObjectsByKeys(buyersKeys, 'User');
+		const updatedBuyersByKeysRes = await this.buyersGetterService.getObjectsByKeys(buyersKeys, 'Active');
 		const updatedBuyers = updatedBuyersByKeysRes.Objects;
 		const buyersContainedInUsers = await this.adalService.searchResource('users', {KeyList: buyersKeys});
 		const newUsers: AddonData[] = [];
 		const noLongerUsers: AddonData[] = [];
 		for(const buyer of updatedBuyers)
 		{
-			if(!buyer.User && buyersContainedInUsers.Objects.find(user => user.Key==buyer.Key)) 
+			if(!buyer.Active && buyersContainedInUsers.Objects.find(user => user.Key==buyer.Key)) 
 			{
 				// buyer is being hided from adal users because he is no longer a user
 				buyer.Hidden = true;
 				noLongerUsers.push(buyer);
 			}
-			else if(buyer.User)
+			else if(buyer.Active)
 			{
 				newUsers.push(buyer);
 			}

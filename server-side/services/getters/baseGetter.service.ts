@@ -1,5 +1,5 @@
 import { AddonData, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
-import { ISearchService } from 'core-resources-shared';
+import { ISearchService, PapiService } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export abstract class BaseGetterService 
@@ -7,7 +7,7 @@ export abstract class BaseGetterService
 	protected _requestedFields: string | undefined;
 	protected resourceTypeFields: string[] = [];
 
-	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService)
+	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService, private whereClause: string = "")
 	{
 	}
 
@@ -41,6 +41,7 @@ export abstract class BaseGetterService
     public async getObjectsByPage(page: number | string, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
     {
     	const body = {
+    		Where: this.whereClause,
     		PageSize: pageSize,
     		...(typeof page === 'string' ? {PageKey: page} : {Page: page})
     	}
