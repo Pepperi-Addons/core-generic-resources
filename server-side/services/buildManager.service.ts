@@ -39,7 +39,12 @@ export class BuildManagerService
 				{
 					res.success = false;
 					res.errorMessage = res.errorMessage ? res.errorMessage + '\n' + promise.reason : promise.reason;
-				}		
+				}
+				else
+				{
+					res[this.resourceFunctionsMap[resource][i]] = promise.value;
+				}
+				
 			}
 		}
 		catch (error)
@@ -51,8 +56,9 @@ export class BuildManagerService
 	}
 
 	/**
-    Executes a single asynchronous build process for a given ADAL function and waits for its completion.
+	Executes a single asynchronous build process for a given ADAL function and waits for its completion.
     @param funcName - The name of the function to execute.
+   @param funcName - The name of the function to execute.
     @throws An error if the async execution does not resolve after 30 retries, or if there is an error executing the function.
     @returns A Promise that resolves to a boolean that represents if the function execution was successful.
     */

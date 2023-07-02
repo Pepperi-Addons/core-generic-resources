@@ -79,7 +79,7 @@ export async function update_account_users(client: Client, request: Request)
 	}
 }
 
-export async function build_users(client: Client, request: Request): Promise<AsyncResultObject>
+export async function build_users(client: Client, request: Request) : Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildUsersParams);
 }
@@ -89,12 +89,12 @@ export async function build_users_from_buyers(client: Client, request: Request)
 	return await buildSpecificTable(client, request, Builders.BuildUsersFromBuyersParams);
 }
 
-export async function build_account_users(client: Client, request: Request): Promise<AsyncResultObject> 
+export async function build_account_users(client: Client, request: Request) : Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildAccountUsersParams);
 }
 
-export async function build_account_buyers(client: Client, request: Request): Promise<AsyncResultObject>
+export async function build_account_buyers(client: Client, request: Request) : Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildAccountBuyersParams);
 }
@@ -105,7 +105,7 @@ export async function clean_build_role_roles(client: Client, request: Request): 
 }
 
 
-export async function build(client: Client, request: Request): Promise<AsyncResultObject> 
+export async function build(client: Client, request: Request) : Promise<AsyncResultObject> 
 {
 	switch(request.method)
 	{
