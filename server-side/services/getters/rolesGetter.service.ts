@@ -1,9 +1,9 @@
-import { v4 as createUUID } from 'uuid';
+import { PapiClient } from "@pepperi-addons/papi-sdk";
+import { BaseGetterService } from "./baseGetter.service";
+import { PapiService } from 'core-resources-shared';
 
-import { PapiGetterService } from "./papiGetter.service";
 
-
-interface PapiRole
+export interface PapiRole
 {
 	InternalID: string;
 	ParentInternalID?: string;
@@ -15,13 +15,18 @@ interface TreeNode
 	ParentRole?: string
 }
 
-interface KeyedTreeNode extends TreeNode
+export interface RoleRole extends TreeNode
 {
 	Key: string
 }
 
-export class PapiRolesGetterService extends PapiGetterService
+export class RolesGetterService extends BaseGetterService
 {
+	constructor(papiClient: PapiClient)
+	{
+		super(papiClient, new PapiService(papiClient));
+	}
+	
 	getResourceName(): string
 	{
 		return 'roles';
@@ -33,12 +38,14 @@ export class PapiRolesGetterService extends PapiGetterService
 	}
 
 	additionalFix(object: any): void
-	{}
+	{
+		return;
+	}
 
-	public override fixPapiObjects(nodes: PapiRole[]): KeyedTreeNode[]
+	public override fixObjects(nodes: PapiRole[]): RoleRole[]
 	{
 		const treeNodes: TreeNode[] = this.flattenTree(nodes);
-		const keyedTreeNodes: KeyedTreeNode[] = this.addKeysToTreeNodes(treeNodes);
+		const keyedTreeNodes: RoleRole[] = this.addKeysToTreeNodes(treeNodes);
 		return keyedTreeNodes;
 	}
 
@@ -56,8 +63,8 @@ export class PapiRolesGetterService extends PapiGetterService
 		const treeNodes: TreeNode[] = nodes.map(node => 
 		{
 			return {
-				Role: node.InternalID,
-				ParentRole: node.ParentInternalID
+				Role: node.InternalID.toString(),
+				ParentRole: node.ParentInternalID?.toString()
 			};
 		});
 		const treeRepresentation = this.createTree(treeNodes);
@@ -162,9 +169,9 @@ export class PapiRolesGetterService extends PapiGetterService
 	/**
 	 * Adds a Key property to each node in the tree.
 	 * @param {TreeNode[]} treeNodes - The nodes to which a Key property should be added.
-	 * @returns {KeyedTreeNode[]} - The nodes with a unique Key property.
+	 * @returns {RoleRole[]} - The nodes with a unique Key property.
 	 */
-	protected addKeysToTreeNodes(treeNodes: TreeNode[]): KeyedTreeNode[]
+	protected addKeysToTreeNodes(treeNodes: TreeNode[]): RoleRole[]
 	{
 		return treeNodes.map(treeNode => 
 		{

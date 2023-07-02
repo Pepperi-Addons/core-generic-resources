@@ -23,6 +23,8 @@ export interface PnsParams {
     AddonRelativeURL: string,
     Name: string,
     Action: ActionType,
-    Resource: string
+    Resource: string,
+	ModifiedFields?: string[],
+	AddonUUID?: string
 }
 

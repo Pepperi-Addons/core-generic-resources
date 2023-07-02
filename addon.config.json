@@ -7,7 +7,8 @@
   "Endpoints": [
     "installation.ts",
     "api.ts",
-    "adal.ts"
+    "adal.ts",
+    "tests.ts"
   ],
   "Editors": [
     "main"
@@ -17,7 +18,8 @@
     "Editors": [],
     "Dependencies": {
       "adal": "1.0.316",
-      "core": "0.7.12"
+      "core": "0.7.12",
+      "buyer-management": "0.1.1"
     },
     "CPISide": [
       "addon-cpi.ts"

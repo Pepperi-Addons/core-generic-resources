@@ -18,9 +18,10 @@ import { SchemaService } from './schema.service';
 import { UsersPNSService } from './services/pns/usersPNS.service';
 import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
-import { ContactsPNSService } from './services/pns/contactsPNS.service';
+import { BuyersPNSService } from './services/pns/buyersPNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
+import { AsyncResultObject } from './constants';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -32,11 +33,12 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	try 
 	{
-		res['resultObject'] = await schemaService.createCoreSchemas();
+		res['resultObject'] = {};
+		res['resultObject']['createSchemas'] = await schemaService.createCoreSchemas();
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
+		res['resultObject']['buildTables'] = await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
 		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
@@ -280,8 +282,8 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// Add profiles and roles references to employees schema
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.43'))
+	// Add profiles and roles references to employees schema, as well as new Phone field
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.56'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
@@ -298,25 +300,19 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// Try purging existing 'users' and 'account_users' schemas
-	// Create new schemas and run build process for 'users', 'account_users' and 'role_roles' schemas.
+	// Create new schemas and run build process for 'role_roles' schemas.
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		const schemaNames = ['users', 'account_users'];
+		//const schemaNames = ['users', 'account_users'];
+		const schemaNames = ['role_roles'];
 
 		try 
 		{
-			// purging schemas with same names as the new ones, which have different types
-			await purgeSchemas(papiClient, schemaNames);
-
-			schemaNames.push('role_roles');
-
 			// create new schemas, including for 'roles' which has changed.
 			await schemaService.createCoreSchemas([...schemaNames, 'roles']);
 			res['resultObject'] = await buildTables(papiClient, schemaNames);
-			await pnsSubscriptions(papiClient);
 		}
 		catch (error) 
 		{
@@ -332,7 +328,15 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 export async function downgrade(client: Client, request: Request): Promise<any> 
 {
-	return { success: true, resultObject: {} }
+	const res: AsyncResultObject = { success: true };
+
+	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '0.7.0'))
+	{
+		res.success = false;
+		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
+	}
+
+	return res;
 }
 
 async function createDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
@@ -341,7 +345,7 @@ async function createDimxRelations(client: Client, papiClient: PapiClient, resou
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
 }
 
-async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
+export async function removeDimxRelations(client: Client, papiClient: PapiClient, resourcesList: string[] = RESOURCE_TYPES) 
 {
 	const isHidden = true;
 	await postDimxRelations(client, isHidden, papiClient, resourcesList);
@@ -513,15 +517,39 @@ async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 {
 	await subscribeToPNS(new UsersPNSService(papiClient));
-	await subscribeToPNS(new ContactsPNSService(papiClient));
+	await subscribeToPNS(new BuyersPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
+
+	// remove previous contacts subscription
+	await papiClient.notification.subscriptions.upsert({
+		AddonUUID: AddonUUID,
+		Name: 'papiContactsChanged',
+		AddonRelativeURL: '',
+		FilterPolicy: {},
+		Hidden: true
+	});
 }
 
-async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<void>
+async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<AsyncResultObject>
 {
+	const resultObject: AsyncResultObject = {success: true};
 	const buildManager = new BuildManagerService(papiClient);
-	for(const tablesName of tablesNames)
+
+	const promises = await Promise.allSettled(tablesNames.map(tableName => buildManager.build(tableName)));
+	
+	for (const promise of promises)
 	{
-		await buildManager.build(tablesName);
+		if(promise.status === 'rejected')
+		{
+			resultObject.success = false;
+			resultObject.errorMessage = promise.reason instanceof Error ? promise.reason.message : 'Unknown error';
+		}
+		else
+		{
+			resultObject.success = resultObject.success && promise.value.success;
+			resultObject.errorMessage = resultObject.errorMessage ? `${resultObject.errorMessage}/n ${promise.value.errorMessage}` : promise.value.errorMessage;
+		}
 	}
+
+	return resultObject;
 }

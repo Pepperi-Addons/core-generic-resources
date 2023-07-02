@@ -1,7 +1,13 @@
-import { PapiGetterService } from "./papiGetter.service";
+import { PapiService } from "core-resources-shared";
+import { BaseGetterService } from "./baseGetter.service";
+import { PapiClient } from "@pepperi-addons/papi-sdk";
 
-export class PapiUsersGetterService extends PapiGetterService
+export class UsersGetterService extends BaseGetterService
 { 
+	constructor(papiClient: PapiClient)
+	{
+		super(papiClient, new PapiService(papiClient));
+	}
 
 	getResourceName(): string 
 	{
