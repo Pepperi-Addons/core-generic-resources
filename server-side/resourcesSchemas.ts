@@ -117,22 +117,18 @@ const accountUsersSchema: AddonDataScheme = {
 
 const accountBuyersSchema: AddonDataScheme = {
 	Name: "account_buyers",
-	Type: 'data',
-	GenericResource: true,
-	DataSourceData: {
-		IndexName: UDC_INDEX_NAME
-	},
-	SyncData:
-	{
-		Sync: true,
-		Associative:
-		{
-			FieldID1: 'Account',
-			FieldID2: 'User'
-		}
-	},
+	Type: 'papi',
 	Fields:
 	{
+		Key:	
+		{	
+			"Type": "String",	
+			"Unique": true	
+		},
+		Hidden:	
+		{	
+			"Type": "Bool"	
+		},
 		Account:
 		{
 			Type: "Resource",
