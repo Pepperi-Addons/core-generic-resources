@@ -6,6 +6,7 @@ import { TestBody } from '../../services/integrationTests/entities';
 export class CoreResourcesService 
 {
 	dataObject: any; // the 'Data' object passed inside the http request sent to start the test -- put all the data you need here
+	pageSize = 500;
 
 	constructor(public papiClient: PapiClient)
 	{}
@@ -31,6 +32,7 @@ export class CoreResourcesService
 		{
 			const searchOptions: SearchBody = {
 				...(NextPageKey && {PageKey: NextPageKey}),
+				IncludeDeleted: true
 			};
 
 			searchResponse = await this.searchGenericResource(resource, searchOptions);
@@ -58,9 +60,19 @@ export class CoreResourcesService
 		return await this.papiClient.resources.resource(resource).search(searchBody);
 	}
 
-	async getPapiResourceObjects(resource: string, findOptions?: FindOptions): Promise<AddonData[]> 
+	async getPapiResourceObjects(resource: string): Promise<any[]> 
 	{
-		return await this.papiClient.resources.resource(resource).get(findOptions);
+		let page = 1;
+		let totalObjects: any[] = [];
+		let currentPageObjects: any[] = [];
+		do 
+		{
+			currentPageObjects = await this.papiClient.get(`/${resource}?page_size=${this.pageSize}&page=${page}&include_deleted=true`);
+			totalObjects = totalObjects.concat(currentPageObjects);
+			page++;
+		} while (currentPageObjects.length == this.pageSize);
+
+		return totalObjects;
 	}
 
 	async createTestAccount(): Promise<Account> 
@@ -229,4 +241,11 @@ export class CoreResourcesService
 	{
 		return uuid();
 	}
+
+	getDifference(setA, setB) 
+	{
+		return new Set(
+		  [...setA].filter(element => !setB.has(element))
+		);
+	  }
 }

@@ -24,13 +24,16 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 			it('Build users adal table', async () => 
 			{
 				const papiUsersList = await this.coreResourcesService.getPapiResourceObjects('users');
-				const buyersList = await this.coreResourcesService.getGenericResourceObjects('Buyers');
+				const buyersList = await this.coreResourcesService.getAllGenericResourceObjects('Buyers');
+				let keys = papiUsersList.map(user => user.UUID);
+				keys = keys.concat(buyersList.map(buyer => buyer.Key));
+				const uniquePapiKeys = new Set(keys);
 				await this.coreResourcesService.cleanTable('users'); // clean the table before build
 				const buildTableResponse = await this.coreResourcesService.buildTable('users');
 				await this.coreResourcesService.waitForAsyncJob(20);
 				const adalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
 				expect(buildTableResponse).to.have.property('success').that.is.true;
-				expect(adalUsersList).to.be.an('array').with.lengthOf(papiUsersList.length + buyersList.length);
+				expect(adalUsersList).to.be.an('array').with.lengthOf(uniquePapiKeys.size);
 				expect(adalUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('Email').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('FirstName').that.is.a('string').and.is.not.empty;
@@ -47,22 +50,17 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 			{
 				const papiAccountUsersList = await this.coreResourcesService.getPapiResourceObjects('account_users');
 				const papiAccountBuyersList = await this.coreResourcesService.getPapiResourceObjects('account_buyers');
+				let papiKeys = papiAccountUsersList.map(accountUser => accountUser.UUID);
+				papiKeys = papiKeys.concat(papiAccountBuyersList.map(accountBuyer => accountBuyer.UUID));
 				await this.coreResourcesService.cleanTable('account_users'); // clean the table before build
 				const buildTableResponse = await this.coreResourcesService.buildTable('account_users');
 				await this.coreResourcesService.waitForAsyncJob(20);
 				const adalAccountUsersList = await this.coreResourcesService.getAllGenericResourceObjects('account_users');
-				expect(buildTableResponse).to.have.property('res');
-				expect(buildTableResponse.res).to.have.property('success').that.is.true;
-				expect(adalAccountUsersList).to.be.an('array').with.lengthOf(papiAccountUsersList.length + papiAccountBuyersList.length);
+				expect(buildTableResponse).to.have.property('success').that.is.true;
+				expect(adalAccountUsersList).to.be.an('array').with.lengthOf(papiKeys.length);
 				expect(adalAccountUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
 				expect(adalAccountUsersList[0]).to.have.property('Account').that.is.a('string').and.is.not.empty;
 				expect(adalAccountUsersList[0]).to.have.property('User').that.is.a('string').and.is.not.empty;
-			});
-
-			it('Clean tables', async () => 
-			{
-				await this.coreResourcesService.cleanTable('users');
-				await this.coreResourcesService.cleanTable('account_users');
 			});
 
 			describe('Build role_roles ADAL table', () => 

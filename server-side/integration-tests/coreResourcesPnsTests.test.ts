@@ -24,22 +24,22 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 			let createdAccountUsers: any[] = [];
 			it('Create papi contacts, PNS should upsert buyers only to adal users table', async () => 
 			{
-				const initialAdalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
-				createdContacts = await this.coreResourcesService.createContactsForTest(100, testAccount);
+				const initialAdalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
+				createdContacts = await this.coreResourcesService.createContactsForTest(10, testAccount);
 				// wait for PNS to finish
 				await this.coreResourcesService.waitForAsyncJob(20);
-				let currentAdalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
+				let currentAdalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
 				// contacts should not be upserted to adal users table
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length);
 				await this.coreResourcesService.setContactsAsBuyersState(createdContacts.slice(0, 50), true);
 				// wait for PNS to finish
 				await this.coreResourcesService.waitForAsyncJob(20);
-				currentAdalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
+				currentAdalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + 50);
 				await this.coreResourcesService.setContactsAsBuyersState(createdContacts.slice(0, 20), false);
 				// wait for PNS to finish
 				await this.coreResourcesService.waitForAsyncJob(20);
-				currentAdalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
+				currentAdalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + 30); // 50 - 20 = 30
 				//expected properties
 				expect(currentAdalUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
@@ -49,6 +49,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				expect(currentAdalUsersList[0]).to.have.property('Name').that.is.a('string');
 				expect(currentAdalUsersList[0]).to.have.property('ExternalID').that.is.a('string');
 				expect(currentAdalUsersList[0]).to.have.property('Mobile').that.is.a('string');
+
 				expect(currentAdalUsersList[0]).to.have.property('Phone').that.is.a('string');
 				expect(currentAdalUsersList[0]).to.have.property('Profile').that.is.a('string');
 				expect(currentAdalUsersList[0]).to.have.property('UserType').that.is.equal('Buyer');
@@ -59,11 +60,11 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 			it('Create papi users, then account_users. PNS should upsert them to adal tables', async () => 
 			{
 				const testAccount = await this.coreResourcesService.createTestAccount();
-				const initialAdalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
+				const initialAdalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
 				createdUsers = await this.coreResourcesService.createPapiUsers(10);
 				// wait for PNS to finish
 				await this.coreResourcesService.waitForAsyncJob(20);
-				const currentAdalUsersList = await this.coreResourcesService.getGenericResourceObjects('users');
+				const currentAdalUsersList = await this.coreResourcesService.getAllGenericResourceObjects('users');
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + 10);
 	
 				// find a new user that was added to adal users table
@@ -77,11 +78,11 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				expect(newUser).to.have.property('LastName').that.is.a('string');
 				expect(newUser).to.have.property('UserType').that.is.equal('Employee');
 	
-				const initialAdalAccountUsersList = await this.coreResourcesService.getGenericResourceObjects('account_users');
+				const initialAdalAccountUsersList = await this.coreResourcesService.getAllGenericResourceObjects('account_users');
 				createdAccountUsers = await this.coreResourcesService.createPapiAccountUsers(createdUsers, testAccount);
 				// wait for PNS to finish
 				await this.coreResourcesService.waitForAsyncJob(20);
-				const currentAdalAccountUsersList = await this.coreResourcesService.getGenericResourceObjects('account_users');
+				const currentAdalAccountUsersList = await this.coreResourcesService.getAllGenericResourceObjects('account_users');
 				expect(currentAdalAccountUsersList.length).to.equal(initialAdalAccountUsersList.length + 10);
 	
 				// find a new account user relation that was added to adal account users table
