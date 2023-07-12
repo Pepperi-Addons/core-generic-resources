@@ -23,7 +23,7 @@ export class UsersGetterService extends BaseGetterService
 		return fieldsString;
 	}
 
-	additionalFix(object: any): void
+	singleObjectFix(object: any): void
 	{
 		object["UserType"] = "Employee";
 	}

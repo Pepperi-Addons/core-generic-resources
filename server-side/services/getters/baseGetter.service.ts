@@ -23,7 +23,7 @@ export abstract class BaseGetterService
 
     abstract getResourceName(): string; // search is performed on the given resource
     abstract buildFixedFieldsString(): Promise<string>; 
-    abstract additionalFix(object): void;
+    abstract singleObjectFix(object): void;
 
     protected async getObjects(body: any, additionalFieldsString?: string): Promise<SearchData<AddonData>> 
     {
@@ -68,18 +68,13 @@ export abstract class BaseGetterService
     	return fields;
     }
 
+    // this function allows us to add common fix logic if needed
     public fixObjects(papiObjects: any[]): any[]
     {
     	console.log("FIXING OBJECTS");
     	for (const papiObject of papiObjects)
     	{
-    		this.additionalFix(papiObject);
-    		// fix resource type fields
-    		for (const field of this.resourceTypeFields)
-    		{
-    			// based on resource type field structure
-    			papiObject[field] = papiObject[field]?.Data?.UUID;
-    		}
+    		this.singleObjectFix(papiObject);
     	}
     	return papiObjects;
     }

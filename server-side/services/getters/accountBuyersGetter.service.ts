@@ -20,7 +20,7 @@ export class AccountBuyersGetterService extends BaseGetterService
 		return fields.join(',');
 	}
 
-	additionalFix(object): void
+	singleObjectFix(object): void
 	{
 		return;
 	}
