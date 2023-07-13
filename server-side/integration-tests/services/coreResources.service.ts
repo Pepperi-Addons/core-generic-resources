@@ -3,7 +3,7 @@ import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
 
-export class CoreResourcesService 
+export class CoreResourcesTestsService 
 {
 	dataObject: any; // the 'Data' object passed inside the http request sent to start the test -- put all the data you need here
 	pageSize = 500;
@@ -21,7 +21,7 @@ export class CoreResourcesService
 	 * @param resource {string} The name of the resource to get all objects of.
 	 * @returns {Promise<AddonData[]>} All objects of the resource.
 	 */
-	async getAllGenericResourceObjects(resource: string): Promise<AddonData[]> 
+	async getAllGenericResourceObjects(resource: string, includeDeleted = true): Promise<AddonData[]> 
 	{
 		const res: AddonData[] = [];
 
@@ -32,7 +32,7 @@ export class CoreResourcesService
 		{
 			const searchOptions: SearchBody = {
 				...(NextPageKey && {PageKey: NextPageKey}),
-				IncludeDeleted: true
+				IncludeDeleted: includeDeleted
 			};
 
 			searchResponse = await this.searchGenericResource(resource, searchOptions);
@@ -91,12 +91,13 @@ export class CoreResourcesService
 	async createPapiUsers(count: number): Promise<any[]> 
 	{
 		const users: any[] = [];
+		const unique = uuid();
 		for(let i = 0; i < count; i++) 
 		{
 			const user = await this.papiClient.post('/createUser',{
-				Email: `test${i}@test.com`,
-				FirstName: `test${i}`,
-				LastName: `test${i}`
+				Email: `usertest${i}-${unique}@test.com`,
+				FirstName: `usertest${i}-${unique}`,
+				LastName: `usertest${i}-${unique}`
 			});
 			users.push(user);
 		}
@@ -200,24 +201,35 @@ export class CoreResourcesService
 					"URI": `/accounts/${account.InternalID}}`
 				}
 			}
-			await this.createContact(body);
+			const created = await this.createContact(body);
+			contactsUUIDs.push(created.UUID);
 		}
 		return contactsUUIDs;
 	}
 
-	async setContactsAsBuyersState(contactsUUIDs: string[], isBuyer: boolean): Promise<any> 
+	async connectContacts(contactsUUIDs: string[]): Promise<any> 
 	{
-		const contacts = contactsUUIDs.map(uuid => 
-		{
-			return {UUID: uuid, IsBuyer: isBuyer} 
+		return await this.papiClient.post(`/Contacts/ConnectAsBuyer`, {
+			UUIDs: contactsUUIDs,
+			SelectAll: false
 		});
-		return await this.papiClient.post(`/batch/contacts`, contacts);
 	}
 
-	async hideCreatedPapiObjects(resource: string, objects: any[]): Promise<void> 
+	async disconnectBuyers(contactsUUIDs: string[]): Promise<any> 
 	{
-		objects.forEach(obj => obj.Hidden = true);
-		await this.papiClient.post(`/batch/${resource}`, {Objects: objects});
+		return await this.papiClient.post(`/Contacts/DisconnectBuyer`, {
+			UUIDs: contactsUUIDs,
+			SelectAll: false
+		});
+	}
+
+	async hideCreatedPapiObjects(resource: string, contactsUUIDs: any[]): Promise<void> 
+	{
+		const objects = contactsUUIDs.map(uuid => 
+		{
+			return {UUID: uuid, Hidden: true}
+		});
+		await this.papiClient.post(`/batch/${resource}`, objects);
 	}
 
 	/**

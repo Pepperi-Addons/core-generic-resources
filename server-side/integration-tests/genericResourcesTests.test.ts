@@ -1,6 +1,6 @@
 import { ABaseCoreResourcesTests } from "./aBaseCoreResourcesTests.test";
 import { GenericResourceTestInput } from "./entities";
-import { CoreResourcesService } from "./services/coreResources.service";
+import { CoreResourcesTestsService } from "./services/coreResources.service";
 import { genericResourcesTestsData as GenericResourcesTestsData } from "./testsData/genericResources";
 
 export class GenericResourcesTests extends ABaseCoreResourcesTests 
@@ -20,31 +20,31 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 		{
 			for (const testData of GenericResourcesTestsData)
 			{
-				await this.genericResourceTests(it, expect, this.coreResourcesService, testData);
+				await this.genericResourceTests(it, expect, this.coreResourcesTestsService, testData);
 			}
 		})
 	}
 
-	protected async genericResourceTests(it: any, expect: Chai.ExpectStatic, coreResourcesService: CoreResourcesService, testData: GenericResourceTestInput) 
+	protected async genericResourceTests(it: any, expect: Chai.ExpectStatic, CoreResourcesTestsService: CoreResourcesTestsService, testData: GenericResourceTestInput) 
 	{
 
-		const schemeFields = await coreResourcesService.getAdalSchemeFieldsNames(testData.ResourceName);
+		const schemeFields = await CoreResourcesTestsService.getAdalSchemeFieldsNames(testData.ResourceName);
 
-		const objects = await coreResourcesService.getGenericResourceObjects(testData.ResourceName);
+		const objects = await CoreResourcesTestsService.getGenericResourceObjects(testData.ResourceName);
 		expect(objects).to.be.an('array').with.lengthOf.above(0);
 
 		it('Get by key test', async () => 
 		{
 
 			expect(objects[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
-			const requestedObject = await coreResourcesService.getGenericResourceByKey(testData.ResourceName, objects[0].Key!);
+			const requestedObject = await CoreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, objects[0].Key!);
 			for (const field of schemeFields) 
 			{
 				expect(requestedObject).to.have.property(field).that.equals(objects[0][field]);
 			}
-			expect(await coreResourcesService.getGenericResourceByKey(testData.ResourceName, 'badKey')).to.throw('Not Found');
-			const validKey = coreResourcesService.generateValidKey();
-			expect(await coreResourcesService.getGenericResourceByKey(testData.ResourceName, validKey)).to.throw('Not Found');
+			expect(await CoreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, 'badKey')).to.throw('Not Found');
+			const validKey = CoreResourcesTestsService.generateValidKey();
+			expect(await CoreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, validKey)).to.throw('Not Found');
 
 		});
 
@@ -52,20 +52,20 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 		{
 
 			expect(objects[0]).to.have.property(testData.UniqueFieldID).that.is.not.empty;
-			const requestedObject = await coreResourcesService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, objects[0][testData.UniqueFieldID]);
+			const requestedObject = await CoreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, objects[0][testData.UniqueFieldID]);
 			for (const field of schemeFields) 
 			{
 				expect(requestedObject).to.have.property(field).that.equals(objects[0][field]);
 			}
-			expect(await coreResourcesService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, 'randomValue')).to.throw('not found');
-			expect(await coreResourcesService.getGenericResourceByUniqueField(testData.ResourceName, testData.NonUniqueFieldID, 'randomValue')).to.throw('field_id is not unique');
+			expect(await CoreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, 'randomValue')).to.throw('not found');
+			expect(await CoreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.NonUniqueFieldID, 'randomValue')).to.throw('field_id is not unique');
 		});
 
 		it('Search test', async () => 
 		{
 
 			const searchBody = {};
-			let requestedObjects = await coreResourcesService.searchGenericResource(testData.ResourceName, searchBody);
+			let requestedObjects = await CoreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 			expect(requestedObjects).to.have.property('Objects').that.is.an('array').and.is.not.empty;
 			for (const obj of requestedObjects['Objects']) 
 			{
@@ -77,12 +77,12 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 
 			// IncludeCount
 			searchBody['IncludeCount'] = true;
-			requestedObjects = await coreResourcesService.searchGenericResource(testData.ResourceName, searchBody);
+			requestedObjects = await CoreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 			expect(requestedObjects).to.have.property('Count').that.equals(requestedObjects['Objects'].length);
 
 			// Where
 			searchBody['Where'] = `${testData.NonUniqueFieldID}='${objects[0][testData.NonUniqueFieldID]}'`;
-			requestedObjects = await coreResourcesService.searchGenericResource(testData.ResourceName, searchBody);
+			requestedObjects = await CoreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 			expect(requestedObjects).to.have.property('Objects').that.is.an('array').and.is.not.empty;
 			for (const obj of requestedObjects['Objects']) 
 			{
@@ -94,7 +94,7 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 			delete searchBody['Where'];
 			searchBody['UniqueFieldList'] = [objects[0][testData.UniqueFieldID], objects[1][testData.UniqueFieldID]];
 			searchBody['UniqueFieldID'] = testData.UniqueFieldID;
-			requestedObjects = await coreResourcesService.searchGenericResource(testData.ResourceName, searchBody);
+			requestedObjects = await CoreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 			expect(requestedObjects).to.have.property('Objects').that.is.an('array').with.lengthOf(2);
 		});
 	}
