@@ -44,7 +44,7 @@ export class BuyersPNSService extends BasePNSService
 				AddonUUID: this.udcAddonUUID
 			},
 			{
-				AddonRelativeURL: "/adal/insert_users_from_buyers",
+				AddonRelativeURL: "/adal/update_users_from_buyers",
 				 Name: "buyersAdded", 
 				 Action: "insert", 
 				 Resource: "Buyers",
