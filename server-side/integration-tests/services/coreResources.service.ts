@@ -2,10 +2,12 @@ import { PapiClient, SearchData, AddonData, SearchBody, FindOptions, Account } f
 import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
+import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
-export class CoreResourcesService 
+export class CoreResourcesTestsService 
 {
 	dataObject: any; // the 'Data' object passed inside the http request sent to start the test -- put all the data you need here
+	pageSize = 500;
 
 	constructor(public papiClient: PapiClient)
 	{}
@@ -20,7 +22,7 @@ export class CoreResourcesService
 	 * @param resource {string} The name of the resource to get all objects of.
 	 * @returns {Promise<AddonData[]>} All objects of the resource.
 	 */
-	async getAllGenericResourceObjects(resource: string): Promise<AddonData[]> 
+	async getAllGenericResourceObjects(resource: string, includeDeleted = true): Promise<AddonData[]> 
 	{
 		const res: AddonData[] = [];
 
@@ -31,6 +33,7 @@ export class CoreResourcesService
 		{
 			const searchOptions: SearchBody = {
 				...(NextPageKey && {PageKey: NextPageKey}),
+				IncludeDeleted: includeDeleted
 			};
 
 			searchResponse = await this.searchGenericResource(resource, searchOptions);
@@ -58,9 +61,19 @@ export class CoreResourcesService
 		return await this.papiClient.resources.resource(resource).search(searchBody);
 	}
 
-	async getPapiResourceObjects(resource: string, findOptions?: FindOptions): Promise<AddonData[]> 
+	async getPapiResourceObjects(resource: string): Promise<any[]> 
 	{
-		return await this.papiClient.resources.resource(resource).get(findOptions);
+		let page = 1;
+		let totalObjects: any[] = [];
+		let currentPageObjects: any[] = [];
+		do 
+		{
+			currentPageObjects = await this.papiClient.get(`/${resource}?page_size=${this.pageSize}&page=${page}&include_deleted=true`);
+			totalObjects = totalObjects.concat(currentPageObjects);
+			page++;
+		} while (currentPageObjects.length == this.pageSize);
+
+		return totalObjects;
 	}
 
 	async createTestAccount(): Promise<Account> 
@@ -79,12 +92,13 @@ export class CoreResourcesService
 	async createPapiUsers(count: number): Promise<any[]> 
 	{
 		const users: any[] = [];
+		const unique = uuid();
 		for(let i = 0; i < count; i++) 
 		{
 			const user = await this.papiClient.post('/createUser',{
-				Email: `test${i}@test.com`,
-				FirstName: `test${i}`,
-				LastName: `test${i}`
+				Email: `usertest${i}-${unique}@test.com`,
+				FirstName: `usertest${i}-${unique}`,
+				LastName: `usertest${i}-${unique}`
 			});
 			users.push(user);
 		}
@@ -124,6 +138,11 @@ export class CoreResourcesService
 		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('build').post({resource: resource}, testData);
 	}
 
+	async buildBuyersTable(testData?: TestBody): Promise<any>
+	{
+		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
+	}
+
 	async buildRoleRolesTable(testData?: TestBody): Promise<any>
 	{
 		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
@@ -155,6 +174,14 @@ export class CoreResourcesService
 			NextPageKey = searchResponse.NextPageKey;
 		}
 		while (NextPageKey);
+	}	
+
+	// purge then create the table
+	async resetTable(tableName: string)
+	{
+		await this.papiClient.post(`/addons/data/schemes/${tableName}/purge`);
+		const schema = resourceNameToSchemaMap[tableName];
+		return await this.papiClient.addons.data.schemes.post(schema);
 	}
 
 	async createContact(contact) 
@@ -183,24 +210,35 @@ export class CoreResourcesService
 					"URI": `/accounts/${account.InternalID}}`
 				}
 			}
-			await this.createContact(body);
+			const created = await this.createContact(body);
+			contactsUUIDs.push(created.UUID);
 		}
 		return contactsUUIDs;
 	}
 
-	async setContactsAsBuyersState(contactsUUIDs: string[], isBuyer: boolean): Promise<any> 
+	async connectContacts(contactsUUIDs: string[]): Promise<any> 
 	{
-		const contacts = contactsUUIDs.map(uuid => 
-		{
-			return {UUID: uuid, IsBuyer: isBuyer} 
+		return await this.papiClient.post(`/Contacts/ConnectAsBuyer`, {
+			UUIDs: contactsUUIDs,
+			SelectAll: false
 		});
-		return await this.papiClient.post(`/batch/contacts`, contacts);
 	}
 
-	async hideCreatedPapiObjects(resource: string, objects: any[]): Promise<void> 
+	async disconnectBuyers(contactsUUIDs: string[]): Promise<any> 
 	{
-		objects.forEach(obj => obj.Hidden = true);
-		await this.papiClient.post(`/batch/${resource}`, {Objects: objects});
+		return await this.papiClient.post(`/Contacts/DisconnectBuyer`, {
+			UUIDs: contactsUUIDs,
+			SelectAll: false
+		});
+	}
+
+	async hideCreatedPapiObjects(resource: string, contactsUUIDs: any[]): Promise<void> 
+	{
+		const objects = contactsUUIDs.map(uuid => 
+		{
+			return {UUID: uuid, Hidden: true}
+		});
+		await this.papiClient.post(`/batch/${resource}`, objects);
 	}
 
 	/**
@@ -224,4 +262,11 @@ export class CoreResourcesService
 	{
 		return uuid();
 	}
+
+	getDifference(setA, setB) 
+	{
+		return new Set(
+		  [...setA].filter(element => !setB.has(element))
+		);
+	  }
 }

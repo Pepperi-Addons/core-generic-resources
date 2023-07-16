@@ -37,7 +37,7 @@ export class RolesGetterService extends BaseGetterService
 		return 'InternalID,ParentInternalID';
 	}
 
-	additionalFix(object: any): void
+	singleObjectFix(object: any): void
 	{
 		return;
 	}

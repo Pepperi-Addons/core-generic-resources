@@ -23,9 +23,10 @@ export class BuyersGetterService extends BaseGetterService
 		return fieldsString;
 	}
 
-	additionalFix(object: any): void
+	singleObjectFix(object: any): void
 	{
 		object["UserType"] = "Buyer";
 		object["Name"] = `${object["FirstName"]} ${object["LastName"]}`;
+		delete object["Active"];
 	}
 }

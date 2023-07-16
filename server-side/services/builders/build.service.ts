@@ -44,7 +44,8 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 
 	async batchUpsert(resourceName: string, objects: AddonData[]): Promise<BatchApiResponse[]>
 	{
-		return await this.adalService.batchUpsert(resourceName, objects);
+		const res = await this.adalService.batchUpsert(resourceName, objects);
+		return res;
 	}
 	//#endregion
 

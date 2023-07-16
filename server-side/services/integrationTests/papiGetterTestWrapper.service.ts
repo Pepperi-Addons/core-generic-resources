@@ -51,9 +51,9 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		return await this.wrappedPapiGetter.buildFixedFieldsString();
 	}
 
-	public additionalFix(object): void
+	public singleObjectFix(object): void
 	{
-		this.wrappedPapiGetter.additionalFix(object);
+		this.wrappedPapiGetter.singleObjectFix(object);
 	}
 
 	public override async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>

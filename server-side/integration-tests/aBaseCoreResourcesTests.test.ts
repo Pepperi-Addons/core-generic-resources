@@ -1,20 +1,20 @@
 import { BaseTest } from "@pepperi-addons/addon-testing-framework";
 import { PapiClient } from "@pepperi-addons/papi-sdk";
-import { CoreResourcesService } from "./services/coreResources.service";
+import { CoreResourcesTestsService } from "./services/coreResources.service";
 
 export abstract class ABaseCoreResourcesTests extends BaseTest
 {
-	private _coreResourcesService: CoreResourcesService | undefined;
+	private _coreResourcesTestsService: CoreResourcesTestsService | undefined;
 	private _papiClient: PapiClient | undefined;
 
-	protected get coreResourcesService(): CoreResourcesService
+	protected get coreResourcesTestsService(): CoreResourcesTestsService
 	{
-		if(!this._coreResourcesService)
+		if(!this._coreResourcesTestsService)
 		{
-			this._coreResourcesService = new CoreResourcesService(this.papiClient);
+			this._coreResourcesTestsService = new CoreResourcesTestsService(this.papiClient);
 		}
 
-		return this._coreResourcesService;
+		return this._coreResourcesTestsService;
 	}
 
 	protected get papiClient(): PapiClient
