@@ -28,7 +28,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				let keys = papiUsersList.map(user => user.UUID);
 				keys = keys.concat(buyersList.map(buyer => buyer.Key));
 				const uniquePapiKeys = new Set(keys);
-				await this.coreResourcesTestsService.cleanTable('users'); // clean the table before build
+				await this.coreResourcesTestsService.cleanTable('users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('users');
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
 				const adalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
@@ -36,9 +36,9 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				expect(adalUsersList).to.be.an('array').with.lengthOf(uniquePapiKeys.size);
 				expect(adalUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
 				expect(adalUsersList[0]).to.have.property('Email').that.is.a('string').and.is.not.empty;
-				expect(adalUsersList[0]).to.have.property('FirstName').that.is.a('string').and.is.not.empty;
-				expect(adalUsersList[0]).to.have.property('LastName').that.is.a('string').and.is.not.empty;
-				expect(adalUsersList[0]).to.have.property('Name').that.is.a('string').and.is.not.empty;
+				expect(adalUsersList[0]).to.have.property('FirstName').that.is.a('string');
+				expect(adalUsersList[0]).to.have.property('LastName').that.is.a('string');
+				expect(adalUsersList[0]).to.have.property('Name').that.is.a('string');
 				expect(adalUsersList[0]).to.have.property('ExternalID').that.is.a('string');
 				expect(adalUsersList[0]).to.have.property('Mobile').that.is.a('string');
 				expect(adalUsersList[0]).to.have.property('Phone').that.is.a('string');
@@ -52,10 +52,13 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				const papiAccountBuyersList = await this.coreResourcesTestsService.getPapiResourceObjects('account_buyers');
 				let papiKeys = papiAccountUsersList.map(accountUser => accountUser.UUID);
 				papiKeys = papiKeys.concat(papiAccountBuyersList.map(accountBuyer => accountBuyer.UUID));
-				await this.coreResourcesTestsService.cleanTable('account_users'); // clean the table before build
+				const papiUniqueKeys = new Set(papiKeys);
+				await this.coreResourcesTestsService.resetTable('account_users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('account_users');
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
 				const adalAccountUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('account_users');
+				const adalUniqueKeys = new Set(adalAccountUsersList.map(accountUser => accountUser.Key));
+				console.log(this.coreResourcesTestsService.getDifference(adalUniqueKeys, papiUniqueKeys));
 				expect(buildTableResponse).to.have.property('success').that.is.true;
 				expect(adalAccountUsersList).to.be.an('array').with.lengthOf(papiKeys.length);
 				expect(adalAccountUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;

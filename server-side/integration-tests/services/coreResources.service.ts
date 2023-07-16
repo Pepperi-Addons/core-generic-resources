@@ -2,6 +2,7 @@ import { PapiClient, SearchData, AddonData, SearchBody, FindOptions, Account } f
 import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
+import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export class CoreResourcesTestsService 
 {
@@ -173,6 +174,14 @@ export class CoreResourcesTestsService
 			NextPageKey = searchResponse.NextPageKey;
 		}
 		while (NextPageKey);
+	}	
+
+	// purge then create the table
+	async resetTable(tableName: string)
+	{
+		await this.papiClient.post(`/addons/data/schemes/${tableName}/purge`);
+		const schema = resourceNameToSchemaMap[tableName];
+		return await this.papiClient.addons.data.schemes.post(schema);
 	}
 
 	async createContact(contact) 
