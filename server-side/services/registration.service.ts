@@ -11,16 +11,15 @@ export class RegistrationService
 		try 
 		{
 			const usersSchema = await this.papiClient.addons.data.schemes.name('users').get();
+			const resourceNameObject = {Resource: resourceName};
 			if(usersSchema.Internals?.ExternalUserResourcesRegistration)
 			{
-				usersSchema.Internals.ExternalUserResourcesRegistration.push({SchemaName: resourceName});
+				usersSchema.Internals.ExternalUserResourcesRegistration.push(resourceNameObject);
 			} 
 			else
 			{
 				usersSchema.Internals = {
-					ExternalUserResourcesRegistration: [
-						{SchemaName: resourceName}
-					]
+					ExternalUserResourcesRegistration: [resourceNameObject]
 				}
 			}
 			await this.papiClient.addons.data.schemes.post(usersSchema);
