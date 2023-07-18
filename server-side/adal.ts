@@ -10,6 +10,7 @@ import { TestBody } from './services/integrationTests/entities';
 import { BuildTestService } from './services/integrationTests/buildTest.service';
 import { BuildManagerTestService } from './services/integrationTests/buildManagerTest.service';
 import { AsyncResultObject } from './constants';
+import { RegistrationService } from './services/registration.service';
 
 export async function update_users(client: Client, request: Request) 
 {
@@ -200,4 +201,28 @@ function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParam
 	}
 
 	return buildService;
+}
+
+/**
+ * Register given generic-resource as a source for adal users table
+ * @param client 
+ * @param request 
+ * @throws Error if the method is not supported
+ * @returns A promise that resolves to the result of the registration
+ */
+export async function register_for_external_user_resource(client: Client, request: Request) 
+{
+	switch(request.method)
+	{
+	case 'POST':
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const service = new RegistrationService(papiClient);
+		return await service.registerForExternalUserResource(request.body?.ResourceName);
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
 }

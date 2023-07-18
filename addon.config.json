@@ -18,8 +18,7 @@
     "Editors": [],
     "Dependencies": {
       "adal": "1.0.316",
-      "core": "0.7.12",
-      "buyer_management": "0.1.1"
+      "core": "0.7.12"
     },
     "CPISide": [
       "addon-cpi.ts"

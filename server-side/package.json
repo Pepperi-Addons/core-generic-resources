@@ -36,7 +36,7 @@
         "@pepperi-addons/addon-testing-framework": "^0.0.16",
         "@pepperi-addons/debug-server": "*",
         "@pepperi-addons/modelsdk": "^0.0.9",
-        "@pepperi-addons/papi-sdk": "^1.50.0",
+        "@pepperi-addons/papi-sdk": "^1.52.3",
         "core-resources-shared": "file:../shared",
         "lodash.clonedeep": "^4.5.0",
         "semver": "^7.3.8",
