@@ -1,9 +1,10 @@
 import { PnsParams } from '../../models/metadata';
 import { BasePNSService } from './basePNS.service';
 import { BuyersGetterService } from '../getters/buyersGetter.service';
-import { AddonData, PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonData, AddonDataScheme, FindOptions, PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
+import config from '../../../addon.config.json';
 
 export class BuyersPNSService extends BasePNSService
 {
@@ -12,43 +13,46 @@ export class BuyersPNSService extends BasePNSService
 	protected adalService: AdalService;
 	private udcAddonUUID = "122c0e9d-c240-4865-b446-f37ece866c22";
 
-	constructor(papiClient: PapiClient)
+	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{
 		super(papiClient);
-		this.buyersGetterService = new BuyersGetterService(papiClient);
+		this.buyersGetterService = new BuyersGetterService(papiClient, externalUserResource);
 		this.adalService = new AdalService(papiClient);
 	}
 
-	getSubscribeParamsSets(): PnsParams[]
+	async getSubscribeParamsSets(): Promise<PnsParams[]>
 	{
 		// Users will be notified according to those fields, which are mutual for users and buyers
 		let regularFields = Object.keys(resourceNameToSchemaMap['users'].Fields ?? {});
 		regularFields = regularFields.filter(field => field != 'UserType');
+		
+		const externalAddonUUID = await this.getExternalAddonUUID();
 
 		// for users maintenance
+		// TODO: expose sub
 		return [
 			{
-				AddonRelativeURL: "/adal/update_users_from_buyers",
-				Name: "buyersChanged",
+				AddonRelativeURL: `/adal/update_users_from_buyers?external_user_resource=${this.externalUserResource}`,
+				Name: `${this.externalUserResource}Changed`,
 				Action: "update",
-				Resource: "Buyers",
+				Resource: this.externalUserResource,
 				ModifiedFields: regularFields,
-				AddonUUID: this.udcAddonUUID
+				AddonUUID: externalAddonUUID
 			},
 			{
-				AddonRelativeURL: "/adal/buyers_active_state_changed", 
-				Name: "buyersActiveFieldChanged",
+				AddonRelativeURL: `/adal/buyers_active_state_changed?external_user_resource=${this.externalUserResource}`, 
+				Name: `${this.externalUserResource}ActiveFieldChanged`,
 				Action: "update", 
-				Resource: "Buyers",
+				Resource: this.externalUserResource,
 				ModifiedFields: ["Active"], 
-				AddonUUID: this.udcAddonUUID
+				AddonUUID: externalAddonUUID
 			},
 			{
-				AddonRelativeURL: "/adal/update_users_from_buyers",
-				 Name: "buyersAdded", 
+				AddonRelativeURL: `/adal/update_users_from_buyers?external_user_resource=${this.externalUserResource}`,
+				 Name: `${this.externalUserResource}Added`, 
 				 Action: "insert", 
-				 Resource: "Buyers",
-				 AddonUUID: this.udcAddonUUID
+				 Resource: this.externalUserResource,
+				 AddonUUID: externalAddonUUID
 			}
 		]
 	}
@@ -97,6 +101,59 @@ export class BuyersPNSService extends BasePNSService
 			await this.adalService.batchUpsert('users', fixedUsers);
 			console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
 		}
+	}
+
+	public static async getAllExternalUserResources(papiClient: PapiClient): Promise<string[]>
+	{
+		const usersSchema = await papiClient.addons.data.schemes.name('users').get();
+		let externalUserResources = usersSchema.Internals?.ExternalUserResourcesRegistration ?? [];
+		externalUserResources = externalUserResources.map(obj => obj.Resource);
+		return externalUserResources;
+	}
+
+	async deleteOldBuyersSubscriptions(papiClient: PapiClient): Promise<void>
+	{
+		await papiClient.notification.subscriptions.upsert({
+			AddonUUID: config.AddonUUID,
+			Name: "buyersChanged",
+			Hidden: true
+		} as any);
+		await papiClient.notification.subscriptions.upsert({
+			AddonUUID: config.AddonUUID,
+			Name: "buyersActiveFieldChanged",
+			Hidden: true
+		} as any);
+		await papiClient.notification.subscriptions.upsert({
+			AddonUUID: config.AddonUUID,
+			Name: "buyersAdded",
+			Hidden: true
+		} as any);
+	}
+
+	protected async getExternalAddonUUID(): Promise<string>
+	{
+		let externalScheme: AddonDataScheme;
+
+		const findOptions: FindOptions = {where: `Name='${this.externalUserResource}'`};
+
+		// getting schemes not owned by core-resources addon 
+		// requires sending the request without addonUUID header
+		delete this.papiClient["options"]["addonUUID"];
+		const externalSchemeResult = await this.papiClient.addons.data.schemes.get(findOptions);
+
+		if(externalSchemeResult.length > 0)
+		{
+			externalScheme = externalSchemeResult[0];
+		}
+		else
+		{
+			throw new Error(`External scheme ${this.externalUserResource} not found`);
+		}
+
+		// restoring addonUUID header
+		this.papiClient["options"]["addonUUID"] = config.AddonUUID;
+
+		return externalScheme.AddonUUID!;
 
 	}
 }

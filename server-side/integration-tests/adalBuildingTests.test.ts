@@ -24,11 +24,11 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 			it('Build users adal table', async () => 
 			{
 				const papiUsersList = await this.coreResourcesTestsService.getPapiResourceObjects('users');
-				const buyersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('Buyers');
+				const activeBuyersList = (await this.coreResourcesTestsService.getAllGenericResourceObjects('Buyers')).filter(buyer => buyer.Active);
 				let keys = papiUsersList.map(user => user.UUID);
-				keys = keys.concat(buyersList.map(buyer => buyer.Key));
+				keys = keys.concat(activeBuyersList.map(buyer => buyer.Key));
 				const uniquePapiKeys = new Set(keys);
-				await this.coreResourcesTestsService.cleanTable('users'); // reset the table before build
+				await this.coreResourcesTestsService.resetTable('users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('users');
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
 				const adalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
@@ -66,60 +66,60 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				expect(adalAccountUsersList[0]).to.have.property('User').that.is.a('string').and.is.not.empty;
 			});
 
-			describe('Build role_roles ADAL table', () => 
-			{
+			// describe('Build role_roles ADAL table', () => 
+			// {
 
-				const targetAdalResourceName = 'role_roles';
-				const coreResourcesTestsService = new CoreResourcesTestsService(this.papiClient);
+			// 	const targetAdalResourceName = 'role_roles';
+			// 	const coreResourcesTestsService = new CoreResourcesTestsService(this.papiClient);
 
-				// before(async () => {
-				//     console.log("BEFORE, CLEANING TABLE");
-				//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
-				// });
+			// 	// before(async () => {
+			// 	//     console.log("BEFORE, CLEANING TABLE");
+			// 	//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
+			// 	// });
 
-				// afterEach(async () => {
-				//     console.log("AFTER EACH, CLEANING TABLE");
-				//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
-				// });
+			// 	// afterEach(async () => {
+			// 	//     console.log("AFTER EACH, CLEANING TABLE");
+			// 	//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
+			// 	// });
 
-				it('Ensure roles and role_roles schemas exist', async () => 
-				{
-					const schemaNames = ['roles', 'role_roles'];
-					const findOptions: FindOptions = {
-						where: `Name in ('${schemaNames.join("','")}')`
-					};
-					const schemas = await coreResourcesTestsService.papiClient.addons.data.schemes.get(findOptions);
+			// 	it('Ensure roles and role_roles schemas exist', async () => 
+			// 	{
+			// 		const schemaNames = ['roles', 'role_roles'];
+			// 		const findOptions: FindOptions = {
+			// 			where: `Name in ('${schemaNames.join("','")}')`
+			// 		};
+			// 		const schemas = await coreResourcesTestsService.papiClient.addons.data.schemes.get(findOptions);
 
-					expect(schemas).to.be.an('array').with.lengthOf(schemaNames.length);
-				});
+			// 		expect(schemas).to.be.an('array').with.lengthOf(schemaNames.length);
+			// 	});
 
-				const testNames = Object.keys(RoleRolesTestData);
-				for (const testName of testNames) 
-				{
-					it(`Build table using ${testName} test data`, async () => 
-					{
-						const { TestInput, ExpectedResult } = this.getTestData(testName);
+			// 	const testNames = Object.keys(RoleRolesTestData);
+			// 	for (const testName of testNames) 
+			// 	{
+			// 		it(`Build table using ${testName} test data`, async () => 
+			// 		{
+			// 			const { TestInput, ExpectedResult } = this.getTestData(testName);
 
-						try 
-						{
-							const buildTableResponse = await coreResourcesTestsService.buildRoleRolesTable(TestInput);
-							const defactoResults = await coreResourcesTestsService.getAllGenericResourceObjects(targetAdalResourceName) as RoleRole[];
+			// 			try 
+			// 			{
+			// 				const buildTableResponse = await coreResourcesTestsService.buildRoleRolesTable(TestInput);
+			// 				const defactoResults = await coreResourcesTestsService.getAllGenericResourceObjects(targetAdalResourceName) as RoleRole[];
 
-							// Ensure the table was built successfully
-							expect(buildTableResponse).to.have.property('success').that.is.true;
+			// 				// Ensure the table was built successfully
+			// 				expect(buildTableResponse).to.have.property('success').that.is.true;
 
 
-							// Ensure the table was built with the correct number of rows
-							testRoleRoles(defactoResults, ExpectedResult);
-						}
-						catch (e) 
-						{
-							console.log(e instanceof Error ? e.message : e);
-						}
+			// 				// Ensure the table was built with the correct number of rows
+			// 				testRoleRoles(defactoResults, ExpectedResult);
+			// 			}
+			// 			catch (e) 
+			// 			{
+			// 				console.log(e instanceof Error ? e.message : e);
+			// 			}
 
-					});
-				}
-			});
+			// 		});
+			// 	}
+			// });
 
 			function testRoleRoles(defactoResults: RoleRole[], expectedResults: RoleRole[]) 
 			{

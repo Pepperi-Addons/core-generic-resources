@@ -15,9 +15,10 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 	protected adalService: AdalService;
 
 
-	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams) 
+	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams, externalUserResource?: string) 
 	{
-		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient);
+		// If externalUserResource is not provided, undefined is passed and the constructor ignores it.
+		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient, externalUserResource);
 		this.adalService = new AdalService(papiClient);
 		this.etlService = new buildServiceParams.etlService(buildServiceParams.adalTableName, this);
 	}

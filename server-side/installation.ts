@@ -516,8 +516,12 @@ async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 
 async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 {
+	const externalUserResources = await BuyersPNSService.getAllExternalUserResources(papiClient);
+	for(const externalUserResource of externalUserResources)
+	{
+		await subscribeToPNS(new BuyersPNSService(papiClient, externalUserResource));
+	}
 	await subscribeToPNS(new UsersPNSService(papiClient));
-	await subscribeToPNS(new BuyersPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }
 

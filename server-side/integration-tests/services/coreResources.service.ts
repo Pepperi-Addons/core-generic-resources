@@ -179,8 +179,8 @@ export class CoreResourcesTestsService
 	// purge then create the table
 	async resetTable(tableName: string)
 	{
+		const schema = await this.papiClient.addons.data.schemes.name(tableName).get();
 		await this.papiClient.post(`/addons/data/schemes/${tableName}/purge`);
-		const schema = resourceNameToSchemaMap[tableName];
 		return await this.papiClient.addons.data.schemes.post(schema);
 	}
 

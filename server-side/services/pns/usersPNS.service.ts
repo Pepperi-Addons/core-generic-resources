@@ -17,7 +17,7 @@ export class UsersPNSService extends BasePNSService
 		this.adalService = new AdalService(papiClient);
 	}
 
-	getSubscribeParamsSets(): PnsParams[]
+	async getSubscribeParamsSets(): Promise<PnsParams[]>
 	{
 		// for users maintenance
 		return [

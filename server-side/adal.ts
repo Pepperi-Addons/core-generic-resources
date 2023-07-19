@@ -36,7 +36,7 @@ export async function update_users_from_buyers(client: Client, request: Request)
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuyersPNSService(papiClient);
+		const service = new BuyersPNSService(papiClient, request.query.external_user_resource);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -53,7 +53,7 @@ export async function buyers_active_state_changed(client: Client, request: Reque
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuyersPNSService(papiClient);
+		const service = new BuyersPNSService(papiClient, request.query.external_user_resource);
 		return await service.buyersActiveStateChanged(request.body);
 	}
 	default:
@@ -146,7 +146,7 @@ async function buildSpecificTable(client: Client, request: Request, buildService
 	 {
 	 case 'POST':
 	 {
-		 const service = getBuildService(client, buildServiceParams, request.body);
+		 const service = getBuildService(client, buildServiceParams, request);
 		 return await service.buildAdalTable(request.body);
 	 }
 	 default:
@@ -186,18 +186,18 @@ async function cleanBuildSpecificTable(client: Client, request: Request, buildSe
  * @param iBuildServiceParams 
  * @returns {Builders.BuildService} - A build service
  */
-function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams, requestBody: TestBody): Builders.BaseBuildService
+function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams, request: any): Builders.BaseBuildService
 {
 	let buildService: Builders.BaseBuildService;
 	const papiClient = Helper.getPapiClient(client);
 
-	if(requestBody?.IsTest)
+	if(request.body?.IsTest)
 	{
-		buildService = new BuildTestService(papiClient, iBuildServiceParams, requestBody);
+		buildService = new BuildTestService(papiClient, iBuildServiceParams, request.body);
 	}
 	else
 	{
-		buildService = new Builders.BaseBuildService(papiClient, iBuildServiceParams);
+		buildService = new Builders.BaseBuildService(papiClient, iBuildServiceParams, request.query.external_user_resource);
 	}
 
 	return buildService;
@@ -225,4 +225,11 @@ export async function register_for_external_user_resource(client: Client, reques
 		throw new Error(`Unsupported method: ${request.method}`);
 	}
 	}
+}
+
+export async function delete_old_buyers_subscriptions(client: Client, request: Request)
+{
+	const papiClient = Helper.getPapiClient(client);
+	const service = new BuyersPNSService(papiClient, "");
+	await service.deleteOldBuyersSubscriptions(papiClient);
 }
