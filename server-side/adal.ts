@@ -36,7 +36,7 @@ export async function update_users_from_external_user_resource(client: Client, r
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new ExternalUserResourcePNSService(papiClient, request.query.external_user_resource);
+		const service = new ExternalUserResourcePNSService(papiClient, request.query.resource);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -53,7 +53,7 @@ export async function external_user_resource_active_state_changed(client: Client
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new ExternalUserResourcePNSService(papiClient, request.query.external_user_resource);
+		const service = new ExternalUserResourcePNSService(papiClient, request.query.resource);
 		return await service.externalUserResourceActiveStateChanged(request.body);
 	}
 	default:
