@@ -47,6 +47,7 @@ export type TSA = {
     Name: string;
     OwnerObjectTypeID: number;
     PopulatableObjectType: number;
+	Hidden: boolean;
 };
 
 // Pick the Name and Fields properties from the AddonDataScheme interface, and make them required (non optional)

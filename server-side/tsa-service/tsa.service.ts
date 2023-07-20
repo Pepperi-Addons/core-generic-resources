@@ -41,27 +41,31 @@ export class TsaService
      * @param {{ Key: string; OldName: string; }[]} modifiedObjects - Array of modified objects with Key and OldName properties.
      * @returns {Promise<void>} - Promise that resolves with void when the operation is completed.
      */
-	public async modifyTsaFieldsOnSchemas(modifiedObjects: { Key: string; OldName: string;}[]): Promise<void>
+	public async modifyTsaFieldsOnSchemas(modifiedObjects: { Key: string; ChangedField: string; OldValue: string; }[]): Promise<void>
 	{
 		// Since PNS notifications are not reliable in terms, we will always delete the old name,
 		// get the TSA from PAPI, and add the new name.
 		// That way, by the end of the process, we will have the correct TSA fields on the schemas.
 
 		// Get the TSAs from PAPI, fields: Name, OwnerObjectTypeID, PopulatableObjectType
-		const newTsas: TSA[] = await this.getSupportedResourcesTsas(modifiedObjects.map(obj => obj.Key));
-		const outdatedTsas: TSA[] = await this.getOutdatedTsas(modifiedObjects, newTsas)
+		const updatedTsas: TSA[] = await this.getSupportedResourcesTsas(modifiedObjects.map(obj => obj.Key));
+		const outdatedTsas: TSA[] = await this.getNameChangedTsas(modifiedObjects, updatedTsas);
+
+		// It is possible that a TSA has changed it's Hidden property or any other property that can affect the schema property.
+		// In that case we have to remove these TSAs as well, and re-add them later with the new property valued.
+		outdatedTsas.push(...updatedTsas)
         
-		console.log(`Found ${newTsas.length} TSAs to add to schemas`);
+		console.log(`Found ${updatedTsas.length} TSAs to add to schemas`);
 
 		// Translate OwnerObjectTypeID to schema name, and get the relevant schemas.
 		// fields: Name, Fields
-		const schemas: SchemaNameAndFields[] = await this.getRelevantSchemas(newTsas);
+		const schemas: SchemaNameAndFields[] = await this.getRelevantSchemas(updatedTsas);
 
 		// Remove the old TSA fields from the schemas
 		this.removeTsasFromSchemasFieldsObject(outdatedTsas, schemas);
         
 		// Add the TSA to the relevant schema, translating PopulatableObjectType to Types
-		this.addTsaFieldsToSchemasFieldsObject(newTsas, schemas);
+		this.addTsaFieldsToSchemasFieldsObject(updatedTsas, schemas);
 
 		// Upsert schemas
 		await this.upsertSchemas(schemas);
@@ -70,15 +74,16 @@ export class TsaService
 	/**
      * Gets the outdated TSAs from the modifiedObjects and newTsas inputs.
      * @private
-     * @param {Array<{ Key: string; OldName: string; }>} modifiedObjects - Array of modified objects with 'Key' and 'OldName' properties.
+     * @param {Array<{ Key: string; ChangedField: string; OldValue: string; }>} modifiedObjects - Array of modified objects with 'Key', 'ChangedField' and 'OldName' properties.
      * @param {TSA[]} newTsas - Array of new TSAs to compare against.
      * @returns {TSA[]} - Array of outdated TSAs with UUID, Name, OwnerObjectTypeID, and PopulatableObjectType properties.
      */
-	private getOutdatedTsas(modifiedObjects: { Key: string; OldName: string; }[], newTsas: TSA[]): TSA[]
+	private getNameChangedTsas(modifiedObjects: { Key: string; ChangedField: string; OldValue: string; }[], newTsas: TSA[]): TSA[]
 	{
 		const outdatedTsas: TSA[] = [];
 		// build a map of Key to old TSA name
-		const keyToOldNameMap = new Map<string, string>(modifiedObjects.map(obj => [obj.Key, obj.OldName]));
+		const nameChangedObjects = modifiedObjects.filter(modifiedObject => modifiedObject.ChangedField === "Name");
+		const keyToOldNameMap = new Map<string, string>(nameChangedObjects.map(obj => [obj.Key, obj.OldValue]));
 
 		for (const newTsa of newTsas)
 		{
@@ -89,10 +94,11 @@ export class TsaService
 					UUID: newTsa.UUID,
 					Name: oldName,
 					OwnerObjectTypeID: newTsa.OwnerObjectTypeID,
-					PopulatableObjectType: newTsa.PopulatableObjectType
+					PopulatableObjectType: newTsa.PopulatableObjectType,
+					Hidden: false
 				});
 
-				console.log(`Found outdated TSA '${oldName}' for new TSA '${newTsa.Name}'`);
+				console.log(`Found old TSA called '${oldName}' for new TSA '${newTsa.Name}'`);
 
 				keyToOldNameMap.delete(newTsa.UUID);
 			}
@@ -180,6 +186,8 @@ export class TsaService
 	private addTsaFieldsToSchemasFieldsObject(tsas: TSA[],
 		schemas: SchemaNameAndFields[]): void
 	{
+		tsas = tsas.filter(tsa => !tsa.Hidden);
+
 		console.log(`Adding TSA fields to schemas: ${tsas.map(tsa => tsa.Name).join(', ')}`);
 		console.log(`Schemas: ${schemas.map(schema => schema.Name).join(', ')}`);
 
@@ -220,11 +228,12 @@ export class TsaService
      */
 	private async getTsaFields(tsaKeys: string[]): Promise<TSA[]>
 	{
-		const fields = ['UUID', 'Name', 'OwnerObjectTypeID', 'PopulatableObjectType'];
+		const fields = ['UUID', 'Name', 'OwnerObjectTypeID', 'PopulatableObjectType', "Hidden"];
 
 		const searchBody = {
 			UUIDList: tsaKeys,
 			Fields: fields.join(','),
+			IncludeDeleted: true
 		}
 
 		return await this.papiClient.post('/type_safe_attribute/search', searchBody);
