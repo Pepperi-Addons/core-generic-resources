@@ -1,6 +1,7 @@
 import { Client, Request } from '@pepperi-addons/debug-server';
 import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService } from 'core-resources-shared'
 import { TsaService } from './tsa-service/tsa.service';
+import { AdalService } from './services/adal.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -41,6 +42,21 @@ export async function get_contacts_by_key(client: Client, request: Request)
 export async function get_employees_by_key(client: Client, request: Request) 
 {
 	return await resourcesFunctionAdapter(client, request, "employees");
+}
+
+export async function get_profiles_by_key(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "profiles");
+}
+
+export async function get_roles_by_key(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "roles");
+}
+
+export async function get_role_roles_by_key(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "role_roles");
 }
 // #endregion
 
@@ -85,6 +101,21 @@ export async function employees(client: Client, request: Request)
 {
 	return await resourcesFunctionAdapter(client, request, "employees");
 }
+
+export async function profiles(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "profiles");
+}
+
+export async function roles(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "roles");
+}
+
+export async function role_roles(client: Client, request: Request)
+{
+	return await resourcesFunctionAdapter(client, request, "role_roles");
+}
 // #endregion
 
 // #region get by unique field
@@ -126,6 +157,21 @@ export async function get_contacts_by_unique_field(client: Client, request: Requ
 export async function get_employees_by_unique_field(client: Client, request: Request) 
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "employees");
+}
+
+export async function get_profiles_by_unique_field(client: Client, request: Request)
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "profiles");
+}
+
+export async function get_roles_by_unique_field(client: Client, request: Request)
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "roles");
+}
+
+export async function get_role_roles_by_unique_field(client: Client, request: Request)
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "role_roles");
 }
 
 async function getByUniqueFieldFunctionAdapter(client: Client, request: Request, resourceName: string)
@@ -175,6 +221,21 @@ export async function employees_search(client: Client, request: Request)
 	return await searchFunctionAdapter(client, request, "employees");
 }
 
+export async function profiles_search(client: Client, request: Request)
+{
+	return await searchFunctionAdapter(client, request, "profiles");
+}
+
+export async function roles_search(client: Client, request: Request)
+{
+	return await searchFunctionAdapter(client, request, "roles");
+}
+
+export async function role_roles_search(client: Client, request: Request)
+{
+	return await searchFunctionAdapter(client, request, "role_roles");
+}
+
 async function searchFunctionAdapter(client: Client, request: Request, resourceName: string)
 {
 	return genericAdapter(client, request, resourceName, search);
@@ -201,7 +262,7 @@ export async function handle_tsa_modifications(client: Client, request: Request)
 
 	const modifiedObjects: { Key: string; OldName: string; }[] = request.body.Message?.ModifiedObjects?.map(modifiedObject => 
 		({ Key: modifiedObject?.ObjectKey, OldName: modifiedObject?.ModifiedFields[0].OldValue }
-	));
+		));
 
 	return await tsaService.modifyTsaFieldsOnSchemas(modifiedObjects);
 }
@@ -297,9 +358,15 @@ function getPapiService(client: Client, request: Request): IApiService
 	const papiClient = Helper.getPapiClient(client);
 	switch(request.query?.resource_name)
 	{
-	case('accounts'):
+	case 'accounts':
 	{
 		return new AccountsPapiService(papiClient);
+	}
+	case 'users':
+	case 'account_users':
+	case 'role_roles':
+	{
+		return new AdalService(papiClient);
 	}
 	default:
 	{

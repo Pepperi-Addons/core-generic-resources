@@ -1,5 +1,6 @@
 import { AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import config from '../addon.config.json';
+import { UDC_INDEX_NAME } from "./constants";
 
 
 const accountEmployeesSchema: AddonDataScheme = {
@@ -58,9 +59,113 @@ const accountEmployeesSchema: AddonDataScheme = {
 }
 
 const accountUsersSchema: AddonDataScheme = {
-	...accountEmployeesSchema,
 	Name: "account_users",
-	Type: 'papi'
+	Type: 'data',
+	GenericResource: true,
+	DataSourceData: {
+		IndexName: UDC_INDEX_NAME
+	},
+	SyncData:
+	{
+		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Account',
+			FieldID2: 'User'
+		}
+	},
+	Fields:
+	{
+		Account:
+		{
+			Type: "Resource",
+			Resource: "accounts",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			},
+			ApplySystemFilter: true
+		},
+		User:
+		{
+			Type: "Resource",
+			Resource: "users",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			},
+			ApplySystemFilter: true
+		}
+	}
+}
+
+const accountBuyersSchema: AddonDataScheme = {
+	Name: "account_buyers",
+	Type: 'papi',
+	Fields:
+	{
+		Key:	
+		{	
+			"Type": "String",	
+			"Unique": true	
+		},
+		Hidden:	
+		{	
+			"Type": "Bool"	
+		},
+		Account:
+		{
+			Type: "Resource",
+			Resource: "accounts",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			},
+			ApplySystemFilter: true
+		},
+		User:
+		{
+			Type: "Resource",
+			Resource: "users",
+			AddonUUID: config.AddonUUID,
+			Indexed: true,
+			IndexedFields: {
+				Name: {
+    				Type: "String",
+    				Indexed: true
+    			},
+				ExternalID: {
+    				Type: "String",
+    				Indexed: true
+    			}
+			},
+			ApplySystemFilter: true
+		}
+	}
 }
 
 const catalogsSchema: AddonDataScheme = {
@@ -68,11 +173,11 @@ const catalogsSchema: AddonDataScheme = {
 	Type: 'papi',
 	SyncData:
     {
-		Sync: true,
+    	Sync: true,
     },
 	Fields:
     {
-		Key:
+    	Key:
 		{
 			Type: "String",
 			Unique: true
@@ -253,42 +358,105 @@ const employeesSchema: AddonDataScheme = {
 			"Type": "String",
 			"Unique": true
 		},
-    	"InternalID": {
+    	InternalID: {
     		"Type": "Integer",
     		"Unique": true
     	},
-    	"CreationDateTime": {
+    	CreationDateTime: {
     		"Type": "DateTime"
     	},
-    	"Email": {
+    	Email: {
     		"Type": "String"
     	},
-    	"FirstName": {
+    	FirstName: {
     		"Type": "String"
     	},
-    	"ExternalID": {
+    	Name: {
+    		"Type": "String"
+    	},
+    	ExternalID: {
     		"Type": "String",
     		"Unique": true
     	},
-    	"ModificationDateTime": {
+    	ModificationDateTime: {
     		"Type": "DateTime"
     	},
-    	"Hidden": {
+    	Hidden: {
     		"Type": "Bool"
     	},
-    	"LastName": {
+    	LastName: {
     		"Type": "String"
     	},
-    	"Mobile": {
+    	Mobile: {
     		"Type": "String"
+    	},
+    	Phone: {
+    		"Type": "String"
+    	},
+    	Profile: {
+    		Type: "Resource",
+    		Resource: "profiles",
+    		AddonUUID: config.AddonUUID,
+    	},
+    	Role: {
+    		Type: "Resource",
+    		Resource: "roles",
+    		AddonUUID: config.AddonUUID,	
     	}
     }
 }
 
 const usersSchema: AddonDataScheme = {
-	...employeesSchema,
 	Name: 'users',
-	Type: 'papi'
+	Type: 'data',
+	GenericResource: true,
+	DataSourceData: {
+		IndexName: UDC_INDEX_NAME
+	},
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	Email: {
+    		Type: "String"
+    	},
+    	FirstName: {
+    		Type: "String"
+    	},
+    	ExternalID: {
+    		Type: "String",
+    		Unique: true
+    	},
+    	LastName: {
+    		Type: "String"
+    	},
+    	Name: {
+    		Type: "String"
+    	},
+    	Mobile: {
+    		Type: "String"
+    	},
+    	Phone: {
+    		Type: "String"
+    	},
+    	Profile: {
+    		Type: "Resource",
+    		Resource: "profiles",
+    		AddonUUID: config.AddonUUID,
+    		Indexed: true,
+    		IndexedFields: {
+    			Name: {
+    				Type: "String",
+    				Indexed: true
+    			}
+    		}
+    	},
+    	UserType: {
+    		Type: "String"
+    	}
+    }
 }
 
 const itemsSchema: AddonDataScheme = {
@@ -379,13 +547,102 @@ const itemsSchema: AddonDataScheme = {
     }
 }
 
+const profilesSchema: AddonDataScheme = {
+	Name: "profiles",
+	Type: 'papi',
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	Key:
+		{
+			Type: "String",
+			Unique: true
+		
+    	},
+    	InternalID:
+		{
+			Type: "Integer",
+			Unique: true
+		},
+    	Name:
+		{
+			Type: "String"
+		},
+    	ParentInternalID:
+		{
+			Type: "Integer"
+		},
+    }
+}
+
+const rolesSchema: AddonDataScheme = {
+	Name: "roles",
+	Type: 'papi',
+	SyncData:
+    {
+    	Sync: true,
+    },
+	Fields:
+    {
+    	Key:
+		{
+			Type: "String",
+			Unique: true
+		},
+    	Name:
+		{
+    		"Type": "String"
+    	},
+    	ParentInternalID:
+		{
+    		"Type": "String"
+    	},
+    }
+}
+
+const roleRolesSchema: AddonDataScheme = {
+	Name: "role_roles",
+	Type: "data",
+	GenericResource: true,
+	SyncData:
+	{
+		Sync: true,
+	},
+	Fields:
+	{
+		Key: {
+			Type: "String",
+			Unique: true
+		},
+		Role: {
+    		Type: "Resource",
+    		Resource: "role",
+    		AddonUUID: config.AddonUUID,
+			ApplySystemFilter: true,
+    	},
+		ParentRole:{
+			Type: "Resource",
+    		Resource: "role",
+    		AddonUUID: config.AddonUUID,
+			ApplySystemFilter: true,
+		}
+	}
+}
+
 export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'account_employees': accountEmployeesSchema,
 	'account_users': accountUsersSchema,
+	'account_buyers': accountBuyersSchema,
 	'catalogs': catalogsSchema,
 	'accounts': accountsSchema,
 	'contacts': contactsSchema,
+	'items': itemsSchema,
+	'profiles': profilesSchema,
+	'roles': rolesSchema,
 	'users': usersSchema,
 	'employees': employeesSchema,
-	'items': itemsSchema,
+	'role_roles': roleRolesSchema,
 }

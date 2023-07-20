@@ -1,4 +1,6 @@
-export interface IApiService
+import { ISearchService } from "./iSearch.service";
+
+export interface IApiService extends ISearchService
 {
     createResource(resourceName: string, body: any): Promise<any>;
 
@@ -8,5 +10,7 @@ export interface IApiService
 
     getResourceByUniqueField(resourceName: string, uniqueFieldId: string, value: string, whereClause: undefined): Promise<any>;
 
-    searchResource(resourceName: string, body: void): Promise<{Objects: Array<any>, Count?: number}>;
+    searchResource(resourceName: string, body: any): Promise<{Objects: Array<any>, Count?: number}>;
+
+	batchUpsert(resourceName: string, objects: Array<any>): Promise<Array<any>>;
 }
