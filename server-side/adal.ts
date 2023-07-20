@@ -197,7 +197,7 @@ function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParam
 	}
 	else
 	{
-		buildService = new Builders.BaseBuildService(papiClient, iBuildServiceParams, request.query.external_user_resource);
+		buildService = new Builders.BaseBuildService(papiClient, iBuildServiceParams, request.query.resource);
 	}
 
 	return buildService;
