@@ -33,6 +33,8 @@ export class BuildManagerService
 		try
 		{
 			await this.populateExternalUserResources(resource);
+			await this.updatePnsSubscriptions(resource);
+
 			console.log(`Trying to build table '${resource}' using functions '${this.resourceFunctionsMap[resource].join("', '")}' in file 'adal'...`);
 			const promises = await Promise.allSettled(this.resourceFunctionsMap[resource].map(endpoint => this.singleBuild(endpoint)));
 			for (let i = 0; i < promises.length; i++)
@@ -50,7 +52,6 @@ export class BuildManagerService
 				}
 				
 			}
-			await this.updatePnsSubscriptions(resource);
 		}
 		catch (error)
     	{
