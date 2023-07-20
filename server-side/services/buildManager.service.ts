@@ -1,6 +1,10 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import config from '../../addon.config.json';
 import { AsyncResultObject } from '../constants';
+import { UsersPNSService } from './pns/usersPNS.service';
+import { BasePNSService } from './pns/basePNS.service';
+import { AccountUsersPNSService } from './pns/accountUsersPNS.service';
+import { ExternalUserResourcePNSService } from './pns/externalUserResourcePNS.service';
 
 export class BuildManagerService
 {
@@ -9,7 +13,7 @@ export class BuildManagerService
 	in order to build that ADAL table.
 	*/
 	protected resourceFunctionsMap: {[key: string]: string[]} = {
-		users: ['build_users', 'build_users_from_buyers'],
+		users: ['build_users'],
 		account_users: ['build_account_users', 'build_account_buyers'],
 		role_roles: ['clean_build_role_roles']
 	};
@@ -28,9 +32,11 @@ export class BuildManagerService
 		const res: AsyncResultObject = { success: true };
 		try
 		{
+			await this.populateExternalUserResources(resource);
+			await this.updatePnsSubscriptions(resource);
+
 			console.log(`Trying to build table '${resource}' using functions '${this.resourceFunctionsMap[resource].join("', '")}' in file 'adal'...`);
 			const promises = await Promise.allSettled(this.resourceFunctionsMap[resource].map(endpoint => this.singleBuild(endpoint)));
-
 			for (let i = 0; i < promises.length; i++)
 			{
 				const promise = promises[i];
@@ -58,14 +64,13 @@ export class BuildManagerService
 	/**
 	Executes a single asynchronous build process for a given ADAL function and waits for its completion.
     @param funcName - The name of the function to execute.
-   @param funcName - The name of the function to execute.
     @throws An error if the async execution does not resolve after 30 retries, or if there is an error executing the function.
     @returns A Promise that resolves to a boolean that represents if the function execution was successful.
     */
 	protected async singleBuild(funcName: string): Promise<void>
 	{
 		console.log(`Trying to build table using function '${funcName}' in file 'adal'...`);
-		const asyncCall = await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 1}, {fromPage: 1});
+		const asyncCall = await this.papiClient.post(`/addons/api/async/${config.AddonUUID}/adal/${funcName}`, {fromPage: 1}) //addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 1}, {fromPage: 1});
 		if(!asyncCall)
 		{
 			const errorMessage = `Error executing function '${funcName}' in file 'adal', got a null from async call.`;
@@ -128,4 +133,50 @@ export class BuildManagerService
 	{
 		return auditLog != null && (auditLog.Status.Name === 'Failure' || auditLog.Status.Name === 'Success');
 	}
+
+
+	protected async updatePnsSubscriptions(resource: string): Promise<void>
+	{
+		let pnsService: BasePNSService;
+		switch (resource) 
+		{
+		case 'users':
+		{
+			pnsService = new UsersPNSService(this.papiClient);
+			await pnsService.subscribe();
+			const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(this.papiClient);
+			for(const externalUserResource of externalUserResources)
+			{
+				const externalUserPnsService = new ExternalUserResourcePNSService(this.papiClient, externalUserResource);
+				await externalUserPnsService.subscribe();
+			}
+			break;
+		}
+		case 'account_users':
+		{
+			pnsService = new AccountUsersPNSService(this.papiClient);
+			await pnsService.subscribe();
+			break;
+		}
+		default:
+		{
+			throw new Error(`Invalid resource name. Valid values are: '${Object.keys(this.resourceFunctionsMap).join("',")}'`);
+		}
+
+		}
+	}
+
+	async populateExternalUserResources(resource: string)
+	{
+		// relevant only for users resource, need to be refactored
+		if(resource == 'users')
+		{
+			const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(this.papiClient);
+			for(const externalUserResource of externalUserResources)
+			{
+				this.resourceFunctionsMap.users.push(`build_users_from_external_user_resource?external_user_resource=${externalUserResource}`);
+			}
+		}
+	}
+
 }

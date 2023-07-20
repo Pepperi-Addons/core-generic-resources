@@ -18,7 +18,7 @@ import { SchemaService } from './schema.service';
 import { UsersPNSService } from './services/pns/usersPNS.service';
 import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
-import { BuyersPNSService } from './services/pns/buyersPNS.service';
+import { ExternalUserResourcePNSService } from './services/pns/externalUserResourcePNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
@@ -516,8 +516,12 @@ async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 
 async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 {
+	const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(papiClient);
+	for(const externalUserResource of externalUserResources)
+	{
+		await subscribeToPNS(new ExternalUserResourcePNSService(papiClient, externalUserResource));
+	}
 	await subscribeToPNS(new UsersPNSService(papiClient));
-	await subscribeToPNS(new BuyersPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }
 

@@ -5,7 +5,7 @@ import { BaseGetterService } from "../getters/baseGetter.service";
 
 export interface IBuildServiceParams
 {
-    baseGetterService: new(papiClient: PapiClient) => BaseGetterService;
+    baseGetterService: new(papiClient: PapiClient, ...args) => BaseGetterService;
 	adalTableName: string;
     etlService: new(tableName: string, buildOperations: EtlOperations<AddonData, AddonData, any>) =>  EtlService<AddonData, AddonData, any>
 }
