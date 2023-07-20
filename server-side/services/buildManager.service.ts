@@ -174,7 +174,7 @@ export class BuildManagerService
 			const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(this.papiClient);
 			for(const externalUserResource of externalUserResources)
 			{
-				this.resourceFunctionsMap.users.push(`build_users_from_external_user_resource?external_user_resource=${externalUserResource}`);
+				this.resourceFunctionsMap.users.push(`build_users_from_external_user_resource?resource=${externalUserResource}`);
 			}
 		}
 	}

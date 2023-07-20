@@ -32,7 +32,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		// TODO: expose sub
 		return [
 			{
-				AddonRelativeURL: `/adal/update_users_from_external_user_resource?external_user_resource=${this.externalUserResource}`,
+				AddonRelativeURL: `/adal/update_users_from_external_user_resource?resource=${this.externalUserResource}`,
 				Name: `${this.externalUserResource}Changed`,
 				Action: "update",
 				Resource: this.externalUserResource,
@@ -40,7 +40,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 				AddonUUID: externalAddonUUID
 			},
 			{
-				AddonRelativeURL: `/adal/external_user_resource_active_state_changed?external_user_resource=${this.externalUserResource}`, 
+				AddonRelativeURL: `/adal/external_user_resource_active_state_changed?resource=${this.externalUserResource}`, 
 				Name: `${this.externalUserResource}ActiveFieldChanged`,
 				Action: "update", 
 				Resource: this.externalUserResource,
@@ -48,7 +48,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 				AddonUUID: externalAddonUUID
 			},
 			{
-				AddonRelativeURL: `/adal/update_users_from_external_user_resource?external_user_resource=${this.externalUserResource}`,
+				AddonRelativeURL: `/adal/update_users_from_external_user_resource?resource=${this.externalUserResource}`,
 				 Name: `${this.externalUserResource}Added`, 
 				 Action: "insert", 
 				 Resource: this.externalUserResource,
