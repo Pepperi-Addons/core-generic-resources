@@ -4,7 +4,7 @@ import { AsyncResultObject } from '../constants';
 import { UsersPNSService } from './pns/usersPNS.service';
 import { BasePNSService } from './pns/basePNS.service';
 import { AccountUsersPNSService } from './pns/accountUsersPNS.service';
-import { BuyersPNSService } from './pns/buyersPNS.service';
+import { ExternalUserResourcePNSService } from './pns/externalUserResourcePNS.service';
 
 export class BuildManagerService
 {
@@ -143,10 +143,10 @@ export class BuildManagerService
 		{
 			pnsService = new UsersPNSService(this.papiClient);
 			await pnsService.subscribe();
-			const externalUserResources = await BuyersPNSService.getAllExternalUserResources(this.papiClient);
+			const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(this.papiClient);
 			for(const externalUserResource of externalUserResources)
 			{
-				const externalUserPnsService = new BuyersPNSService(this.papiClient, externalUserResource);
+				const externalUserPnsService = new ExternalUserResourcePNSService(this.papiClient, externalUserResource);
 				await externalUserPnsService.subscribe();
 			}
 			break;
@@ -170,10 +170,10 @@ export class BuildManagerService
 		// relevant only for users resource, need to be refactored
 		if(resource == 'users')
 		{
-			const externalUserResources = await BuyersPNSService.getAllExternalUserResources(this.papiClient);
+			const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(this.papiClient);
 			for(const externalUserResource of externalUserResources)
 			{
-				this.resourceFunctionsMap.users.push(`build_users_from_buyers?external_user_resource=${externalUserResource}`);
+				this.resourceFunctionsMap.users.push(`build_users_from_external_user_resource?external_user_resource=${externalUserResource}`);
 			}
 		}
 	}

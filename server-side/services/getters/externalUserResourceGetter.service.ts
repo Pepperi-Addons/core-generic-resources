@@ -2,7 +2,7 @@ import { PapiClient } from "@pepperi-addons/papi-sdk";
 import { BaseGetterService } from "./baseGetter.service";
 import { GenericResourceSearchService } from "../genericResourceSearch.service";
 
-export class BuyersGetterService extends BaseGetterService
+export class ExternalUserResourceGetterService extends BaseGetterService
 { 
 	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{

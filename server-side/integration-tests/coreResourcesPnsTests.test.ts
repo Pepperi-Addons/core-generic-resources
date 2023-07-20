@@ -26,7 +26,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				const testAccount = await this.coreResourcesTestsService.createTestAccount();
 				const initialAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
 				const initialNonHiddenAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users',false);
-				const numberOfContacts = 10;
+				const numberOfContacts = 50;
 				createdContacts = await this.coreResourcesTestsService.createContactsForTest(numberOfContacts, testAccount);
 				// wait for PNS to finish
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
@@ -63,11 +63,12 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 			{
 				const testAccount = await this.coreResourcesTestsService.createTestAccount();
 				const initialAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
-				createdUsers = await this.coreResourcesTestsService.createPapiUsers(10);
+				const numberOfUsers = 10;
+				createdUsers = await this.coreResourcesTestsService.createPapiUsers(numberOfUsers);
 				// wait for PNS to finish
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
 				const currentAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
-				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + 10);
+				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + numberOfUsers);
 	
 				// find a new user that was added to adal users table
 				const newUserUUID = createdUsers[0].UUID;
@@ -85,7 +86,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				// wait for PNS to finish
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
 				const currentAdalAccountUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('account_users');
-				expect(currentAdalAccountUsersList.length).to.equal(initialAdalAccountUsersList.length + 10);
+				expect(currentAdalAccountUsersList.length).to.equal(initialAdalAccountUsersList.length + numberOfUsers);
 	
 				// find a new account user relation that was added to adal account users table
 				const newAccountUserUUID = createdAccountUsers[0].UUID;

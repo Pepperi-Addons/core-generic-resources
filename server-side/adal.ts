@@ -3,7 +3,7 @@ import { UsersPNSService } from "./services/pns/usersPNS.service";
 import { AccountUsersPNSService } from "./services/pns/accountUsersPNS.service";
 import * as Builders from "./services/builders";
 import { Helper } from 'core-resources-shared';
-import { BuyersPNSService } from './services/pns/buyersPNS.service';
+import { ExternalUserResourcePNSService } from './services/pns/externalUserResourcePNS.service';
 import { BuildManagerService } from './services/buildManager.service';
 import { IBuildServiceParams } from './services/builders';
 import { TestBody } from './services/integrationTests/entities';
@@ -29,14 +29,14 @@ export async function update_users(client: Client, request: Request)
 	}
 }
 
-export async function update_users_from_buyers(client: Client, request: Request) 
+export async function update_users_from_external_user_resource(client: Client, request: Request) 
 {
 	switch(request.method)
 	{
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuyersPNSService(papiClient, request.query.external_user_resource);
+		const service = new ExternalUserResourcePNSService(papiClient, request.query.external_user_resource);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -46,15 +46,15 @@ export async function update_users_from_buyers(client: Client, request: Request)
 	}
 }
 
-export async function buyers_active_state_changed(client: Client, request: Request) 
+export async function external_user_resource_active_state_changed(client: Client, request: Request) 
 {
 	switch(request.method)
 	{
 	case 'POST':
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const service = new BuyersPNSService(papiClient, request.query.external_user_resource);
-		return await service.buyersActiveStateChanged(request.body);
+		const service = new ExternalUserResourcePNSService(papiClient, request.query.external_user_resource);
+		return await service.externalUserResourceActiveStateChanged(request.body);
 	}
 	default:
 	{
@@ -85,9 +85,9 @@ export async function build_users(client: Client, request: Request) : Promise<As
 	return await buildSpecificTable(client, request, Builders.BuildUsersParams);
 }
 
-export async function build_users_from_buyers(client: Client, request: Request) 
+export async function build_users_from_external_user_resource(client: Client, request: Request) 
 {
-	return await buildSpecificTable(client, request, Builders.BuildUsersFromBuyersParams);
+	return await buildSpecificTable(client, request, Builders.BuildUsersFromExternalUserResourceParams);
 }
 
 export async function build_account_users(client: Client, request: Request) : Promise<AsyncResultObject>
@@ -230,6 +230,6 @@ export async function register_for_external_user_resource(client: Client, reques
 export async function delete_old_buyers_subscriptions(client: Client, request: Request)
 {
 	const papiClient = Helper.getPapiClient(client);
-	const service = new BuyersPNSService(papiClient, "");
+	const service = new ExternalUserResourcePNSService(papiClient, "");
 	await service.deleteOldBuyersSubscriptions(papiClient);
 }

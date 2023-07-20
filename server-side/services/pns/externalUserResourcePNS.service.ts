@@ -1,28 +1,28 @@
 import { PnsParams } from '../../models/metadata';
 import { BasePNSService } from './basePNS.service';
-import { BuyersGetterService } from '../getters/buyersGetter.service';
+import { ExternalUserResourceGetterService } from '../getters/externalUserResourceGetter.service';
 import { AddonData, AddonDataScheme, FindOptions, PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 import config from '../../../addon.config.json';
 
-export class BuyersPNSService extends BasePNSService
+export class ExternalUserResourcePNSService extends BasePNSService
 {
 
-	protected buyersGetterService: BuyersGetterService;
+	protected externalUserResourceGetterService: ExternalUserResourceGetterService;
 	protected adalService: AdalService;
 	private udcAddonUUID = "122c0e9d-c240-4865-b446-f37ece866c22";
 
 	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{
 		super(papiClient);
-		this.buyersGetterService = new BuyersGetterService(papiClient, externalUserResource);
+		this.externalUserResourceGetterService = new ExternalUserResourceGetterService(papiClient, externalUserResource);
 		this.adalService = new AdalService(papiClient);
 	}
 
 	async getSubscribeParamsSets(): Promise<PnsParams[]>
 	{
-		// Users will be notified according to those fields, which are mutual for users and buyers
+		// Users will be notified according to those fields, which are mutual for users and externalUserResource
 		let regularFields = Object.keys(resourceNameToSchemaMap['users'].Fields ?? {});
 		regularFields = regularFields.filter(field => field != 'UserType');
 		
@@ -32,7 +32,7 @@ export class BuyersPNSService extends BasePNSService
 		// TODO: expose sub
 		return [
 			{
-				AddonRelativeURL: `/adal/update_users_from_buyers?external_user_resource=${this.externalUserResource}`,
+				AddonRelativeURL: `/adal/update_users_from_external_user_resource?external_user_resource=${this.externalUserResource}`,
 				Name: `${this.externalUserResource}Changed`,
 				Action: "update",
 				Resource: this.externalUserResource,
@@ -40,7 +40,7 @@ export class BuyersPNSService extends BasePNSService
 				AddonUUID: externalAddonUUID
 			},
 			{
-				AddonRelativeURL: `/adal/buyers_active_state_changed?external_user_resource=${this.externalUserResource}`, 
+				AddonRelativeURL: `/adal/external_user_resource_active_state_changed?external_user_resource=${this.externalUserResource}`, 
 				Name: `${this.externalUserResource}ActiveFieldChanged`,
 				Action: "update", 
 				Resource: this.externalUserResource,
@@ -48,7 +48,7 @@ export class BuyersPNSService extends BasePNSService
 				AddonUUID: externalAddonUUID
 			},
 			{
-				AddonRelativeURL: `/adal/update_users_from_buyers?external_user_resource=${this.externalUserResource}`,
+				AddonRelativeURL: `/adal/update_users_from_external_user_resource?external_user_resource=${this.externalUserResource}`,
 				 Name: `${this.externalUserResource}Added`, 
 				 Action: "insert", 
 				 Resource: this.externalUserResource,
@@ -60,44 +60,44 @@ export class BuyersPNSService extends BasePNSService
 	async updateAdalTable(messageFromPNS: any): Promise<void>
 	{
 		console.log("USERS UPDATE FROM BUYERS PNS TRIGGERED");
-		const buyersKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
+		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
 
-		const buyersByKeysRes = await this.buyersGetterService.getObjectsByKeys(buyersKeys);
-		const updatedBuyers = buyersByKeysRes.Objects;
-		const fixedBuyers = this.buyersGetterService.fixObjects(updatedBuyers);
+		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys);
+		const updatedExternalUserResource = externalUserResourceByKeysRes.Objects;
+		const fixedExternalUserResource = this.externalUserResourceGetterService.fixObjects(updatedExternalUserResource);
 
-		await this.adalService.batchUpsert('users', fixedBuyers);
+		await this.adalService.batchUpsert('users', fixedExternalUserResource);
 		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
 
-	async buyersActiveStateChanged(messageFromPNS: any): Promise<void>
+	async externalUserResourceActiveStateChanged(messageFromPNS: any): Promise<void>
 	{
 		console.log("BUYERS ACTIVE STATE PNS TRIGGERED");
-		const buyersKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-		console.log("BUYERS KEYS: " + JSON.stringify(buyersKeys));
-		const updatedBuyersByKeysRes = await this.buyersGetterService.getObjectsByKeys(buyersKeys, 'Active');
-		const updatedBuyers = updatedBuyersByKeysRes.Objects;
-		const buyersContainedInUsers = await this.adalService.searchResource('users', {KeyList: buyersKeys});
+		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
+		const updatedExternalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, 'Active');
+		const updatedExternalUserResource = updatedExternalUserResourceByKeysRes.Objects;
+		const externalUserResourceContainedInUsers = await this.adalService.searchResource('users', {KeyList: externalUserResourceKeys});
 		const newUsers: AddonData[] = [];
 		const noLongerUsers: AddonData[] = [];
-		for(const buyer of updatedBuyers)
+		for(const obj of updatedExternalUserResource)
 		{
-			if(!buyer.Active && buyersContainedInUsers.Objects.find(user => user.Key==buyer.Key)) 
+			if(!obj.Active && externalUserResourceContainedInUsers.Objects.find(user => user.Key==obj.Key)) 
 			{
-				// buyer is being hided from adal users because he is no longer a user
-				buyer.Hidden = true;
-				noLongerUsers.push(buyer);
+				// obj is being hided from adal users because he is no longer a user
+				obj.Hidden = true;
+				noLongerUsers.push(obj);
 			}
-			else if(buyer.Active)
+			else if(obj.Active)
 			{
-				newUsers.push(buyer);
+				newUsers.push(obj);
 			}
 		}
 		const usersToUpsert = newUsers.concat(noLongerUsers);
 		if(usersToUpsert.length > 0)
 		{
-			const fixedUsers = this.buyersGetterService.fixObjects(usersToUpsert);
+			const fixedUsers = this.externalUserResourceGetterService.fixObjects(usersToUpsert);
 			await this.adalService.batchUpsert('users', fixedUsers);
 			console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
 		}
