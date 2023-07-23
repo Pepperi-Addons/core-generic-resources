@@ -192,27 +192,27 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.32'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		try 
-		{
+	// else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.32'))
+	// {
+	// 	const papiClient = Helper.getPapiClient(client);
+	// 	const schemaService = new SchemaService(papiClient);
+	// 	try 
+	// 	{
 
-			res['resultObject'] = await schemaService.createCoreSchemas(["roles"]);
-			await createDimxRelations(client, papiClient, ["roles"]);
+	// 		res['resultObject'] = await schemaService.createCoreSchemas(["roles"]);
+	// 		await createDimxRelations(client, papiClient, ["roles"]);
 
 
 
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+	// 	}
+	// 	catch (error) 
+	// 	{
+	// 		res.success = false;
+	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
-			return res;
-		}
-	}
+	// 		return res;
+	// 	}
+	// }
 
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.9'))
 	{
@@ -301,27 +301,27 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	}
 
 	// Create new schemas and run build process for 'role_roles' schemas.
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		//const schemaNames = ['users', 'account_users'];
-		const schemaNames = ['role_roles'];
+	// if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
+	// {
+	// 	const papiClient = Helper.getPapiClient(client);
+	// 	const schemaService = new SchemaService(papiClient);
+	// 	//const schemaNames = ['users', 'account_users'];
+	// 	const schemaNames = ['role_roles'];
 
-		try 
-		{
-			// create new schemas, including for 'roles' which has changed.
-			await schemaService.createCoreSchemas([...schemaNames, 'roles']);
-			res['resultObject'] = await buildTables(papiClient, schemaNames);
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+	// 	try 
+	// 	{
+	// 		// create new schemas, including for 'roles' which has changed.
+	// 		await schemaService.createCoreSchemas([...schemaNames, 'roles']);
+	// 		res['resultObject'] = await buildTables(papiClient, schemaNames);
+	// 	}
+	// 	catch (error) 
+	// 	{
+	// 		res.success = false;
+	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
-			return res;
-		}
-	}
+	// 		return res;
+	// 	}
+	// }
 
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.83'))
 	{
