@@ -30,6 +30,7 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	const papiClient = Helper.getPapiClient(client);
 	const schemaService = new SchemaService(papiClient);
+	const buildManagerService = new BuildManagerService(papiClient);
 
 	try 
 	{
@@ -38,7 +39,7 @@ export async function install(client: Client, request: Request): Promise<any>
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		res['resultObject']['buildTables'] = await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
+		res['resultObject']['buildTables'] = await buildManagerService.buildTables(Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
 		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
@@ -541,28 +542,4 @@ async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 	}
 	await subscribeToPNS(new UsersPNSService(papiClient));
 	await subscribeToPNS(new AccountUsersPNSService(papiClient));
-}
-
-async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<AsyncResultObject>
-{
-	const resultObject: AsyncResultObject = {success: true};
-	const buildManager = new BuildManagerService(papiClient);
-
-	const promises = await Promise.allSettled(tablesNames.map(tableName => buildManager.build(tableName)));
-	
-	for (const promise of promises)
-	{
-		if(promise.status === 'rejected')
-		{
-			resultObject.success = false;
-			resultObject.errorMessage = promise.reason instanceof Error ? promise.reason.message : 'Unknown error';
-		}
-		else
-		{
-			resultObject.success = resultObject.success && promise.value.success;
-			resultObject.errorMessage = resultObject.errorMessage ? `${resultObject.errorMessage}/n ${promise.value.errorMessage}` : promise.value.errorMessage;
-		}
-	}
-
-	return resultObject;
 }

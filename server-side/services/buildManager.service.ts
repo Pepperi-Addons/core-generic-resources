@@ -5,6 +5,8 @@ import { UsersPNSService } from './pns/usersPNS.service';
 import { BasePNSService } from './pns/basePNS.service';
 import { AccountUsersPNSService } from './pns/accountUsersPNS.service';
 import { ExternalUserResourcePNSService } from './pns/externalUserResourcePNS.service';
+import { SchemaService } from '../schema.service';
+import { CoreResourcesTestsService } from '../integration-tests/services/coreResources.service';
 
 export class BuildManagerService
 {
@@ -177,6 +179,56 @@ export class BuildManagerService
 				this.resourceFunctionsMap.users.push(`build_users_from_external_user_resource?resource=${externalUserResource}`);
 			}
 		}
+	}
+
+	async buildTables(tablesNames: string[]): Promise<AsyncResultObject>
+	{
+		const resultObject: AsyncResultObject = {success: true};
+
+		const promises = await Promise.allSettled(tablesNames.map(tableName => this.build(tableName)));
+	
+		for (const promise of promises)
+		{
+			if(promise.status === 'rejected')
+			{
+				resultObject.success = false;
+				resultObject.errorMessage = promise.reason instanceof Error ? promise.reason.message : 'Unknown error';
+			}
+			else
+			{
+				resultObject.success = resultObject.success && promise.value.success;
+				resultObject.errorMessage = resultObject.errorMessage ? `${resultObject.errorMessage}/n ${promise.value.errorMessage}` : promise.value.errorMessage;
+			}
+		}
+
+		return resultObject;
+	}
+
+	async postUpgradeOperations(): Promise<any>
+	{
+		const res = { success: true };
+		res['resultObject'] = {};
+		const schemaService = new SchemaService(this.papiClient);
+		const waiterService = new CoreResourcesTestsService(this.papiClient);
+		const tablesNames = ["users", "account_users"];
+		try 
+		{
+			res['resultObject']['createSchemas'] = await schemaService.createCoreSchemas(tablesNames);
+			// waiting for Nebula to finish handling pns notifications
+			await waiterService.waitForAsyncJob(60);
+			res['resultObject']['buildTables'] = await this.buildTables(tablesNames);
+		}
+		catch (error)
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+		}
+		return res;
+	}
+
+	async runPostUpgradeOperations(): Promise<any>
+	{
+		return await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func('post_upgrade_operations').post();
 	}
 
 }
