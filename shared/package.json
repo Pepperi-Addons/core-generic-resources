@@ -13,8 +13,8 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@pepperi-addons/debug-server": "^0.0.39",
-		"@pepperi-addons/papi-sdk": "^1.53.0",
+		"@pepperi-addons/debug-server": "*",
+		"@pepperi-addons/papi-sdk": "^1.52.3",
 		"lodash.clonedeep": "^4.5.0"
 	},
 	"devDependencies": {
