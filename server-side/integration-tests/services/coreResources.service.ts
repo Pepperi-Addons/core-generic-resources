@@ -138,11 +138,6 @@ export class CoreResourcesTestsService
 		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('build').post({resource: resource}, testData);
 	}
 
-	async buildBuyersTable(testData?: TestBody): Promise<any>
-	{
-		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
-	}
-
 	async buildRoleRolesTable(testData?: TestBody): Promise<any>
 	{
 		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);

@@ -641,8 +641,8 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'contacts': contactsSchema,
 	'items': itemsSchema,
 	'profiles': profilesSchema,
-	'roles': rolesSchema,
+	// 'roles': rolesSchema,
 	'users': usersSchema,
 	'employees': employeesSchema,
-	'role_roles': roleRolesSchema,
+	// 'role_roles': roleRolesSchema,
 }
