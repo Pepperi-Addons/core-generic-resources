@@ -260,8 +260,8 @@ export async function handle_tsa_modifications(client: Client, request: Request)
 	const papiClient = Helper.getPapiClient(client);
 	const tsaService = new TsaService(papiClient);
 
-	const modifiedObjects: { Key: string; OldName: string; }[] = request.body.Message?.ModifiedObjects?.map(modifiedObject => 
-		({ Key: modifiedObject?.ObjectKey, OldName: modifiedObject?.ModifiedFields[0].OldValue }
+	const modifiedObjects: { Key: string; ChangedField: string; OldValue: string; }[] = request.body.Message?.ModifiedObjects?.map(modifiedObject => 
+		({ Key: modifiedObject?.ObjectKey, OldValue: modifiedObject?.ModifiedFields[0].OldValue, ChangedField: modifiedObject?.ModifiedFields[0].FieldID }
 		));
 
 	return await tsaService.modifyTsaFieldsOnSchemas(modifiedObjects);

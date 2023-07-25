@@ -7,6 +7,9 @@ export abstract class ABaseCoreResourcesTests extends BaseTest
 	private _coreResourcesTestsService: CoreResourcesTestsService | undefined;
 	private _papiClient: PapiClient | undefined;
 
+	protected readonly ASYNC_JOB_AWAIT: number = 20;
+	
+
 	protected get coreResourcesTestsService(): CoreResourcesTestsService
 	{
 		if(!this._coreResourcesTestsService)
