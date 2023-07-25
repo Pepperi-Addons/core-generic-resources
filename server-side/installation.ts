@@ -323,6 +323,24 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.83'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			const schemaService = new SchemaService(papiClient);
+			// create account_buyers schema, which is used for building account_users
+			res['resultObject'] = await schemaService.createCoreSchemas(["account_buyers"]);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	return res;
 }
 
