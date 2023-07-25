@@ -3,13 +3,13 @@ import { PapiClient } from "@pepperi-addons/papi-sdk";
 
 export class Helper
 {
-	static getPapiClient(client: Client): PapiClient
+	static getPapiClient(client: Client, copyActionUUID = true): PapiClient
 	{
 		return new PapiClient({
 			baseURL: client.BaseURL,
 			token: client.OAuthAccessToken,
 			addonUUID: client.AddonUUID,
-			actionUUID: client.ActionUUID,
+			...(copyActionUUID && { actionUUID: client.ActionUUID }),
 			addonSecretKey: client.AddonSecretKey,
 		});
 	}

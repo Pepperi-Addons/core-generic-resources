@@ -233,3 +233,39 @@ export async function delete_old_buyers_subscriptions(client: Client, request: R
 	const service = new ExternalUserResourcePNSService(papiClient, "");
 	await service.deleteOldBuyersSubscriptions(papiClient);
 }
+
+export async function post_upgrade_operations(client: Client, request: Request) 
+{
+	switch(request.method)
+	{
+	case 'POST':
+	{
+		const copyActionUUID = false;
+		const papiClient = Helper.getPapiClient(client, copyActionUUID);
+		const service = new BuildManagerService(papiClient);
+		return await service.postUpgradeOperations();
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
+export async function run_post_upgrade_operations(client: Client, request: Request) 
+{
+	switch(request.method)
+	{
+	case 'POST':
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const service = new BuildManagerService(papiClient);
+		return await service.runPostUpgradeOperations();
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
