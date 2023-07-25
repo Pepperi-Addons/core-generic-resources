@@ -22,12 +22,15 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 
 	
 
-	protected adalSchemasTests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic) {
-		describe('users, contacts, account_users PNS tests', () => {
+	protected adalSchemasTests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic) 
+	{
+		describe('users, contacts, account_users PNS tests', () => 
+		{
 			let createdContacts: any[] = [];
 			let createdUsers: any[] = [];
 			let createdAccountUsers: any[] = [];
-			it('Create papi contacts, PNS should upsert buyers only to adal users table', async () => {
+			it('Create papi contacts, PNS should upsert buyers only to adal users table', async () => 
+			{
 				const testAccount = await this.coreResourcesTestsService.createTestAccount();
 				const initialAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
 				const initialNonHiddenAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users', false);
@@ -65,7 +68,8 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				await this.coreResourcesTestsService.hideCreatedPapiObjects('contacts', createdContacts);
 			});
 
-			it('Create papi users, then account_users. PNS should upsert them to adal tables', async () => {
+			it('Create papi users, then account_users. PNS should upsert them to adal tables', async () => 
+			{
 				const testAccount = await this.coreResourcesTestsService.createTestAccount();
 				const initialAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
 				createdUsers = await this.coreResourcesTestsService.createPapiUsers(10);
@@ -102,15 +106,18 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				expect(newAccountUser).to.have.property('User').that.is.a('string').and.is.not.empty;
 			});
 
-			it('Hide created objects', async () => {
+			it('Hide created objects', async () => 
+			{
 				await this.coreResourcesTestsService.hideCreatedPapiObjects('users', createdUsers);
 				await this.coreResourcesTestsService.hideCreatedPapiObjects('account_users', createdAccountUsers);
 			});
 		});
 	}
 
-	protected papiSchemasTests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic) {
-		describe('Papi schemas tests', () => {
+	protected papiSchemasTests(describe: (suiteTitle: string, func: () => void) => void, it: (name: string, fn: Mocha.Func) => void, expect: Chai.ExpectStatic) 
+	{
+		describe('Papi schemas tests', () => 
+		{
 			const tsa: any = 
 				{
 					"FieldID": "TSATestTsaCreationModifiesSchema",
@@ -126,7 +133,8 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				}
 
 
-			it('Creation of a TSA field should be reflected in the schema', async () => {
+			it('Creation of a TSA field should be reflected in the schema', async () => 
+			{
 
 				const originalSchema: AddonDataScheme = await this.papiClient.addons.data.schemes.name('accounts').get();
 				expect(originalSchema).to.have.property('Fields').that.is.an('Object');
@@ -141,7 +149,8 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				expect(modifiedSchema.Fields!).to.have.a.property(tsa.Label);
 			});
 
-			it('Deletion of a TSA field should be reflected in the schema', async () => {
+			it('Deletion of a TSA field should be reflected in the schema', async () => 
+			{
 				const originalSchema: AddonDataScheme = await this.papiClient.addons.data.schemes.name('accounts').get();
 				expect(originalSchema).to.have.property('Fields').that.is.an('Object');
 				expect(originalSchema.Fields!).to.have.a.property(tsa.Label);
@@ -162,7 +171,8 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 		});
 	}
 
-	protected async postTsaFieldForAccounts(tsa: any) {
+	protected async postTsaFieldForAccounts(tsa: any) 
+	{
 		const url = '/meta_data/accounts/fields?include_owned=true&include_internal=false';
 		const body = tsa;
 		
