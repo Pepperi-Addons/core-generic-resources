@@ -2,16 +2,16 @@ import { PapiClient } from "@pepperi-addons/papi-sdk";
 import { BaseGetterService } from "./baseGetter.service";
 import { GenericResourceSearchService } from "../genericResourceSearch.service";
 
-export class BuyersGetterService extends BaseGetterService
+export class ExternalUserResourceGetterService extends BaseGetterService
 { 
-	constructor(papiClient: PapiClient)
+	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{
 		super(papiClient, new GenericResourceSearchService(papiClient), "Active=true");
 	}
 
 	getResourceName(): string
 	{
-		return 'Buyers';
+		return this.externalUserResource;
 	}
 
 	async buildFixedFieldsString(): Promise<string> 

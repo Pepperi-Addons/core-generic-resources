@@ -15,8 +15,8 @@ export const RESOURCE_TYPES = [
 	'account_employees',
 	'account_buyers',
 	'profiles',
-	'roles',
-	'role_roles'
+	// 'roles',
+	// 'role_roles'
 ];
 
 export const READONLY_RESOURCES = ['users', 'account_users', 'role_roles'];

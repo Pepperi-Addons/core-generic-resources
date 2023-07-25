@@ -18,7 +18,7 @@ import { SchemaService } from './schema.service';
 import { UsersPNSService } from './services/pns/usersPNS.service';
 import { AccountUsersPNSService } from './services/pns/accountUsersPNS.service';
 import { BasePNSService } from './services/pns/basePNS.service';
-import { BuyersPNSService } from './services/pns/buyersPNS.service';
+import { ExternalUserResourcePNSService } from './services/pns/externalUserResourcePNS.service';
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
@@ -30,6 +30,7 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	const papiClient = Helper.getPapiClient(client);
 	const schemaService = new SchemaService(papiClient);
+	const buildManagerService = new BuildManagerService(papiClient);
 
 	try 
 	{
@@ -38,7 +39,7 @@ export async function install(client: Client, request: Request): Promise<any>
 		await createDimxRelations(client, papiClient);
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
-		res['resultObject']['buildTables'] = await buildTables(papiClient, Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
+		res['resultObject']['buildTables'] = await buildManagerService.buildTables(Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
 		await pnsSubscriptions(papiClient);
 	}
 	catch (error) 
@@ -192,27 +193,27 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.32'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		try 
-		{
+	// else if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.32'))
+	// {
+	// 	const papiClient = Helper.getPapiClient(client);
+	// 	const schemaService = new SchemaService(papiClient);
+	// 	try 
+	// 	{
 
-			res['resultObject'] = await schemaService.createCoreSchemas(["roles"]);
-			await createDimxRelations(client, papiClient, ["roles"]);
+	// 		res['resultObject'] = await schemaService.createCoreSchemas(["roles"]);
+	// 		await createDimxRelations(client, papiClient, ["roles"]);
 
 
 
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+	// 	}
+	// 	catch (error) 
+	// 	{
+	// 		res.success = false;
+	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
-			return res;
-		}
-	}
+	// 		return res;
+	// 	}
+	// }
 
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.9'))
 	{
@@ -301,18 +302,54 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	}
 
 	// Create new schemas and run build process for 'role_roles' schemas.
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
+	// if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
+	// {
+	// 	const papiClient = Helper.getPapiClient(client);
+	// 	const schemaService = new SchemaService(papiClient);
+	// 	//const schemaNames = ['users', 'account_users'];
+	// 	const schemaNames = ['role_roles'];
+
+	// 	try 
+	// 	{
+	// 		// create new schemas, including for 'roles' which has changed.
+	// 		await schemaService.createCoreSchemas([...schemaNames, 'roles']);
+	// 		res['resultObject'] = await buildTables(papiClient, schemaNames);
+	// 	}
+	// 	catch (error) 
+	// 	{
+	// 		res.success = false;
+	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+	// 		return res;
+	// 	}
+	// }
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.83'))
 	{
 		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		//const schemaNames = ['users', 'account_users'];
-		const schemaNames = ['role_roles'];
-
 		try 
 		{
-			// create new schemas, including for 'roles' which has changed.
-			await schemaService.createCoreSchemas([...schemaNames, 'roles']);
-			res['resultObject'] = await buildTables(papiClient, schemaNames);
+			const schemaService = new SchemaService(papiClient);
+			// create account_buyers schema, which is used for building account_users
+			res['resultObject'] = await schemaService.createCoreSchemas(["account_buyers"]);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.83'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			const schemaService = new SchemaService(papiClient);
+			// create account_buyers schema, which is used for building account_users
+			res['resultObject'] = await schemaService.createCoreSchemas(["account_buyers"]);
 		}
 		catch (error) 
 		{
@@ -516,31 +553,11 @@ async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 
 async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
 {
-	await subscribeToPNS(new UsersPNSService(papiClient));
-	await subscribeToPNS(new BuyersPNSService(papiClient));
-	await subscribeToPNS(new AccountUsersPNSService(papiClient));
-}
-
-async function buildTables(papiClient: PapiClient, tablesNames: string[]): Promise<AsyncResultObject>
-{
-	const resultObject: AsyncResultObject = {success: true};
-	const buildManager = new BuildManagerService(papiClient);
-
-	const promises = await Promise.allSettled(tablesNames.map(tableName => buildManager.build(tableName)));
-	
-	for (const promise of promises)
+	const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(papiClient);
+	for(const externalUserResource of externalUserResources)
 	{
-		if(promise.status === 'rejected')
-		{
-			resultObject.success = false;
-			resultObject.errorMessage = promise.reason instanceof Error ? promise.reason.message : 'Unknown error';
-		}
-		else
-		{
-			resultObject.success = resultObject.success && promise.value.success;
-			resultObject.errorMessage = resultObject.errorMessage ? `${resultObject.errorMessage}/n ${promise.value.errorMessage}` : promise.value.errorMessage;
-		}
+		await subscribeToPNS(new ExternalUserResourcePNSService(papiClient, externalUserResource));
 	}
-
-	return resultObject;
+	await subscribeToPNS(new UsersPNSService(papiClient));
+	await subscribeToPNS(new AccountUsersPNSService(papiClient));
 }

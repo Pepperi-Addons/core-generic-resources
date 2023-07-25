@@ -13,14 +13,14 @@ export abstract class BasePNSService
 		this.papiClient = papiClient;
 	}
 
-    abstract getSubscribeParamsSets(): PnsParams[];
+    abstract getSubscribeParamsSets(): Promise<PnsParams[]>;
 
 	// this is the handler function that will be called when a PNS is triggered
 	abstract updateAdalTable(messageFromPNS: any): Promise<void>;
 
 	public async subscribe(): Promise<void>
 	{
-    	const paramsSets = this.getSubscribeParamsSets();
+    	const paramsSets = await this.getSubscribeParamsSets();
     	for (const params of paramsSets)
     	{
     		await this.papiClient.notification.subscriptions.upsert({

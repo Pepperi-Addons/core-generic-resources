@@ -138,11 +138,6 @@ export class CoreResourcesTestsService
 		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('build').post({resource: resource}, testData);
 	}
 
-	async buildBuyersTable(testData?: TestBody): Promise<any>
-	{
-		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
-	}
-
 	async buildRoleRolesTable(testData?: TestBody): Promise<any>
 	{
 		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
@@ -179,8 +174,8 @@ export class CoreResourcesTestsService
 	// purge then create the table
 	async resetTable(tableName: string)
 	{
+		const schema = await this.papiClient.addons.data.schemes.name(tableName).get();
 		await this.papiClient.post(`/addons/data/schemes/${tableName}/purge`);
-		const schema = resourceNameToSchemaMap[tableName];
 		return await this.papiClient.addons.data.schemes.post(schema);
 	}
 
