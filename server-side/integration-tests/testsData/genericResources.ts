@@ -12,13 +12,8 @@ export const genericResourcesTestsData: GenericResourceTestInput[] = [
 		NonUniqueFieldID: "Name",
 	},
 	{
-		ResourceName: "role_roles",
-		UniqueFieldID: "InternalID",
-		NonUniqueFieldID: "ParentInternalID",
-	},
-	{
-		ResourceName: "roles",
-		UniqueFieldID: "InternalID",
+		ResourceName: "profiles",
+		UniqueFieldID: "Key",
 		NonUniqueFieldID: "ParentInternalID",
 	},
 	// {
