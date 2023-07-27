@@ -7,6 +7,7 @@ import { AccountUsersPNSService } from './pns/accountUsersPNS.service';
 import { ExternalUserResourcePNSService } from './pns/externalUserResourcePNS.service';
 import { SchemaService } from '../schema.service';
 import { CoreResourcesTestsService } from '../integration-tests/services/coreResources.service';
+import { resourceNameToSchemaMap } from '../resourcesSchemas';
 
 export class BuildManagerService
 {
@@ -208,12 +209,16 @@ export class BuildManagerService
 	{
 		const res = { success: true };
 		res['resultObject'] = {};
-		const schemaService = new SchemaService(this.papiClient);
 		const waiterService = new CoreResourcesTestsService(this.papiClient);
 		const tablesNames = ["users", "account_users"];
 		try 
 		{
-			res['resultObject']['createSchemas'] = await schemaService.createCoreSchemas(tablesNames);
+			const usersSchema = await this.papiClient.addons.data.schemes.name('users').get();
+			usersSchema.Fields = resourceNameToSchemaMap['users'].Fields;
+			usersSchema.Type = resourceNameToSchemaMap['users'].Type;
+			res['resultObject']['createUsersSchema'] = await this.papiClient.addons.data.schemes.post(usersSchema);
+			const accountUsersSchema = resourceNameToSchemaMap['account_users'];
+			res['resultObject']['createAccountUsersSchema'] = await this.papiClient.addons.data.schemes.post(accountUsersSchema);
 			// waiting for Nebula to finish handling pns notifications
 			await waiterService.waitForAsyncJob(60);
 			res['resultObject']['buildTables'] = await this.buildTables(tablesNames);
