@@ -11,7 +11,6 @@ export class ExternalUserResourcePNSService extends BasePNSService
 
 	protected externalUserResourceGetterService: ExternalUserResourceGetterService;
 	protected adalService: AdalService;
-	private udcAddonUUID = "122c0e9d-c240-4865-b446-f37ece866c22";
 
 	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{
@@ -102,12 +101,12 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		// which should be upserted to account_users adal table
 		await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
 
-		const externalUserResourceContainedInUsers = await this.adalService.searchResource('users', {KeyList: externalUserResourceKeys});
+		const externalUserResourceContainedInUsersDict = await this.buildContainedUsersDict(externalUserResourceKeys);
 		const newUsers: AddonData[] = [];
 		const noLongerUsers: AddonData[] = [];
 		for(const obj of updatedExternalUserResourceObjects)
 		{
-			if(!obj.Active && externalUserResourceContainedInUsers.Objects.find(user => user.Key==obj.Key)) 
+			if(!obj.Active && externalUserResourceContainedInUsersDict[obj.Key as string]) 
 			{
 				// obj is being hided from adal users because he is no longer a user
 				obj.Hidden = true;
@@ -191,10 +190,12 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		{
 			console.log("ACTIVE BUEYRS KEYS: " + JSON.stringify(keysList));
 			const uuidsString = keysList.map(uuid => `'${uuid}'`).join(',');
+			
 			const body = {
 				Where: `User.UUID in (${uuidsString})`,
-				Fields: "UUID,User.UUID,Account.UUID,Hidden"
+				Fields: this.accountBuyersFieldsString()
 			}
+			console.log("ACCOUNT BUYERS SEARCH BODY: " + JSON.stringify(body));
 			const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', body);
 			const fixedAccountBuyers = accountBuyersToUpsert.map(obj => 
 			{
@@ -209,5 +210,34 @@ export class ExternalUserResourcePNSService extends BasePNSService
 			await this.adalService.batchUpsert('account_users', fixedAccountBuyers);
 			console.log("ACCOUNT BUYERS UPSERTED");
 		}
+	}
+
+	async buildContainedUsersDict(externalUserResourceKeys: string[]): Promise<{[key: string]: any}>
+	{
+		const externalUserResourceContainedInUsers = await this.adalService.searchResource('users', {KeyList: externalUserResourceKeys});
+		const externalUserResourceContainedInUsersDict = {};
+		for(const userKey in externalUserResourceContainedInUsers.Objects)
+		{
+			externalUserResourceContainedInUsersDict[userKey] = externalUserResourceContainedInUsers.Objects[userKey];
+		}
+		return externalUserResourceContainedInUsersDict;
+	}
+
+	async accountBuyersFieldsString(): Promise<string>
+	{
+		const fieldsForSearch: string[] = ["UUID"];
+		const fieldsObjects = resourceNameToSchemaMap["account_buyers"].Fields;
+		for(const key in fieldsObjects)
+		{
+			if(fieldsObjects[key].Type == "Resource")
+			{
+				fieldsForSearch.push(`${key}.UUID`);
+			}
+			else if(key != "Key") // Key is not a field in account_buyers
+			{
+				fieldsForSearch.push(key);
+			}
+		}
+		return fieldsForSearch.join(',');
 	}
 }
