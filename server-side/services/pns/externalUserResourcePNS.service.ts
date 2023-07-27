@@ -11,7 +11,6 @@ export class ExternalUserResourcePNSService extends BasePNSService
 
 	protected externalUserResourceGetterService: ExternalUserResourceGetterService;
 	protected adalService: AdalService;
-	private udcAddonUUID = "122c0e9d-c240-4865-b446-f37ece866c22";
 
 	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{
@@ -29,7 +28,6 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		const externalAddonUUID = await this.getExternalAddonUUID();
 
 		// for users maintenance
-		// TODO: expose sub
 		return [
 			{
 				AddonRelativeURL: `/adal/update_users_from_external_user_resource?resource=${this.externalUserResource}`,
@@ -53,6 +51,13 @@ export class ExternalUserResourcePNSService extends BasePNSService
 				 Action: "insert", 
 				 Resource: this.externalUserResource,
 				 AddonUUID: externalAddonUUID
+			},
+			{
+				AddonRelativeURL: `/adal/update_account_buyers?resource=${this.externalUserResource}`,
+				 Name: `updateAccountBuyersOnNewBuyers`, 
+				 Action: "insert", 
+				 Resource: this.externalUserResource,
+				 AddonUUID: externalAddonUUID
 			}
 		]
 	}
@@ -71,19 +76,37 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
 
+	async updateAccountBuyersOnNewBuyers(messageFromPNS: any): Promise<void>
+	{
+		console.log("NEW BUYERS ADDED, UPDATING ACCOUNT BUYERS");
+		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
+		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, 'Active');
+		const updatedExternalUserResourceObjects = externalUserResourceByKeysRes.Objects;
+
+		// Active buyers has account_buyers relations 
+		// which should be upserted to account_users adal table
+		await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
+	}
+
 	async externalUserResourceActiveStateChanged(messageFromPNS: any): Promise<void>
 	{
 		console.log("BUYERS ACTIVE STATE PNS TRIGGERED");
 		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
 		const updatedExternalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, 'Active');
-		const updatedExternalUserResource = updatedExternalUserResourceByKeysRes.Objects;
-		const externalUserResourceContainedInUsers = await this.adalService.searchResource('users', {KeyList: externalUserResourceKeys});
+		const updatedExternalUserResourceObjects = updatedExternalUserResourceByKeysRes.Objects;
+
+		// Active buyers has account_buyers relations 
+		// which should be upserted to account_users adal table
+		await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
+
+		const externalUserResourceContainedInUsersDict = await this.buildContainedUsersDict(externalUserResourceKeys);
 		const newUsers: AddonData[] = [];
 		const noLongerUsers: AddonData[] = [];
-		for(const obj of updatedExternalUserResource)
+		for(const obj of updatedExternalUserResourceObjects)
 		{
-			if(!obj.Active && externalUserResourceContainedInUsers.Objects.find(user => user.Key==obj.Key)) 
+			if(!obj.Active && externalUserResourceContainedInUsersDict[obj.Key as string]) 
 			{
 				// obj is being hided from adal users because he is no longer a user
 				obj.Hidden = true;
@@ -154,6 +177,68 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		this.papiClient["options"]["addonUUID"] = config.AddonUUID;
 
 		return externalScheme.AddonUUID!;
+	}
 
+	// upserting new account_buyers for active buyers
+	async upsertAccountBuyersRelations(objects: any[]): Promise<void>
+	{
+		console.log("UPSERTING ACCOUNT BUYERS RELATIONS");
+		
+		// filtering out non active buyers
+		const keysList = objects.filter(obj => obj.Active).map(obj =>obj.Key);
+		if(keysList.length > 0)
+		{
+			console.log("ACTIVE BUEYRS KEYS: " + JSON.stringify(keysList));
+			const uuidsString = keysList.map(uuid => `'${uuid}'`).join(',');
+			
+			const body = {
+				Where: `User.UUID in (${uuidsString})`,
+				Fields: await this.accountBuyersFieldsString()
+			}
+			console.log("ACCOUNT BUYERS SEARCH BODY: " + JSON.stringify(body));
+			const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', body);
+			const fixedAccountBuyers = accountBuyersToUpsert.map(obj => 
+			{
+				return {
+					Key: obj.UUID,
+					User: obj["User.UUID"],
+					Account: obj["Account.UUID"],
+					Hidden: obj.Hidden
+				}
+			});
+			console.log("FIXED ACCOUNT BUYERS: " + JSON.stringify(fixedAccountBuyers));
+			await this.adalService.batchUpsert('account_users', fixedAccountBuyers);
+			console.log("ACCOUNT BUYERS UPSERTED");
+		}
+	}
+
+	async buildContainedUsersDict(externalUserResourceKeys: string[]): Promise<{[key: string]: any}>
+	{
+		const externalUserResourceContainedInUsers = await this.adalService.searchResource('users', {KeyList: externalUserResourceKeys});
+		const externalUserResourceContainedInUsersDict = {};
+		for(const user of externalUserResourceContainedInUsers.Objects)
+		{
+			externalUserResourceContainedInUsersDict[user.Key as string] = user;
+		}
+		console.log("CONTAINED USERS DICT: " + JSON.stringify(externalUserResourceContainedInUsersDict));
+		return externalUserResourceContainedInUsersDict;
+	}
+
+	async accountBuyersFieldsString(): Promise<string>
+	{
+		const fieldsForSearch: string[] = ["UUID"];
+		const fieldsObjects = resourceNameToSchemaMap["account_buyers"].Fields;
+		for(const key in fieldsObjects)
+		{
+			if(fieldsObjects[key].Type == "Resource")
+			{
+				fieldsForSearch.push(`${key}.UUID`);
+			}
+			else if(key != "Key") // Key is not a field in account_buyers
+			{
+				fieldsForSearch.push(key);
+			}
+		}
+		return fieldsForSearch.join(',');
 	}
 }

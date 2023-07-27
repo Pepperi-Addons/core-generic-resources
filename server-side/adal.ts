@@ -63,6 +63,23 @@ export async function external_user_resource_active_state_changed(client: Client
 	}
 }
 
+export async function update_account_buyers(client: Client, request: Request) 
+{
+	switch(request.method)
+	{
+	case 'POST':
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const service = new ExternalUserResourcePNSService(papiClient, request.query.resource);
+		return await service.updateAccountBuyersOnNewBuyers(request.body);
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
 export async function update_account_users(client: Client, request: Request) 
 {
 	switch(request.method)
