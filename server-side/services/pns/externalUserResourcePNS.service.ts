@@ -5,7 +5,6 @@ import { AddonData, AddonDataScheme, FindOptions, PapiClient } from '@pepperi-ad
 import { AdalService } from '../adal.service';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 import config from '../../../addon.config.json';
-import { AccountUsersGetterService } from '../getters/accountUsersGetter.service';
 
 export class ExternalUserResourcePNSService extends BasePNSService
 {
@@ -83,7 +82,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		console.log("NEW BUYERS ADDED, UPDATING ACCOUNT BUYERS");
 		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys);
+		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, 'Active');
 		const updatedExternalUserResourceObjects = externalUserResourceByKeysRes.Objects;
 
 		// Active buyers has account_buyers relations 
@@ -185,16 +184,30 @@ export class ExternalUserResourcePNSService extends BasePNSService
 	async upsertAccountBuyersRelations(objects: any[]): Promise<void>
 	{
 		console.log("UPSERTING ACCOUNT BUYERS RELATIONS");
-		const accountUsersGetter = new AccountUsersGetterService(this.papiClient);
 		
 		// filtering out non active buyers
-		const KeysList = objects.filter(obj => obj.Active).map(obj =>obj.Key);
-		const uuidsString = KeysList.map(uuid => `'${uuid}'`).join(',');
-		const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', {where: `User.UUID in (${uuidsString})`});
-
-		const fixedAccountBuyers = accountUsersGetter.fixObjects(accountBuyersToUpsert);
-
-		await this.adalService.batchUpsert('account_users', fixedAccountBuyers);
-		console.log("ACCOUNT BUYERS UPSERTED");
+		const keysList = objects.filter(obj => obj.Active).map(obj =>obj.Key);
+		if(keysList.length > 0)
+		{
+			console.log("ACTIVE BUEYRS KEYS: " + JSON.stringify(keysList));
+			const uuidsString = keysList.map(uuid => `'${uuid}'`).join(',');
+			const body = {
+				Where: `User.UUID in (${uuidsString})`,
+				Fields: "UUID,User.UUID,Account.UUID,Hidden"
+			}
+			const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', body);
+			const fixedAccountBuyers = accountBuyersToUpsert.map(obj => 
+			{
+				return {
+					Key: obj.UUID,
+					User: obj["User.UUID"],
+					Account: obj["Account.UUID"],
+					Hidden: obj.Hidden
+				}
+			});
+			console.log("FIXED ACCOUNT BUYERS: " + JSON.stringify(fixedAccountBuyers));
+			await this.adalService.batchUpsert('account_users', fixedAccountBuyers);
+			console.log("ACCOUNT BUYERS UPSERTED");
+		}
 	}
 }

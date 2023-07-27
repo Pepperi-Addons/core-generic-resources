@@ -26,7 +26,10 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				const testAccount = await this.coreResourcesTestsService.createTestAccount();
 				const initialAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
 				const initialNonHiddenAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users',false);
-				const numberOfContacts = 50;
+				// used to test account_buyers relations are added to adal account_users table when adding active buyers
+				const initialNonHiddenAdalAccountUsers = await this.coreResourcesTestsService.getAllGenericResourceObjects('account_users',false);
+				const numberOfContacts = 10;
+
 				createdContacts = await this.coreResourcesTestsService.createContactsForTest(numberOfContacts, testAccount);
 				// wait for PNS to finish
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
@@ -37,7 +40,12 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				// wait for PNS to finish
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
 				currentAdalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
+				const currentNonHiddenAdalAccountUsers = await this.coreResourcesTestsService.getAllGenericResourceObjects('account_users',false);
+				// test active buyers added to adal users table
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + numberOfContacts/2);
+				// test account_buyers added to adal account_users
+				expect(currentNonHiddenAdalAccountUsers.length).to.equal(initialNonHiddenAdalAccountUsers.length + numberOfContacts/2);
+				// now disconnect some buyers
 				await this.coreResourcesTestsService.disconnectBuyers(createdContacts.slice(0, numberOfContacts/5));
 				// wait for PNS to finish
 				await this.coreResourcesTestsService.waitForAsyncJob(20);
