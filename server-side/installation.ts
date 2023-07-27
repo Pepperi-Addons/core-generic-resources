@@ -141,12 +141,13 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.42'))
 	{
 		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
 		try 
 		{
 			// Update 'users' schema with Name field
 			// For more information please see the following:
 			// https://pepperi.atlassian.net/browse/DI-23778
-			res['resultObject'] = await createCoreSchemas(papiClient, ["users"]);
+			res['resultObject'] = await schemaService.createCoreSchemas(["users"]);
 		}
 		catch (error) 
 		{
