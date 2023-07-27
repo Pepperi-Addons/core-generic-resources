@@ -138,6 +138,26 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.42'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// Update 'users' schema with Name field
+			// For more information please see the following:
+			// https://pepperi.atlassian.net/browse/DI-23778
+			res['resultObject'] = await createCoreSchemas(papiClient, ["users"]);
+		}
+		catch (error) 
+		{
+	
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	if (request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.6.8')) 
 	{
 		const papiClient = Helper.getPapiClient(client);
