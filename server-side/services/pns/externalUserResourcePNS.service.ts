@@ -193,7 +193,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 			
 			const body = {
 				Where: `User.UUID in (${uuidsString})`,
-				Fields: this.accountBuyersFieldsString()
+				Fields: await this.accountBuyersFieldsString()
 			}
 			console.log("ACCOUNT BUYERS SEARCH BODY: " + JSON.stringify(body));
 			const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', body);
@@ -216,10 +216,11 @@ export class ExternalUserResourcePNSService extends BasePNSService
 	{
 		const externalUserResourceContainedInUsers = await this.adalService.searchResource('users', {KeyList: externalUserResourceKeys});
 		const externalUserResourceContainedInUsersDict = {};
-		for(const userKey in externalUserResourceContainedInUsers.Objects)
+		for(const user of externalUserResourceContainedInUsers.Objects)
 		{
-			externalUserResourceContainedInUsersDict[userKey] = externalUserResourceContainedInUsers.Objects[userKey];
+			externalUserResourceContainedInUsersDict[user.Key as string] = user;
 		}
+		console.log("CONTAINED USERS DICT: " + JSON.stringify(externalUserResourceContainedInUsersDict));
 		return externalUserResourceContainedInUsersDict;
 	}
 

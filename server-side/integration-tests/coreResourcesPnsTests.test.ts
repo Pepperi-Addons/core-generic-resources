@@ -16,7 +16,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
         before: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
         beforeEach: ((fn: Mocha.Func | Mocha.AsyncFunc) => void)*/): void 
 	{
-		// this.adalSchemasTests(describe, it, expect);
+		this.adalSchemasTests(describe, it, expect);
 		this.papiSchemasTests(describe, it, expect);
 	}
 
