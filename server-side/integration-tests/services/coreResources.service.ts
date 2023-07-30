@@ -2,7 +2,7 @@ import { PapiClient, SearchData, AddonData, SearchBody, FindOptions, Account } f
 import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
-import { resourceNameToSchemaMap } from '../../resourcesSchemas';
+import { BuildManagerService } from '../../services/buildManager.service';
 
 export class CoreResourcesTestsService 
 {
@@ -263,5 +263,26 @@ export class CoreResourcesTestsService
 		return new Set(
 		  [...setA].filter(element => !setB.has(element))
 		);
-	  }
+	}
+
+	async runPostUpgradeOperations()
+	{
+		const pollingService = new BuildManagerService(this.papiClient);
+		const asyncCall = await this.papiClient.post(`/addons/api/${AddonUUID}/adal/run_post_upgrade_operations`, {});
+		if(!asyncCall)
+		{
+			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal', got a null from async call.`;
+			console.error(errorMessage);
+			throw new Error(errorMessage);
+		}
+		const isAsyncRequestResolved = await pollingService.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
+		if(!isAsyncRequestResolved)
+		{
+			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal'. For more details see audit log: ${asyncCall.ExecutionUUID!}`;
+			console.error(errorMessage);
+			throw new Error(errorMessage);
+		}
+
+		console.log(`Successfully executed run_post_upgrade_operations in file 'adal'.`);
+	}
 }

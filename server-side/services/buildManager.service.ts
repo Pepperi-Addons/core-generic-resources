@@ -97,7 +97,7 @@ export class BuildManagerService
 	* @param interval the time interval in ms which will be waited between polling retries.
 	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 540, allowing for 9 minutes of polling, allowing graceful exit for install. 
 	*/
-	protected async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
+	public async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
 	{
 		let attempts = 0;
 

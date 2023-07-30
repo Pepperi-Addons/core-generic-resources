@@ -19,7 +19,10 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 	{
 		describe('Build ADAL tables tests', () => 
 		{
-												
+			it('Run post upgrade operations', async () =>
+			{
+				await this.coreResourcesTestsService.runPostUpgradeOperations();
+			});						
 
 			it('Build users adal table', async () => 
 			{
