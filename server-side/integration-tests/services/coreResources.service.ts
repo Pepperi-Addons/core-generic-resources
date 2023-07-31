@@ -2,7 +2,7 @@ import { PapiClient, SearchData, AddonData, SearchBody, FindOptions, Account } f
 import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
-import { resourceNameToSchemaMap } from '../../resourcesSchemas';
+import { BuildManagerService } from '../../services/buildManager.service';
 
 export class CoreResourcesTestsService 
 {
@@ -263,5 +263,49 @@ export class CoreResourcesTestsService
 		return new Set(
 		  [...setA].filter(element => !setB.has(element))
 		);
-	  }
+	}
+
+	async runPostUpgradeOperations()
+	{
+		const pollingService = new BuildManagerService(this.papiClient);
+		const asyncCall = await this.papiClient.post(`/addons/api/${AddonUUID}/adal/run_post_upgrade_operations`, {});
+		if(!asyncCall)
+		{
+			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal', got a null from async call.`;
+			console.error(errorMessage);
+			throw new Error(errorMessage);
+		}
+		const isAsyncRequestResolved = await pollingService.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
+		if(!isAsyncRequestResolved)
+		{
+			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal'. For more details see audit log: ${asyncCall.ExecutionUUID!}`;
+			console.error(errorMessage);
+			throw new Error(errorMessage);
+		}
+
+		console.log(`Successfully executed run_post_upgrade_operations in file 'adal'.`);
+	}
+
+	async isBuyerManagementInstalled(): Promise<boolean>
+	{
+		const usersSchema = await this.papiClient.addons.data.schemes.name('users').get();
+		// ExternalUserResourcesRegistration on users scheme indicates that Buyer Management is installed
+		return usersSchema.Internals?.ExternalUserResourcesRegistration?.length > 0;
+	}
+
+	async installBuyerManagementAddon(): Promise<void>
+	{
+		const pollingService = new BuildManagerService(this.papiClient);
+		const buyerManagementAddonUUID = "ee953146-b133-4ba2-bdc4-dd15ac2b76a4";
+		const asyncInstall = await this.papiClient.addons.installedAddons.addonUUID(buyerManagementAddonUUID).install();
+		const isAsyncRequestResolved = await pollingService.pollExecution(this.papiClient, asyncInstall.ExecutionUUID!);
+		if(!isAsyncRequestResolved)
+		{
+			const errorMessage = `Error installing buyer management addon. For more details see audit log: ${asyncInstall.ExecutionUUID!}`;
+			console.error(errorMessage);
+			throw new Error(errorMessage);
+		}
+		
+		console.log(`Successfully installed buyer management addon.`);
+	}
 }

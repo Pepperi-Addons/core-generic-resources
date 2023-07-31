@@ -97,7 +97,7 @@ export class BuildManagerService
 	* @param interval the time interval in ms which will be waited between polling retries.
 	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 540, allowing for 9 minutes of polling, allowing graceful exit for install. 
 	*/
-	protected async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
+	public async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
 	{
 		let attempts = 0;
 
@@ -207,21 +207,19 @@ export class BuildManagerService
 
 	async postUpgradeOperations(): Promise<any>
 	{
+		console.log('STARTING POST UPGRADE OPERATIONS');
 		const res = { success: true };
 		res['resultObject'] = {};
 		const waiterService = new CoreResourcesTestsService(this.papiClient);
-		const tablesNames = ["users", "account_users"];
+		const tablesToBuild: string[] = [];
 		try 
 		{
-			const usersSchema = await this.papiClient.addons.data.schemes.name('users').get();
-			usersSchema.Fields = resourceNameToSchemaMap['users'].Fields;
-			usersSchema.Type = resourceNameToSchemaMap['users'].Type;
-			res['resultObject']['createUsersSchema'] = await this.papiClient.addons.data.schemes.post(usersSchema);
-			const accountUsersSchema = resourceNameToSchemaMap['account_users'];
-			res['resultObject']['createAccountUsersSchema'] = await this.papiClient.addons.data.schemes.post(accountUsersSchema);
+			res['resultObject']['createUsersSchema'] = await this.updateSchema('users', tablesToBuild);
+			res['resultObject']['createAccountUsersSchema'] = await this.updateSchema('account_users', tablesToBuild);
 			// waiting for Nebula to finish handling pns notifications
 			await waiterService.waitForAsyncJob(60);
-			res['resultObject']['buildTables'] = await this.buildTables(tablesNames);
+			console.log('TABLES TO BUILD: ', JSON.stringify(tablesToBuild));
+			res['resultObject']['buildTables'] = await this.buildTables(tablesToBuild);
 		}
 		catch (error)
 		{
@@ -229,6 +227,20 @@ export class BuildManagerService
 			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 		}
 		return res;
+	}
+
+	async updateSchema(schemaName: string, tablesToBuild: string[]): Promise<any>
+	{
+		const schema =  await this.papiClient.addons.data.schemes.name(schemaName).get();
+		// if schema type is data, it means that the schema was already updated and built
+		if(schema.Type != 'data')
+		{
+			console.log(`UPDATING '${schemaName}' SCHEMA`);
+			schema.Fields = resourceNameToSchemaMap[schemaName].Fields;
+			schema.Type = resourceNameToSchemaMap[schemaName].Type;
+			tablesToBuild.push(schemaName);
+			return await this.papiClient.addons.data.schemes.post(schema);
+		}
 	}
 
 	async runPostUpgradeOperations(): Promise<any>
