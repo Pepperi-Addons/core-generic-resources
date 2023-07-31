@@ -210,18 +210,14 @@ export class BuildManagerService
 		const res = { success: true };
 		res['resultObject'] = {};
 		const waiterService = new CoreResourcesTestsService(this.papiClient);
-		const tablesNames = ["users", "account_users"];
+		const tablesToBuild = [];
 		try 
 		{
-			const usersSchema = await this.papiClient.addons.data.schemes.name('users').get();
-			usersSchema.Fields = resourceNameToSchemaMap['users'].Fields;
-			usersSchema.Type = resourceNameToSchemaMap['users'].Type;
-			res['resultObject']['createUsersSchema'] = await this.papiClient.addons.data.schemes.post(usersSchema);
-			const accountUsersSchema = resourceNameToSchemaMap['account_users'];
-			res['resultObject']['createAccountUsersSchema'] = await this.papiClient.addons.data.schemes.post(accountUsersSchema);
+			res['resultObject']['createUsersSchema'] = await this.updateSchema('users', tablesToBuild);
+			res['resultObject']['createAccountUsersSchema'] = await this.updateSchema('account_users', tablesToBuild);
 			// waiting for Nebula to finish handling pns notifications
 			await waiterService.waitForAsyncJob(60);
-			res['resultObject']['buildTables'] = await this.buildTables(tablesNames);
+			res['resultObject']['buildTables'] = await this.buildTables(tablesToBuild);
 		}
 		catch (error)
 		{
@@ -229,6 +225,19 @@ export class BuildManagerService
 			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 		}
 		return res;
+	}
+
+	async updateSchema(schemaName: string, tablesToBuild: string[]): Promise<any>
+	{
+		const schema =  await this.papiClient.addons.data.schemes.name(schemaName).get();
+		// if schema type is data, it means that the schema was already updated and built
+		if(schema.Type != 'data')
+		{
+			schema.Fields = resourceNameToSchemaMap[schemaName].Fields;
+			schema.Type = resourceNameToSchemaMap[schemaName].Type;
+			tablesToBuild.push(schemaName);
+			return await this.papiClient.addons.data.schemes.post(schema);
+		}
 	}
 
 	async runPostUpgradeOperations(): Promise<any>
