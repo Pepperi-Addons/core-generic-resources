@@ -297,7 +297,9 @@ export class CoreResourcesTestsService
 	{
 		const pollingService = new BuildManagerService(this.papiClient);
 		const buyerManagementAddonUUID = "ee953146-b133-4ba2-bdc4-dd15ac2b76a4";
-		const asyncInstall = await this.papiClient.addons.installedAddons.addonUUID(buyerManagementAddonUUID).install();
+		const versions = await this.papiClient.addons.versions.find({where: `AddonUUID='${buyerManagementAddonUUID}'`, order_by: `"CreationDateTime" desc`});
+		const latest = versions[0].Version;
+		const asyncInstall = await this.papiClient.addons.installedAddons.addonUUID(buyerManagementAddonUUID).install(latest);
 		const isAsyncRequestResolved = await pollingService.pollExecution(this.papiClient, asyncInstall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{

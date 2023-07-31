@@ -21,7 +21,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 		{
 			it('Install buyer management addon', async () =>
 			{
-				if(!this.coreResourcesTestsService.isBuyerManagementInstalled())
+				if(!(await this.coreResourcesTestsService.isBuyerManagementInstalled()))
 				{
 					await this.coreResourcesTestsService.installBuyerManagementAddon();
 				}
