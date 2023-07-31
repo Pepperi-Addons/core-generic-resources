@@ -147,7 +147,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			// Update 'users' schema with Name field
 			// For more information please see the following:
 			// https://pepperi.atlassian.net/browse/DI-23778
-			res['resultObject'] = await schemaService.createCoreSchemas(["users"]);
+			const usersSchema =  await papiClient.addons.data.schemes.name('users').get();
+			(usersSchema.Fields as any)['Name'] = { 
+				Type: "String" 
+			};
+			res['resultObject'] = await papiClient.addons.data.schemes.post(usersSchema);
 		}
 		catch (error) 
 		{
