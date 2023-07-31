@@ -49,4 +49,10 @@ export class Helper
 		// Return the params object
 		return params;
 	  }
+
+	static throwErrorWithLog(errorMessage: string): void {
+		console.error(errorMessage);
+		throw new Error(errorMessage);
+	}
+
 }

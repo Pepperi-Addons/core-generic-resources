@@ -2,7 +2,7 @@ import { IApiService } from "core-resources-shared";
 import BaseClientApiService from "./baseClientApi.service";
 
 
-export default class CatalogClientApiService extends BaseClientApiService implements IApiService
+export default class CreateNotSupportedClientApiService extends BaseClientApiService implements IApiService
 {
 	
 	async createResource(resourceName: string, body: any): Promise<any> 
