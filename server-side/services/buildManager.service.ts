@@ -207,16 +207,18 @@ export class BuildManagerService
 
 	async postUpgradeOperations(): Promise<any>
 	{
+		console.log('STARTING POST UPGRADE OPERATIONS');
 		const res = { success: true };
 		res['resultObject'] = {};
 		const waiterService = new CoreResourcesTestsService(this.papiClient);
-		const tablesToBuild = [];
+		const tablesToBuild: string[] = [];
 		try 
 		{
 			res['resultObject']['createUsersSchema'] = await this.updateSchema('users', tablesToBuild);
 			res['resultObject']['createAccountUsersSchema'] = await this.updateSchema('account_users', tablesToBuild);
 			// waiting for Nebula to finish handling pns notifications
 			await waiterService.waitForAsyncJob(60);
+			console.log('TABLES TO BUILD: ', JSON.stringify(tablesToBuild));
 			res['resultObject']['buildTables'] = await this.buildTables(tablesToBuild);
 		}
 		catch (error)
@@ -233,6 +235,7 @@ export class BuildManagerService
 		// if schema type is data, it means that the schema was already updated and built
 		if(schema.Type != 'data')
 		{
+			console.log(`UPDATING '${schemaName}' SCHEMA`);
 			schema.Fields = resourceNameToSchemaMap[schemaName].Fields;
 			schema.Type = resourceNameToSchemaMap[schemaName].Type;
 			tablesToBuild.push(schemaName);
