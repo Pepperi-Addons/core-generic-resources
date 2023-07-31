@@ -66,7 +66,8 @@ export class AdalService implements IApiService
 			this.validateBodyParams(body);
 			if(body.UniqueFieldID && body.UniqueFieldList && body.UniqueFieldList.length > 0) 
 			{
-				if(body.UniqueFieldID === "Key"){
+				if(body.UniqueFieldID === "Key")
+				{
 					body.KeyList = body.UniqueFieldList;
 					delete body.UniqueFieldID;
 					delete body.UniqueFieldList;
@@ -86,24 +87,24 @@ export class AdalService implements IApiService
 	}
 
 
-	private validateBodyParams(body: any) {
-		if (body.KeyList && body.UniqueFieldList) {
-
+	private validateBodyParams(body: any) 
+	{
+		if (body.KeyList && body.UniqueFieldList)
+		{
 			Helper.throwErrorWithLog(`'UniqueFieldList' is mutually exclusive with 'KeyList'`);
 		}
-		if (body.Where && body.KeyList) {
-
+		if (body.Where && body.KeyList) 
+		{
 			Helper.throwErrorWithLog(`'KeyList' is mutually exclusive with 'Where' clause`);
 		}
-		if (body.Where && body.UniqueFieldList) {
-
+		if (body.Where && body.UniqueFieldList) 
+		{
 			Helper.throwErrorWithLog(`'UniqueFieldList' is mutually exclusive with 'Where' clause`);
 		}
-		if (body.UniqueFieldList && !body.UniqueFieldID) {
-
+		if (body.UniqueFieldList && !body.UniqueFieldID) 
+		{
 			Helper.throwErrorWithLog(`Missing 'UniqueFieldID' parameter`);
 		}
-
 	}
 
 	async batchUpsert(resourceName: string,objects: any[])
