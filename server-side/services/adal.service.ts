@@ -91,6 +91,10 @@ export class AdalService implements IApiService
 
 			Helper.throwErrorWithLog(`'UniqueFieldList' is mutually exclusive with 'KeyList'`);
 		}
+		if (body.Where && body.KeyList) {
+
+			Helper.throwErrorWithLog(`'KeyList' is mutually exclusive with 'Where' clause`);
+		}
 		if (body.Where && body.UniqueFieldList) {
 
 			Helper.throwErrorWithLog(`'UniqueFieldList' is mutually exclusive with 'Where' clause`);
@@ -99,6 +103,7 @@ export class AdalService implements IApiService
 
 			Helper.throwErrorWithLog(`Missing 'UniqueFieldID' parameter`);
 		}
+
 	}
 
 	async batchUpsert(resourceName: string,objects: any[])
