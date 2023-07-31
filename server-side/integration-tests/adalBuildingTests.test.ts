@@ -19,10 +19,17 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 	{
 		describe('Build ADAL tables tests', () => 
 		{
+			it('Install buyer management addon', async () =>
+			{
+				if(!this.coreResourcesTestsService.isBuyerManagementInstalled())
+				{
+					await this.coreResourcesTestsService.installBuyerManagementAddon();
+				}
+			});
 			it('Run post upgrade operations', async () =>
 			{
 				await this.coreResourcesTestsService.runPostUpgradeOperations();
-			});						
+			});
 
 			it('Build users adal table', async () => 
 			{
