@@ -1,5 +1,4 @@
 import { BatchApiResponse, PapiClient } from '@pepperi-addons/papi-sdk';
-import { ErrorWithStatus } from 'core-resources-shared';
 import { IApiService } from 'core-resources-shared';
 import config from '../../addon.config.json'
 import { Helper } from 'core-resources-shared';
@@ -16,7 +15,7 @@ export class AdalService implements IApiService
 		throw new Error(`Creation of '${resourceName}' is not supported`);
 	}
 
-	async getResources(resourceName: string, query: string, whereClause: string | undefined)
+	async getResources(resourceName: string, query: string, whereClause: string | undefined): Promise<any>
 	{
 		try
 		{
@@ -25,7 +24,7 @@ export class AdalService implements IApiService
 		}
 		catch(error)
 		{
-			throw new ErrorWithStatus(error);
+			this.throwErrorMessage(error);
 		}
 	}
 
@@ -37,7 +36,7 @@ export class AdalService implements IApiService
 		}
 		catch(error)
 		{
-			throw new ErrorWithStatus(error);
+			this.throwErrorMessage(error);
 		}
 	}
 
@@ -55,11 +54,11 @@ export class AdalService implements IApiService
 		}
 		catch(error)
 		{
-			throw new ErrorWithStatus(error);
+			this.throwErrorMessage(error);
 		}
 	}
 
-	async searchResource(resourceName: string, body: any)
+	async searchResource(resourceName: string, body: any): Promise<any>
 	{
 		try
 		{
@@ -82,7 +81,7 @@ export class AdalService implements IApiService
 		}
 		catch(error)
 		{
-			throw new ErrorWithStatus(error);
+			this.throwErrorMessage(error);
 		}
 	}
 
@@ -133,5 +132,10 @@ export class AdalService implements IApiService
 		{
 			throw new Error(`The field_id query parameter is not valid. Supported field_ids are: ${uniqueFields.join(", ")}`);
 		}
+	}
+
+	throwErrorMessage(error: any)
+	{
+		throw new Error(error instanceof Error ? error.message : 'Unknown error occurred.');
 	}
 }
