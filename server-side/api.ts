@@ -2,6 +2,7 @@ import { Client, Request } from '@pepperi-addons/debug-server';
 import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiService } from 'core-resources-shared'
 import { TsaService } from './tsa-service/tsa.service';
 import { AdalService } from './services/adal.service';
+import { AccountBuyersPapiService } from './services/accountBuyersPapi.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -47,6 +48,11 @@ export async function get_employees_by_key(client: Client, request: Request)
 export async function get_profiles_by_key(client: Client, request: Request) 
 {
 	return await resourcesFunctionAdapter(client, request, "profiles");
+}
+
+export async function get_account_buyers_by_key(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_buyers");
 }
 
 // export async function get_roles_by_key(client: Client, request: Request)
@@ -107,6 +113,11 @@ export async function profiles(client: Client, request: Request)
 	return await resourcesFunctionAdapter(client, request, "profiles");
 }
 
+export async function account_buyers(client: Client, request: Request) 
+{
+	return await resourcesFunctionAdapter(client, request, "account_buyers");
+}
+
 // export async function roles(client: Client, request: Request)
 // {
 // 	return await resourcesFunctionAdapter(client, request, "roles");
@@ -162,6 +173,11 @@ export async function get_employees_by_unique_field(client: Client, request: Req
 export async function get_profiles_by_unique_field(client: Client, request: Request)
 {
 	return await getByUniqueFieldFunctionAdapter(client, request, "profiles");
+}
+
+export async function get_account_buyers_by_unique_field(client: Client, request: Request) 
+{
+	return await getByUniqueFieldFunctionAdapter(client, request, "account_buyers");
 }
 
 // export async function get_roles_by_unique_field(client: Client, request: Request)
@@ -224,6 +240,11 @@ export async function employees_search(client: Client, request: Request)
 export async function profiles_search(client: Client, request: Request)
 {
 	return await searchFunctionAdapter(client, request, "profiles");
+}
+
+export async function account_buyers_search(client: Client, request: Request) 
+{
+	return await searchFunctionAdapter(client, request, "account_buyers");
 }
 
 // export async function roles_search(client: Client, request: Request)
@@ -361,6 +382,10 @@ function getPapiService(client: Client, request: Request): IApiService
 	case 'accounts':
 	{
 		return new AccountsPapiService(papiClient);
+	}
+	case 'account_buyers':
+	{
+		return new AccountBuyersPapiService(papiClient);
 	}
 	case 'users':
 	case 'account_users':

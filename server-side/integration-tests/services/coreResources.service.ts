@@ -12,9 +12,9 @@ export class CoreResourcesTestsService
 	constructor(public papiClient: PapiClient)
 	{}
 
-	async getGenericResourceObjects(resource: string): Promise<AddonData[]> 
+	async getGenericResourceObjects(resource: string, options?: FindOptions): Promise<AddonData[]> 
 	{
-		return await this.papiClient.resources.resource(resource).get();
+		return await this.papiClient.resources.resource(resource).get(options);
 	}
 
 	/**
@@ -22,7 +22,7 @@ export class CoreResourcesTestsService
 	 * @param resource {string} The name of the resource to get all objects of.
 	 * @returns {Promise<AddonData[]>} All objects of the resource.
 	 */
-	async getAllGenericResourceObjects(resource: string, includeDeleted = true): Promise<AddonData[]> 
+	async searchAllAdalGenericResourceObjects(resource: string, includeDeleted = true): Promise<AddonData[]> 
 	{
 		const res: AddonData[] = [];
 
@@ -69,6 +69,21 @@ export class CoreResourcesTestsService
 		do 
 		{
 			currentPageObjects = await this.papiClient.get(`/${resource}?page_size=${this.pageSize}&page=${page}&include_deleted=true`);
+			totalObjects = totalObjects.concat(currentPageObjects);
+			page++;
+		} while (currentPageObjects.length == this.pageSize);
+
+		return totalObjects;
+	}
+
+	async getAllPapiGenericResourceObjects(resource: string): Promise<any[]> 
+	{
+		let page = 1;
+		let totalObjects: any[] = [];
+		let currentPageObjects: any[] = [];
+		do 
+		{
+			currentPageObjects = await this.papiClient.resources.resource(resource).get({page_size: this.pageSize, page: page});
 			totalObjects = totalObjects.concat(currentPageObjects);
 			page++;
 		} while (currentPageObjects.length == this.pageSize);
