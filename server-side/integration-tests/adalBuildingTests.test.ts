@@ -17,7 +17,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
         before: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
         beforeEach: ((fn: Mocha.Func | Mocha.AsyncFunc) => void)*/): void 
 	{
-		describe('Build ADAL tables tests', () => 
+		describe('Build ADAL tables tests', async () => 
 		{
 			it('Install buyer management addon', async () =>
 			{
@@ -131,32 +131,32 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 			// 	}
 			// });
 
-			function testRoleRoles(defactoResults: RoleRole[], expectedResults: RoleRole[]) 
-			{
-				//build a map of the expected results
-				const expectedResultsMap = {};
-				for (let i = 0; i < expectedResults.length; i++) 
-				{
-					expectedResultsMap[expectedResults[i].Key!] = expectedResults[i];
-				}
+			// function testRoleRoles(defactoResults: RoleRole[], expectedResults: RoleRole[]) 
+			// {
+			// 	//build a map of the expected results
+			// 	const expectedResultsMap = {};
+			// 	for (let i = 0; i < expectedResults.length; i++) 
+			// 	{
+			// 		expectedResultsMap[expectedResults[i].Key!] = expectedResults[i];
+			// 	}
 
-				expect(defactoResults).to.be.an('array').with.lengthOf(expectedResults.length);
+			// 	expect(defactoResults).to.be.an('array').with.lengthOf(expectedResults.length);
 
-				for (let i = 0; i < defactoResults.length; i++) 
-				{
-					expect(defactoResults[i]).to.have.property('Key').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Key);
-					expect(defactoResults[i]).to.have.property('Role').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Role);
+			// 	for (let i = 0; i < defactoResults.length; i++) 
+			// 	{
+			// 		expect(defactoResults[i]).to.have.property('Key').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Key);
+			// 		expect(defactoResults[i]).to.have.property('Role').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Role);
 
-					if (expectedResults[i].ParentRole) 
-					{
-						expect(defactoResults[i]).to.have.property('ParentRole').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
-					}
-					else 
-					{
-						expect(defactoResults[i].ParentRole).to.be.undefined.and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
-					}
-				}
-			}
+			// 		if (expectedResults[i].ParentRole) 
+			// 		{
+			// 			expect(defactoResults[i]).to.have.property('ParentRole').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
+			// 		}
+			// 		else 
+			// 		{
+			// 			expect(defactoResults[i].ParentRole).to.be.undefined.and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
+			// 		}
+			// 	}
+			// }
 		});
 	}
 

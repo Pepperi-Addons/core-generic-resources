@@ -9,7 +9,7 @@ export class CoreResourcesTestsService
 	dataObject: any; // the 'Data' object passed inside the http request sent to start the test -- put all the data you need here
 	pageSize = 500;
 
-	constructor(public papiClient: PapiClient)
+	constructor(public papiClient: PapiClient, public asyncPapiClient?: PapiClient)
 	{}
 
 	async getGenericResourceObjects(resource: string, options?: FindOptions): Promise<AddonData[]> 
@@ -148,14 +148,15 @@ export class CoreResourcesTestsService
 		return accountUsers;
 	}
 
-	async buildTable(resource: string, testData?: TestBody): Promise<any> 
+	async buildTable(resource: string, testData?: TestBody): Promise<any>
 	{
-		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('build').post({resource: resource}, testData);
+
+		return await this.asyncPapiClient?.addons.api.uuid(AddonUUID).file('adal').func('build').post({resource: resource}, testData);
 	}
 
 	async buildRoleRolesTable(testData?: TestBody): Promise<any>
 	{
-		return await this.papiClient.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
+		return await this.asyncPapiClient?.addons.api.uuid(AddonUUID).file('adal').func('clean_build_role_roles').post({}, testData);
 	}
 
 	async cleanTable(resource: string): Promise<void> 
@@ -268,7 +269,7 @@ export class CoreResourcesTestsService
 		return Object.keys(schema.Fields!);
 	}
 
-	generateValidKey() 
+	generateValidKey()
 	{
 		return uuid();
 	}
@@ -283,14 +284,14 @@ export class CoreResourcesTestsService
 	async runPostUpgradeOperations()
 	{
 		const pollingService = new BuildManagerService(this.papiClient);
-		const asyncCall = await this.papiClient.post(`/addons/api/${AddonUUID}/adal/run_post_upgrade_operations`, {});
+		const asyncCall = await this.asyncPapiClient?.post(`/addons/api/${AddonUUID}/adal/run_post_upgrade_operations`, {});
 		if(!asyncCall)
 		{
 			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal', got a null from async call.`;
 			console.error(errorMessage);
 			throw new Error(errorMessage);
 		}
-		const isAsyncRequestResolved = await pollingService.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
+		const isAsyncRequestResolved = await pollingService.pollExecution(this.asyncPapiClient!, asyncCall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{
 			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal'. For more details see audit log: ${asyncCall.ExecutionUUID!}`;
@@ -314,8 +315,8 @@ export class CoreResourcesTestsService
 		const buyerManagementAddonUUID = "ee953146-b133-4ba2-bdc4-dd15ac2b76a4";
 		const versions = await this.papiClient.addons.versions.find({where: `AddonUUID='${buyerManagementAddonUUID}'`, order_by: `"CreationDateTime" desc`});
 		const latest = versions[0].Version;
-		const asyncInstall = await this.papiClient.addons.installedAddons.addonUUID(buyerManagementAddonUUID).install(latest);
-		const isAsyncRequestResolved = await pollingService.pollExecution(this.papiClient, asyncInstall.ExecutionUUID!);
+		const asyncInstall = await this.asyncPapiClient!.addons.installedAddons.addonUUID(buyerManagementAddonUUID).install(latest);
+		const isAsyncRequestResolved = await pollingService.pollExecution(this.asyncPapiClient!, asyncInstall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{
 			const errorMessage = `Error installing buyer management addon. For more details see audit log: ${asyncInstall.ExecutionUUID!}`;
