@@ -34,14 +34,14 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 			it('Build users adal table', async () => 
 			{
 				const papiUsersList = await this.coreResourcesTestsService.getPapiResourceObjects('users');
-				const activeBuyersList = (await this.coreResourcesTestsService.getAllGenericResourceObjects('Buyers')).filter(buyer => buyer.Active);
+				const activeBuyersList = (await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('Buyers')).filter(buyer => buyer.Active);
 				let keys = papiUsersList.map(user => user.UUID);
 				keys = keys.concat(activeBuyersList.map(buyer => buyer.Key));
 				const uniquePapiKeys = new Set(keys);
 				await this.coreResourcesTestsService.resetTable('users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('users');
 				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
-				const adalUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('users');
+				const adalUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('users');
 				expect(buildTableResponse).to.have.property('success').that.is.true;
 				expect(adalUsersList).to.be.an('array').with.lengthOf(uniquePapiKeys.size);
 				expect(adalUsersList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
@@ -66,7 +66,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				await this.coreResourcesTestsService.resetTable('account_users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('account_users');
 				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
-				const adalAccountUsersList = await this.coreResourcesTestsService.getAllGenericResourceObjects('account_users');
+				const adalAccountUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('account_users');
 				const adalUniqueKeys = new Set(adalAccountUsersList.map(accountUser => accountUser.Key));
 				console.log(this.coreResourcesTestsService.getDifference(adalUniqueKeys, papiUniqueKeys));
 				expect(buildTableResponse).to.have.property('success').that.is.true;

@@ -118,6 +118,7 @@ const accountUsersSchema: AddonDataScheme = {
 const accountBuyersSchema: AddonDataScheme = {
 	Name: "account_buyers",
 	Type: 'papi',
+	GenericResource: true,
 	Fields:
 	{
 		Key:	
@@ -400,10 +401,10 @@ const employeesSchema: AddonDataScheme = {
     	},
     	Role: {
     		// These should be uncommented in Core Resources 0.8
-			// Type: "Resource",
+    		// Type: "Resource",
     		// Resource: "roles",
     		// AddonUUID: config.AddonUUID,
-			Type: "String"
+    		Type: "String"
     	}
     }
 }
