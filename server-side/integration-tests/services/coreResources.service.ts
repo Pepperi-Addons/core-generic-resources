@@ -46,6 +46,11 @@ export class CoreResourcesTestsService
 		return res;
 	}
 
+	async getGenericResource(resource: string, options?: FindOptions): Promise<AddonData[]> 
+	{
+		return await this.papiClient.resources.resource(resource).get(options);
+	}
+
 	async getGenericResourceByKey(resource: string, key: string): Promise<AddonData> 
 	{
 		return await this.papiClient.resources.resource(resource).key(key).get();
@@ -325,5 +330,10 @@ export class CoreResourcesTestsService
 		}
 		
 		console.log(`Successfully installed buyer management addon.`);
+	}
+
+	generateUUID(): string
+	{
+		return uuid();
 	}
 }
