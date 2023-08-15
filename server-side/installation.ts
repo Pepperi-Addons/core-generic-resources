@@ -374,8 +374,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		{
 			// update 'users' schema Profile field
 			const usersSchema =  await papiClient.addons.data.schemes.name('users').get();
-			usersSchema.Fields!['Profile']['ApplySystemFilter'] = true;
-			res['resultObject'] = await papiClient.addons.data.schemes.post(usersSchema);
+			if(usersSchema.Type == 'data')
+			{
+				usersSchema.Fields!['Profile']['ApplySystemFilter'] = true;
+				res['resultObject'] = await papiClient.addons.data.schemes.post(usersSchema);
+			}
 		}
 		catch (error) 
 		{
