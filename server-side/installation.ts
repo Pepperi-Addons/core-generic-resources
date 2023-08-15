@@ -367,6 +367,25 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.0'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try 
+		{
+			// update 'users' schema Profile field
+			const usersSchema =  await papiClient.addons.data.schemes.name('users').get();
+			usersSchema.Fields!['Profile']['ApplySystemFilter'] = true;
+			res['resultObject'] = await papiClient.addons.data.schemes.post(usersSchema);
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	return res;
 }
 
