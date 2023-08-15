@@ -448,6 +448,7 @@ const usersSchema: AddonDataScheme = {
     		Type: "Resource",
     		Resource: "profiles",
     		AddonUUID: config.AddonUUID,
+    		ApplySystemFilter: true,
     		Indexed: true,
     		IndexedFields: {
     			Name: {
