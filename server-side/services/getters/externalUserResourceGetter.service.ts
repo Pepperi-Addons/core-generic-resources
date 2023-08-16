@@ -14,13 +14,12 @@ export class ExternalUserResourceGetterService extends BaseGetterService
 		return this.externalUserResource;
 	}
 
-	async buildFixedFieldsString(): Promise<string> 
+	async buildFixedFieldsArray(): Promise<string[]> 
 	{
 		let fields = await this.getSchemeFields('users');
 		fields = fields.filter(field => field != 'UserType');
-		const fieldsString = fields.join(',');
-		console.log("BUYERS FIELDS STRING: " + fieldsString);
-		return fieldsString;
+		console.log("BUYERS FIELDS STRING: " + JSON.stringify(fields));
+		return fields;
 	}
 
 	singleObjectFix(object: any): void

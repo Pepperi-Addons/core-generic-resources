@@ -4,7 +4,7 @@ import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export abstract class BaseGetterService 
 {
-	protected _requestedFields: string | undefined;
+	protected _requestedFields: string[] | undefined;
 	protected resourceTypeFields: string[] = [];
 
 	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService, private whereClause: string = "")
@@ -12,25 +12,25 @@ export abstract class BaseGetterService
 	}
 
 	// this function makes sure the fields string is built only once
-	protected async getRequestedFieldsString(): Promise<string>
+	protected async getRequestedFieldsArray(): Promise<string[]>
 	{
 		if(!this._requestedFields)
 		{
-			this._requestedFields = await this.buildFixedFieldsString();
+			this._requestedFields = await this.buildFixedFieldsArray();
 		}
 		return this._requestedFields;
 	}
 
     abstract getResourceName(): string; // search is performed on the given resource
-    abstract buildFixedFieldsString(): Promise<string>; 
+    abstract buildFixedFieldsArray(): Promise<string[]>; 
     abstract singleObjectFix(object): void;
 
-    protected async getObjects(body: any, additionalFieldsString?: string): Promise<SearchData<AddonData>> 
+    protected async getObjects(body: any, additionalFieldsArray: string[] = []): Promise<SearchData<AddonData>> 
     {
     	console.log("GETTING OBJECTS");
     	console.log(body);
-    	const fieldsString = await this.getRequestedFieldsString();
-    	body["Fields"] = additionalFieldsString ? `${fieldsString},${additionalFieldsString}` : fieldsString;
+    	const fieldsArray = await this.getRequestedFieldsArray();
+    	body["Fields"] = fieldsArray.concat(additionalFieldsArray);
     	body["IncludeDeleted"] = true;
     	body["OrderBy"] = "CreationDateTime";
     	const searchResponse = await this.iSearchService.searchResource(this.getResourceName(), body);
@@ -38,7 +38,7 @@ export abstract class BaseGetterService
     	return searchResponse;
     }
 
-    public async getObjectsByPage(page: number | string, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
+    public async getObjectsByPage(page: number | string, pageSize: number, additionalFields?: string[]): Promise<SearchData<AddonData>>
     {
     	const body = {
     		Where: this.whereClause,
@@ -48,7 +48,7 @@ export abstract class BaseGetterService
     	return await this.getObjects(body, additionalFields);
     }
 
-    public async getObjectsByKeys(Keys: string[], additionalFields?: string): Promise<SearchData<AddonData>>
+    public async getObjectsByKeys(Keys: string[], additionalFields?: string[]): Promise<SearchData<AddonData>>
     {
     	const body = { KeyList: Keys };
     	return await this.getObjects(body, additionalFields);
