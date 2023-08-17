@@ -6,7 +6,7 @@ export class ExternalUserResourceGetterService extends BaseGetterService
 { 
 	constructor(papiClient: PapiClient, protected externalUserResource: string)
 	{
-		super(papiClient, new GenericResourceSearchService(papiClient), "Active=true");
+		super(papiClient, new GenericResourceSearchService(papiClient), "Active=true", true);
 	}
 
 	getResourceName(): string
