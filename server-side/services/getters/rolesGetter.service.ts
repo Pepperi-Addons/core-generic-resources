@@ -32,9 +32,9 @@ export class RolesGetterService extends BaseGetterService
 		return 'roles';
 	}
 
-	public async buildFixedFieldsString(): Promise<string>
+	public async buildFixedFieldsArray(): Promise<string[]>
 	{
-		return 'InternalID,ParentInternalID';
+		return['InternalID','ParentInternalID'];
 	}
 
 	singleObjectFix(object: any): void

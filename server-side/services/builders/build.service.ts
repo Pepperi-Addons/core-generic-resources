@@ -33,7 +33,7 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 	// These functions are exposed here so they can be called from the buildService object,
 	// while retaining the 'this' scope of the BaseBuildService class.
 
-	async searchObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
+	async searchObjectsByPage(page: number, pageSize: number, additionalFields?: string[]): Promise<SearchData<AddonData>>
 	{
 		return await this.baseGetterService.getObjectsByPage(page, pageSize, additionalFields);
 	}

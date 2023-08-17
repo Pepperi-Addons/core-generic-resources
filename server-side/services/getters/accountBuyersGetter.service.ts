@@ -14,10 +14,10 @@ export class AccountBuyersGetterService extends BaseGetterService
 		return 'account_buyers';
 	}
 
-	async buildFixedFieldsString(): Promise<string> 
+	async buildFixedFieldsArray(): Promise<string[]> 
 	{
 		const fields = await this.getSchemeFields('account_users');
-		return fields.join(',');
+		return fields;
 	}
 
 	singleObjectFix(object): void

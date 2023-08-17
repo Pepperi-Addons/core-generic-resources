@@ -14,13 +14,12 @@ export class UsersGetterService extends BaseGetterService
 		return 'users';
 	}
 	
-	async buildFixedFieldsString(): Promise<string> 
+	async buildFixedFieldsArray(): Promise<string[]> 
 	{
 		let fields = await this.getSchemeFields('users');
 		fields = fields.filter(field => field != 'UserType');
-		const fieldsString = fields.join(',');
-		console.log("USERS FIELDS STRING: " + fieldsString);
-		return fieldsString;
+		console.log("USERS FIELDS STRING: " + JSON.stringify(fields));
+		return fields;
 	}
 
 	singleObjectFix(object: any): void

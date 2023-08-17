@@ -81,7 +81,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		console.log("NEW BUYERS ADDED, UPDATING ACCOUNT BUYERS");
 		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, 'Active');
+		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, ['Active']);
 		const updatedExternalUserResourceObjects = externalUserResourceByKeysRes.Objects;
 
 		// Active buyers has account_buyers relations 
@@ -94,7 +94,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		console.log("BUYERS ACTIVE STATE PNS TRIGGERED");
 		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-		const updatedExternalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, 'Active');
+		const updatedExternalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, ['Active']);
 		const updatedExternalUserResourceObjects = updatedExternalUserResourceByKeysRes.Objects;
 
 		// Active buyers has account_buyers relations 

@@ -46,9 +46,9 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		return this.wrappedPapiGetter.getResourceName();
 	}
 
-	public async buildFixedFieldsString(): Promise<string>
+	public async buildFixedFieldsArray(): Promise<string[]>
 	{
-		return await this.wrappedPapiGetter.buildFixedFieldsString();
+		return await this.wrappedPapiGetter.buildFixedFieldsArray();
 	}
 
 	public singleObjectFix(object): void
@@ -56,7 +56,7 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		this.wrappedPapiGetter.singleObjectFix(object);
 	}
 
-	public override async getObjectsByPage(page: number, pageSize: number, additionalFields?: string): Promise<SearchData<AddonData>>
+	public override async getObjectsByPage(page: number, pageSize: number, additionalFields?: string[]): Promise<SearchData<AddonData>>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the page and pageSize
 		// Page and pageSize are 1-based
@@ -77,7 +77,7 @@ export class PapiGetterTestWrapperService extends BaseGetterService
 		return res;
 	}
 
-	public override async getObjectsByKeys(UUIDs: string[], additionalFields?: string): Promise<SearchData<AddonData>>
+	public override async getObjectsByKeys(UUIDs: string[], additionalFields?: string[]): Promise<SearchData<AddonData>>
 	{
     	// If the testBody has TestInputObjects[this.getResourceName()], return objects from it appropriate to the UUIDs
 		let res: any;
