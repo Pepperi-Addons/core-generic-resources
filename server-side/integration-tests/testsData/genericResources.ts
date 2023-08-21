@@ -3,12 +3,12 @@ import { GenericResourceTestInput } from "../entities";
 export const genericResourcesTestsData: GenericResourceTestInput[] = [
 	{
 		ResourceName: "account_users",
-		UniqueFieldID: "ExternalID",
+		UniqueFieldID: "Key",
 		NonUniqueFieldID: "Account",
 	},
 	{
 		ResourceName: "users",
-		UniqueFieldID: "ExternalID",
+		UniqueFieldID: "Key",
 		NonUniqueFieldID: "Name",
 	},
 	{
