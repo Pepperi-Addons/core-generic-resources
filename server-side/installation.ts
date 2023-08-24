@@ -272,24 +272,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// create a new profiles schema
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.27'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		try 
-		{
-			res['resultObject'] = await schemaService.createCoreSchemas(["profiles"]);
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
-
-			return res;
-		}
-	}
-
 	// Create new schemas and run build process for 'role_roles' schemas.
 	// if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.44'))
 	// {
@@ -379,6 +361,24 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 				usersSchema.Fields!['Profile']['ApplySystemFilter'] = true;
 				res['resultObject'] = await papiClient.addons.data.schemes.post(usersSchema);
 			}
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.10'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		try 
+		{
+			// Update Profiles schema with new Parent reference field
+			res['resultObject'] = await schemaService.createCoreSchemas(["profiles"]);
 		}
 		catch (error) 
 		{
