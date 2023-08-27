@@ -2,8 +2,6 @@ import { PapiClient } from '@pepperi-addons/papi-sdk';
 
 export class AsyncHelperService 
 {
-	dataObject: any; // the 'Data' object passed inside the http request sent to start the test -- put all the data you need here
-	pageSize = 500;
 
 	constructor(public papiClient: PapiClient)
 	{}
