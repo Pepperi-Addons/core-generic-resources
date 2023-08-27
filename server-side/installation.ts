@@ -389,6 +389,23 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.6'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		try
+		{
+			const service = new BuildManagerService(papiClient);
+			res['resultObject'] = await service.postUpgradeOperations();
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	return res;
 }
 
