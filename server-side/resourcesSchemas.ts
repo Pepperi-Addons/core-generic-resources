@@ -575,9 +575,11 @@ const profilesSchema: AddonDataScheme = {
 		{
 			Type: "String"
 		},
-    	ParentInternalID:
+    	Parent:
 		{
-			Type: "Integer"
+			Type: "Resource",
+    		Resource: "profiles",
+    		AddonUUID: config.AddonUUID
 		},
     }
 }

@@ -50,7 +50,8 @@ export class Helper
 		return params;
 	  }
 
-	static throwErrorWithLog(errorMessage: string): void {
+	static throwErrorWithLog(errorMessage: string): void 
+	{
 		console.error(errorMessage);
 		throw new Error(errorMessage);
 	}
