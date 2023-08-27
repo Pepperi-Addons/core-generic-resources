@@ -1,13 +1,12 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { AddonAPIAsyncResult, AddonDataScheme, PapiClient } from '@pepperi-addons/papi-sdk';
 import config from '../../addon.config.json';
 import { AsyncResultObject } from '../constants';
 import { UsersPNSService } from './pns/usersPNS.service';
 import { BasePNSService } from './pns/basePNS.service';
 import { AccountUsersPNSService } from './pns/accountUsersPNS.service';
 import { ExternalUserResourcePNSService } from './pns/externalUserResourcePNS.service';
-import { SchemaService } from '../schema.service';
-import { CoreResourcesTestsService } from '../integration-tests/services/coreResources.service';
 import { resourceNameToSchemaMap } from '../resourcesSchemas';
+import { AsyncHelperService } from './asyncHelper.service';
 
 export class BuildManagerService
 {
@@ -81,7 +80,8 @@ export class BuildManagerService
 			throw new Error(errorMessage);
 		}
 
-		const isAsyncRequestResolved = await this.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
+		const asyncHelperService = new AsyncHelperService(this.papiClient);
+		const isAsyncRequestResolved = await asyncHelperService.pollExecution(this.papiClient, asyncCall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{
 			const errorMessage = `Error executing function '${funcName}' in file 'adal'. For more details see audit log: ${asyncCall.ExecutionUUID!}`;
@@ -90,51 +90,6 @@ export class BuildManagerService
 		}
 
 		console.log(`Successfully executed function '${funcName}' in file 'adal'.`);
-	}
-
-	/** Poll an ActionUUID until it resolves to success our failure. The returned promise resolves to a boolean - true in case the execution was successful, false otherwise.
-	* @param ExecutionUUID the executionUUID which should be polled.
-	* @param interval the time interval in ms which will be waited between polling retries.
-	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 540, allowing for 9 minutes of polling, allowing graceful exit for install. 
-	*/
-	public async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
-	{
-		let attempts = 0;
-
-		const executePoll = async (resolve, reject) =>
-		{
-			console.log(`Polling ${ExecutionUUID}, attempt number ${attempts} out of ${maxAttempts}`);
-			const result = await papiClient.auditLogs.uuid(ExecutionUUID).get();
-			attempts++;
-
-			if (this.isAsyncExecutionOver(result))
-			{
-				console.log(`Finished polling ${ExecutionUUID}, it's status is ${result.Status.Name}`);
-				return resolve(result.Status.Name === 'Success');
-			}
-			else if (maxAttempts && attempts === maxAttempts)
-			{
-				console.log(`Exceeded max attempts polling ${ExecutionUUID}`);
-
-				return resolve(false);
-			}
-			else
-			{
-				setTimeout(executePoll, interval, resolve, reject);
-			}
-		};
-
-		return new Promise<boolean>(executePoll);
-	}
-
-	/**
-	 * Determines whether or not an audit log has finished executing.
-	 * @param auditLog - The audit log to poll
-	 * @returns 
-	 */
-	protected isAsyncExecutionOver(auditLog: any): boolean
-	{
-		return auditLog != null && (auditLog.Status.Name === 'Failure' || auditLog.Status.Name === 'Success');
 	}
 
 
@@ -169,7 +124,7 @@ export class BuildManagerService
 		}
 	}
 
-	async populateExternalUserResources(resource: string)
+	private async populateExternalUserResources(resource: string)
 	{
 		// relevant only for users resource, need to be refactored
 		if(resource == 'users')
@@ -182,7 +137,7 @@ export class BuildManagerService
 		}
 	}
 
-	async buildTables(tablesNames: string[]): Promise<AsyncResultObject>
+	public async buildTables(tablesNames: string[]): Promise<AsyncResultObject>
 	{
 		const resultObject: AsyncResultObject = {success: true};
 
@@ -205,19 +160,19 @@ export class BuildManagerService
 		return resultObject;
 	}
 
-	async postUpgradeOperations(): Promise<any>
+	public async postUpgradeOperations(): Promise<AsyncResultObject>
 	{
 		console.log('STARTING POST UPGRADE OPERATIONS');
 		const res = { success: true };
 		res['resultObject'] = {};
-		const waiterService = new CoreResourcesTestsService(this.papiClient);
+		const asyncHelperService = new AsyncHelperService(this.papiClient);
 		const tablesToBuild: string[] = [];
 		try 
 		{
 			res['resultObject']['createUsersSchema'] = await this.updateSchema('users', tablesToBuild);
 			res['resultObject']['createAccountUsersSchema'] = await this.updateSchema('account_users', tablesToBuild);
 			// waiting for Nebula to finish handling pns notifications
-			await waiterService.waitForAsyncJob(60);
+			await asyncHelperService.waitForAsyncJob(60);
 			console.log('TABLES TO BUILD: ', JSON.stringify(tablesToBuild));
 			res['resultObject']['buildTables'] = await this.buildTables(tablesToBuild);
 		}
@@ -229,7 +184,7 @@ export class BuildManagerService
 		return res;
 	}
 
-	async updateSchema(schemaName: string, tablesToBuild: string[]): Promise<any>
+	private async updateSchema(schemaName: string, tablesToBuild: string[]): Promise<AddonDataScheme | undefined>
 	{
 		const schema =  await this.papiClient.addons.data.schemes.name(schemaName).get();
 		// if schema type is data, it means that the schema was already updated and built
@@ -243,7 +198,7 @@ export class BuildManagerService
 		}
 	}
 
-	async runPostUpgradeOperations(): Promise<any>
+	public async runPostUpgradeOperations(): Promise<AddonAPIAsyncResult>
 	{
 		return await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func('post_upgrade_operations').post();
 	}

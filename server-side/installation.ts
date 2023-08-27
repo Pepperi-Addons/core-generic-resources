@@ -375,10 +375,15 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 	{
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
+		const buildManagerService = new BuildManagerService(papiClient);
 		try 
 		{
 			// Update Profiles schema with new Parent reference field
-			res['resultObject'] = await schemaService.createCoreSchemas(["profiles"]);
+			res['resultObject']['profilesSchemeUpdate'] = await schemaService.createCoreSchemas(["profiles"]);
+
+			// postUpgradeOperations should update users and
+			// account_users schemes types and build the tables
+			res['resultObject']['postUpgradeOperations'] = await buildManagerService.postUpgradeOperations();
 		}
 		catch (error) 
 		{

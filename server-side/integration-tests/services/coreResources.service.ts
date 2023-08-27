@@ -3,14 +3,18 @@ import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
 import { BuildManagerService } from '../../services/buildManager.service';
+import { AsyncHelperService } from '../../services/asyncHelper.service';
 
 export class CoreResourcesTestsService 
 {
 	dataObject: any; // the 'Data' object passed inside the http request sent to start the test -- put all the data you need here
 	pageSize = 500;
+	asyncHelperService: AsyncHelperService;
 
 	constructor(public papiClient: PapiClient, public asyncPapiClient?: PapiClient)
-	{}
+	{
+		this.asyncHelperService = new AsyncHelperService(papiClient);
+	}
 
 	async getGenericResourceObjects(resource: string, options?: FindOptions): Promise<AddonData[]> 
 	{
@@ -257,16 +261,6 @@ export class CoreResourcesTestsService
 		await this.papiClient.post(`/batch/${resource}`, objects);
 	}
 
-	/**
-	 * Sleeps for the specified number of seconds
-	 * @param seconds - number of seconds to wait for the async job to finish. Default is 30 seconds.
-	 */
-	async waitForAsyncJob(seconds = 30): Promise<void> 
-	{
-		console.log(`Waiting for ${seconds} seconds for operation to catch up...`);
-		Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, seconds * 1000);
-		console.log(`Done waiting for operation`);
-	}
 
 	async getAdalSchemeFieldsNames(resource: string): Promise<string[]> 
 	{
@@ -288,7 +282,7 @@ export class CoreResourcesTestsService
 
 	async runPostUpgradeOperations()
 	{
-		const pollingService = new BuildManagerService(this.papiClient);
+		const asyncHelperService = new AsyncHelperService(this.papiClient);
 		const asyncCall = await this.asyncPapiClient?.post(`/addons/api/${AddonUUID}/adal/run_post_upgrade_operations`, {});
 		if(!asyncCall)
 		{
@@ -296,7 +290,7 @@ export class CoreResourcesTestsService
 			console.error(errorMessage);
 			throw new Error(errorMessage);
 		}
-		const isAsyncRequestResolved = await pollingService.pollExecution(this.asyncPapiClient!, asyncCall.ExecutionUUID!);
+		const isAsyncRequestResolved = await asyncHelperService.pollExecution(this.asyncPapiClient!, asyncCall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{
 			const errorMessage = `Error executing run_post_upgrade_operations in file 'adal'. For more details see audit log: ${asyncCall.ExecutionUUID!}`;
@@ -316,12 +310,12 @@ export class CoreResourcesTestsService
 
 	async installBuyerManagementAddon(): Promise<void>
 	{
-		const pollingService = new BuildManagerService(this.papiClient);
+		const asyncHelperService = new AsyncHelperService(this.papiClient);
 		const buyerManagementAddonUUID = "ee953146-b133-4ba2-bdc4-dd15ac2b76a4";
 		const versions = await this.papiClient.addons.versions.find({where: `AddonUUID='${buyerManagementAddonUUID}'`, order_by: `"CreationDateTime" desc`});
 		const latest = versions[0].Version;
 		const asyncInstall = await this.asyncPapiClient!.addons.installedAddons.addonUUID(buyerManagementAddonUUID).install(latest);
-		const isAsyncRequestResolved = await pollingService.pollExecution(this.asyncPapiClient!, asyncInstall.ExecutionUUID!);
+		const isAsyncRequestResolved = await asyncHelperService.pollExecution(this.asyncPapiClient!, asyncInstall.ExecutionUUID!);
 		if(!isAsyncRequestResolved)
 		{
 			const errorMessage = `Error installing buyer management addon. For more details see audit log: ${asyncInstall.ExecutionUUID!}`;
