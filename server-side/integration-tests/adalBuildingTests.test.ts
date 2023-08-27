@@ -40,7 +40,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				const uniquePapiKeys = new Set(keys);
 				await this.coreResourcesTestsService.resetTable('users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('users');
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				const adalUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('users');
 				expect(buildTableResponse).to.have.property('success').that.is.true;
 				expect(adalUsersList).to.be.an('array').with.lengthOf(uniquePapiKeys.size);
@@ -65,7 +65,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				const papiUniqueKeys = new Set(papiKeys);
 				await this.coreResourcesTestsService.resetTable('account_users'); // reset the table before build
 				const buildTableResponse = await this.coreResourcesTestsService.buildTable('account_users');
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				const adalAccountUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('account_users');
 				const adalUniqueKeys = new Set(adalAccountUsersList.map(accountUser => accountUser.Key));
 				console.log(this.coreResourcesTestsService.getDifference(adalUniqueKeys, papiUniqueKeys));

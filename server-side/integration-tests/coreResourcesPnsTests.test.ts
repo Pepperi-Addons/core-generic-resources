@@ -41,13 +41,13 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 
 				createdContacts = await this.coreResourcesTestsService.createContactsForTest(numberOfContacts, testAccount);
 				// wait for PNS to finish
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				let currentAdalUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('users');
 				// contacts should not be upserted to adal users table
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length);
 				await this.coreResourcesTestsService.connectContacts(createdContacts.slice(0, numberOfContacts / 2));
 				// wait for PNS to finish
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				currentAdalUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('users');
 				const currentAccountBuyersList = await this.coreResourcesTestsService.getAllPapiGenericResourceObjects('account_buyers');
 				const currentNonHiddenAdalAccountUsers = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('account_users',false);
@@ -64,7 +64,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				// now disconnect some buyers
 				await this.coreResourcesTestsService.disconnectBuyers(createdContacts.slice(0, numberOfContacts/5));
 				// wait for PNS to finish
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				currentAdalUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('users', false);
 				const diff = numberOfContacts / 2 - numberOfContacts / 5;
 				expect(currentAdalUsersList.length).to.equal(initialNonHiddenAdalUsersList.length + diff); // 50 - this.ASYNC_JOB_AWAIT = 30
@@ -91,7 +91,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				const numberOfUsers = 10;
 				createdUsers = await this.coreResourcesTestsService.createPapiUsers(numberOfUsers);
 				// wait for PNS to finish
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				const currentAdalUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('users');
 				expect(currentAdalUsersList.length).to.equal(initialAdalUsersList.length + numberOfUsers);
 	
@@ -109,7 +109,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 				const initialAdalAccountUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('account_users');
 				createdAccountUsers = await this.coreResourcesTestsService.createPapiAccountUsers(createdUsers, testAccount);
 				// wait for PNS to finish
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				const currentAdalAccountUsersList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('account_users');
 				expect(currentAdalAccountUsersList.length).to.equal(initialAdalAccountUsersList.length + numberOfUsers);
 	
@@ -159,7 +159,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 
 				await this.postTsaFieldForAccounts(tsa);
 				// Await PNS to update the schema
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 
 				const modifiedSchema: AddonDataScheme = await this.papiClient.addons.data.schemes.name('accounts').get();
 				expect(modifiedSchema).to.have.property('Fields').that.is.an('Object');
@@ -179,7 +179,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 
 				await this.postTsaFieldForAccounts(tsaCopy);
 				// Await PNS to update the schema
-				await this.coreResourcesTestsService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 
 				const modifiedSchema: AddonDataScheme = await this.papiClient.addons.data.schemes.name('accounts').get();
 				expect(modifiedSchema).to.have.property('Fields').that.is.an('Object');
