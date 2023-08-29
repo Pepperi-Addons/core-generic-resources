@@ -1,4 +1,4 @@
-import { PageNumberBuilder as PageNumberEtl } from '@pepperi-addons/modelsdk';
+import { PageNumberBuilder as PageNumberEtl } from '@pepperi-addons/etl-sdk';
 import { UsersGetterService } from '../getters/usersGetter.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 

@@ -1,4 +1,4 @@
-import { PageKeyBuilder as PageKeyEtl } from '@pepperi-addons/modelsdk';
+import { PageKeyBuilder as PageKeyEtl } from '@pepperi-addons/etl-sdk';
 import { ExternalUserResourceGetterService } from '../getters/externalUserResourceGetter.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 

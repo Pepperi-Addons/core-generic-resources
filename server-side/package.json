@@ -34,7 +34,7 @@
     "dependencies": {
         "@pepperi-addons/addon-testing-framework": "^0.0.19",
         "@pepperi-addons/debug-server": "^0.0.39",
-        "@pepperi-addons/modelsdk": "^0.0.12",
+        "@pepperi-addons/etl-sdk": "^0.0.13",
         "@pepperi-addons/papi-sdk": "^1.53.0",
         "core-resources-shared": "file:../shared",
         "lodash.clonedeep": "^4.5.0",

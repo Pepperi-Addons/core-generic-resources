@@ -2,8 +2,8 @@ import { AddonData, BatchApiResponse, PapiClient, SearchBody, SearchData } from 
 import { BaseGetterService } from '../getters/baseGetter.service';
 import { IBuildServiceParams } from './iBuildServiceParams';
 import { AsyncResultObject } from '../../constants';
-import { BuildOperations as EtlOperations} from '@pepperi-addons/modelsdk';
-import { BuildService as EtlService } from '@pepperi-addons/modelsdk/dist/builders/build';
+import { BuildOperations as EtlOperations} from '@pepperi-addons/etl-sdk';
+import { BuildService as EtlService } from '@pepperi-addons/etl-sdk/dist/builders/build';
 import { AdalService } from '../adal.service';
 
 
