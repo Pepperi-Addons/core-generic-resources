@@ -1,5 +1,5 @@
-import { BuildOperations as EtlOperations } from "@pepperi-addons/modelsdk";
-import { BuildService as EtlService } from "@pepperi-addons/modelsdk/dist/builders/build";
+import { BuildOperations as EtlOperations } from "@pepperi-addons/etl-sdk";
+import { BuildService as EtlService } from "@pepperi-addons/etl-sdk/dist/builders/build";
 import { AddonData, PapiClient } from "@pepperi-addons/papi-sdk";
 import { BaseGetterService } from "../getters/baseGetter.service";
 
