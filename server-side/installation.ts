@@ -378,6 +378,8 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		const buildManagerService = new BuildManagerService(papiClient);
 		try 
 		{
+			res['resultObject'] = {};
+
 			// Update Profiles schema with new Parent reference field
 			res['resultObject']['profilesSchemeUpdate'] = await schemaService.createCoreSchemas(["profiles"]);
 
