@@ -17,7 +17,7 @@ export class BuildManagerService
 	protected resourceFunctionsMap: {[key: string]: string[]} = {
 		users: ['build_users'],
 		account_users: ['build_account_users', 'build_account_buyers'],
-		// role_roles: ['clean_build_role_roles']
+		role_roles: ['clean_build_role_roles']
 	};
 
 	constructor(protected papiClient: PapiClient)
@@ -137,6 +137,11 @@ export class BuildManagerService
 		}
 	}
 
+	/**
+	 * Build tables in ADAL. The building process is done in parallel for all tables.
+	 * @param {string[]} tablesNames - The names of the tables to build. 
+	 * @returns 
+	 */
 	public async buildTables(tablesNames: string[]): Promise<AsyncResultObject>
 	{
 		const resultObject: AsyncResultObject = {success: true};
