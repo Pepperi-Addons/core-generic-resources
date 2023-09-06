@@ -400,11 +400,9 @@ const employeesSchema: AddonDataScheme = {
     		AddonUUID: config.AddonUUID,
     	},
     	Role: {
-    		// These should be uncommented in Core Resources 0.8
-    		// Type: "Resource",
-    		// Resource: "roles",
-    		// AddonUUID: config.AddonUUID,
-    		Type: "String"
+    		Type: "Resource",
+    		Resource: "roles",
+    		AddonUUID: config.AddonUUID,
     	}
     }
 }
