@@ -614,6 +614,11 @@ const roleRolesSchema: AddonDataScheme = {
 	SyncData:
 	{
 		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Role',
+			FieldID2: 'ParentRole'
+		}
 	},
 	Fields:
 	{
@@ -627,7 +632,7 @@ const roleRolesSchema: AddonDataScheme = {
     		AddonUUID: config.AddonUUID,
 			ApplySystemFilter: true,
     	},
-		ParentRole:{
+		ParentRole: {
 			Type: "Resource",
     		Resource: "role",
     		AddonUUID: config.AddonUUID,
