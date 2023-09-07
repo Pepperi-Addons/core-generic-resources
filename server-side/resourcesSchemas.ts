@@ -403,6 +403,7 @@ const employeesSchema: AddonDataScheme = {
     		Type: "Resource",
     		Resource: "roles",
     		AddonUUID: config.AddonUUID,
+    		ApplySystemFilter: true,
     	}
     }
 }
