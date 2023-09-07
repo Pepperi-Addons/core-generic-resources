@@ -372,22 +372,22 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.20'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.21'))
 	{
-		// upgrade to 1.0.20 first, so the installed addon will have the
+		// upgrade to 1.0.21 first, so the installed addon will have the
 		// necessary endpoints for the postUpgradeOperations to work in 
-		// more advanced version, like >= 1.0.21.
+		// more advanced version, like >= 1.0.22.
 		const papiClient = Helper.getPapiClient(client);
 		try
 		{
-			const upgradeAddon = await papiClient.addons.installedAddons.addonUUID(AddonUUID).upgrade('1.0.20');
+			const upgradeAddon = await papiClient.addons.installedAddons.addonUUID(AddonUUID).upgrade('1.0.21');
 			const asyncHelperService = new AsyncHelperService(papiClient);
 			const isAsyncRequestResolved = await asyncHelperService.pollExecution(papiClient, upgradeAddon.ExecutionUUID!);
 			if(!isAsyncRequestResolved)
 			{
-				// We fail the upgrade process if the upgrade to 1.0.20failed,
+				// We fail the upgrade process if the upgrade to 1.0.21 failed,
 				// Since 1.0.21 and above require the endpoints that are installed
-				const errorMessage = `Failed to internally upgrade to 1.0.20. For more details see audit log: ${upgradeAddon.ExecutionUUID!}`;
+				const errorMessage = `Failed to internally upgrade to 1.0.21. For more details see audit log: ${upgradeAddon.ExecutionUUID!}`;
 				console.error(errorMessage);
 				res.success = false;
 				res['errorMessage'] = errorMessage;
@@ -402,7 +402,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.21'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.22'))
 	{
 
 		const papiClient = Helper.getPapiClient(client);
