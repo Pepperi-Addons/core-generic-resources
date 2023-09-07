@@ -371,30 +371,39 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.10'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		const schemaService = new SchemaService(papiClient);
-		const buildManagerService = new BuildManagerService(papiClient);
-		try 
-		{
-			res['resultObject'] = {};
+	// if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.20'))
+	// {
+	// 	const papiClient = Helper.getPapiClient(client);
+	// 	const schemaService = new SchemaService(papiClient);
+	// 	const buildManagerService = new BuildManagerService(papiClient);
+	// 	try 
+	// 	{
+	// 		res['resultObject'] = {};
 
-			// Update Profiles schema with new Parent reference field
-			res['resultObject']['profilesSchemeUpdate'] = await schemaService.createCoreSchemas(["profiles"]);
+	// 		// Update Profiles schema with new Parent reference field
+	// 		res['resultObject']['profilesSchemeUpdate'] = await schemaService.createCoreSchemas(["profiles"]);
 
-			// postUpgradeOperations should update users and
-			// account_users schemes types and build the tables
-			res['resultObject']['postUpgradeOperations'] = await buildManagerService.postUpgradeOperations();
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+	// 		// postUpgradeOperations should update users and
+	// 		// account_users schemes types and build the tables
+	// 		const postUpgradeOperations = await buildManagerService.postUpgradeOperations();
+	// 		if(postUpgradeOperations.success)
+	// 		{
+	// 			res['resultObject']['postUpgradeOperations'] = postUpgradeOperations;
+	// 		}
+	// 		else
+	// 		{
+	// 			res.success = false;
+	// 			res['errorMessage'] = postUpgradeOperations.errorMessage;
+	// 		}
+	// 	}
+	// 	catch (error) 
+	// 	{
+	// 		res.success = false;
+	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
-			return res;
-		}
-	}
+	// 		return res;
+	// 	}
+	// }
 
 	return res;
 }
