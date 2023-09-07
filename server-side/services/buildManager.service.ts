@@ -28,7 +28,7 @@ export class BuildManagerService
 		const supportedResources = Object.keys(this.resourceFunctionsMap);
 		if (!supportedResources.includes(resource))
 		{
-			throw new Error(`Invalid resource name. Valid values are: '${supportedResources.join("',")}'`);
+			throw new Error(`Invalid resource name ${resource}. Valid values are: '${supportedResources.join("',")}'`);
 		}
 
 		const res: AsyncResultObject = { success: true };
@@ -116,11 +116,6 @@ export class BuildManagerService
 			await pnsService.subscribe();
 			break;
 		}
-		default:
-		{
-			throw new Error(`Invalid resource name. Valid values are: '${Object.keys(this.resourceFunctionsMap).join("',")}'`);
-		}
-
 		}
 	}
 
