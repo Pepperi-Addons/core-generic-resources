@@ -22,6 +22,7 @@ import { ExternalUserResourcePNSService } from './services/pns/externalUserResou
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
+import { AsyncHelperService } from './services/asyncHelper.service';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -371,39 +372,65 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.20'))
-	// {
-	// 	const papiClient = Helper.getPapiClient(client);
-	// 	const schemaService = new SchemaService(papiClient);
-	// 	const buildManagerService = new BuildManagerService(papiClient);
-	// 	try 
-	// 	{
-	// 		res['resultObject'] = {};
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.19'))
+	{
+		// upgrade to 1.0.19 first, so the installed addon will have the
+		// necessary endpoints for the postUpgradeOperations to work in 
+		// more advanced version, like >= 1.0.20.
+		const papiClient = Helper.getPapiClient(client);
+		try
+		{
+			const upgradeAddon = await papiClient.addons.installedAddons.addonUUID(AddonUUID).upgrade('1.0.19');
+			const asyncHelperService = new AsyncHelperService(papiClient);
+			const isAsyncRequestResolved = await asyncHelperService.pollExecution(papiClient, upgradeAddon.ExecutionUUID!);
+			if(!isAsyncRequestResolved)
+			{
+				// We fail the upgrade process if the upgrade to 1.0.19 failed,
+				// Since 1.0.20 and above require the endpoints that are installed
+				const errorMessage = `Failed to internally upgrade to 1.0.19. For more details see audit log: ${upgradeAddon.ExecutionUUID!}`;
+				console.error(errorMessage);
+				res.success = false;
+				res['errorMessage'] = errorMessage;
+			}
+		}
+		catch (error)
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
-	// 		// Update Profiles schema with new Parent reference field
-	// 		res['resultObject']['profilesSchemeUpdate'] = await schemaService.createCoreSchemas(["profiles"]);
+			return res;
+		}
+	}
 
-	// 		// postUpgradeOperations should update users and
-	// 		// account_users schemes types and build the tables
-	// 		const postUpgradeOperations = await buildManagerService.postUpgradeOperations();
-	// 		if(postUpgradeOperations.success)
-	// 		{
-	// 			res['resultObject']['postUpgradeOperations'] = postUpgradeOperations;
-	// 		}
-	// 		else
-	// 		{
-	// 			res.success = false;
-	// 			res['errorMessage'] = postUpgradeOperations.errorMessage;
-	// 		}
-	// 	}
-	// 	catch (error) 
-	// 	{
-	// 		res.success = false;
-	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.20'))
+	{
 
-	// 		return res;
-	// 	}
-	// }
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		const buildManagerService = new BuildManagerService(papiClient);
+		try 
+		{
+			res['resultObject'] = {};
+
+			// Update Profiles schema with new Parent reference field
+			res['resultObject']['profilesSchemeUpdate'] = await schemaService.createCoreSchemas(["profiles"]);
+
+			// postUpgradeOperations should update users and
+			// account_users schemes types and build the tables
+			const postUpgradeOperations = await buildManagerService.postUpgradeOperations();
+			// We don't fail in case of postUpgradeOperations failure, since it might take a while, 
+			// And could be fixed by running the postUpgradeOperations manually.
+			res['resultObject']['postUpgradeOperations'] = postUpgradeOperations;
+
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
 
 	return res;
 }
