@@ -79,16 +79,6 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				const targetAdalResourceName = 'role_roles';
 				const coreResourcesTestsService = new CoreResourcesTestsService(this.papiClient);
 
-				// before(async () => {
-				//     console.log("BEFORE, CLEANING TABLE");
-				//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
-				// });
-
-				// afterEach(async () => {
-				//     console.log("AFTER EACH, CLEANING TABLE");
-				//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
-				// });
-
 				it('Ensure roles and role_roles schemas exist', async () => 
 				{
 					const schemaNames = ['roles', 'role_roles'];
