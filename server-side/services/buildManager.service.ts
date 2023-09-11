@@ -17,7 +17,7 @@ export class BuildManagerService
 	protected resourceFunctionsMap: {[key: string]: string[]} = {
 		users: ['build_users'],
 		account_users: ['build_account_users', 'build_account_buyers'],
-		// role_roles: ['clean_build_role_roles']
+		role_roles: ['clean_build_role_roles']
 	};
 
 	constructor(protected papiClient: PapiClient)
@@ -28,7 +28,7 @@ export class BuildManagerService
 		const supportedResources = Object.keys(this.resourceFunctionsMap);
 		if (!supportedResources.includes(resource))
 		{
-			throw new Error(`Invalid resource name. Valid values are: '${supportedResources.join("',")}'`);
+			throw new Error(`Invalid resource name ${resource}. Valid values are: '${supportedResources.join("',")}'`);
 		}
 
 		const res: AsyncResultObject = { success: true };
@@ -116,11 +116,6 @@ export class BuildManagerService
 			await pnsService.subscribe();
 			break;
 		}
-		default:
-		{
-			throw new Error(`Invalid resource name. Valid values are: '${Object.keys(this.resourceFunctionsMap).join("',")}'`);
-		}
-
 		}
 	}
 
@@ -137,6 +132,11 @@ export class BuildManagerService
 		}
 	}
 
+	/**
+	 * Build tables in ADAL. The building process is done in parallel for all tables.
+	 * @param {string[]} tablesNames - The names of the tables to build. 
+	 * @returns 
+	 */
 	public async buildTables(tablesNames: string[]): Promise<AsyncResultObject>
 	{
 		const resultObject: AsyncResultObject = {success: true};

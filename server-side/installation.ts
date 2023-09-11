@@ -314,24 +314,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.95'))
-	{
-		const papiClient = Helper.getPapiClient(client);
-		try 
-		{
-			const schemaService = new SchemaService(papiClient);
-			// Upsert the employees schema to not reference the Roles schema
-			res['resultObject'] = await schemaService.createCoreSchemas(["employees"]);
-		}
-		catch (error) 
-		{
-			res.success = false;
-			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
-
-			return res;
-		}
-	}
-
 	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '0.7.115'))
 	{
 		const papiClient = Helper.getPapiClient(client);
@@ -422,6 +404,34 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			// And could be fixed by running the postUpgradeOperations manually.
 			res['resultObject']['postUpgradeOperations'] = postUpgradeOperations;
 
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.5'))
+	{
+		// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
+		// Update the employees schema to reference the Roles schema
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		const buildManagerService = new BuildManagerService(papiClient);
+
+		try
+		{
+			res['resultObject'] = res['resultObject'] ?? {};
+
+			res['resultObject']['rolesSchemeUpdate'] = await schemaService.createCoreSchemas(["roles"]);
+			res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["role_roles"]);
+			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
+			res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
+
+			res['resultObject']['roleRolesBuild'] = await buildManagerService.build("role_roles");
 		}
 		catch (error) 
 		{

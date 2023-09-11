@@ -400,11 +400,10 @@ const employeesSchema: AddonDataScheme = {
     		AddonUUID: config.AddonUUID,
     	},
     	Role: {
-    		// These should be uncommented in Core Resources 0.8
-    		// Type: "Resource",
-    		// Resource: "roles",
-    		// AddonUUID: config.AddonUUID,
-    		Type: "String"
+    		Type: "Resource",
+    		Resource: "roles",
+    		AddonUUID: config.AddonUUID,
+    		ApplySystemFilter: true,
     	}
     }
 }
@@ -423,20 +422,23 @@ const usersSchema: AddonDataScheme = {
 	Fields:
     {
     	Email: {
-    		Type: "String"
+    		Type: "String",
+			Indexed: true
     	},
     	FirstName: {
     		Type: "String"
     	},
     	ExternalID: {
     		Type: "String",
-    		Unique: true
+    		Unique: true,
+			Indexed: true
     	},
     	LastName: {
     		Type: "String"
     	},
     	Name: {
-    		Type: "String"
+    		Type: "String",
+			Indexed: true
     	},
     	Mobile: {
     		Type: "String"
@@ -616,6 +618,11 @@ const roleRolesSchema: AddonDataScheme = {
 	SyncData:
 	{
 		Sync: true,
+		Associative:
+		{
+			FieldID1: 'Role',
+			FieldID2: 'ParentRole'
+		}
 	},
 	Fields:
 	{
@@ -629,7 +636,7 @@ const roleRolesSchema: AddonDataScheme = {
     		AddonUUID: config.AddonUUID,
 			ApplySystemFilter: true,
     	},
-		ParentRole:{
+		ParentRole: {
 			Type: "Resource",
     		Resource: "role",
     		AddonUUID: config.AddonUUID,
@@ -647,8 +654,8 @@ export const resourceNameToSchemaMap: { [key: string]: AddonDataScheme } = {
 	'contacts': contactsSchema,
 	'items': itemsSchema,
 	'profiles': profilesSchema,
-	// 'roles': rolesSchema,
+	'roles': rolesSchema,
 	'users': usersSchema,
 	'employees': employeesSchema,
-	// 'role_roles': roleRolesSchema,
+	'role_roles': roleRolesSchema,
 }
