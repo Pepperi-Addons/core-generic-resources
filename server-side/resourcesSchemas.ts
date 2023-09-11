@@ -422,20 +422,23 @@ const usersSchema: AddonDataScheme = {
 	Fields:
     {
     	Email: {
-    		Type: "String"
+    		Type: "String",
+			Indexed: true
     	},
     	FirstName: {
     		Type: "String"
     	},
     	ExternalID: {
     		Type: "String",
-    		Unique: true
+    		Unique: true,
+			Indexed: true
     	},
     	LastName: {
     		Type: "String"
     	},
     	Name: {
-    		Type: "String"
+    		Type: "String",
+			Indexed: true
     	},
     	Mobile: {
     		Type: "String"
