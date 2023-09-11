@@ -22,6 +22,7 @@ import { ExternalUserResourcePNSService } from './services/pns/externalUserResou
 import { BuildManagerService } from './services/buildManager.service'
 import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
+import { AsyncHelperService } from './services/asyncHelper.service';
 
 
 export async function install(client: Client, request: Request): Promise<any> 
@@ -371,8 +372,39 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.10'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.21'))
 	{
+		// upgrade to 1.0.21 first, so the installed addon will have the
+		// necessary endpoints for the postUpgradeOperations to work in 
+		// more advanced version, like >= 1.0.22.
+		const papiClient = Helper.getPapiClient(client);
+		try
+		{
+			const upgradeAddon = await papiClient.addons.installedAddons.addonUUID(AddonUUID).upgrade('1.0.21');
+			const asyncHelperService = new AsyncHelperService(papiClient);
+			const isAsyncRequestResolved = await asyncHelperService.pollExecution(papiClient, upgradeAddon.ExecutionUUID!);
+			if(!isAsyncRequestResolved)
+			{
+				// We fail the upgrade process if the upgrade to 1.0.21 failed,
+				// Since 1.0.21 and above require the endpoints that are installed
+				const errorMessage = `Failed to internally upgrade to 1.0.21. For more details see audit log: ${upgradeAddon.ExecutionUUID!}`;
+				console.error(errorMessage);
+				res.success = false;
+				res['errorMessage'] = errorMessage;
+			}
+		}
+		catch (error)
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.0.22'))
+	{
+
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
 		const buildManagerService = new BuildManagerService(papiClient);
@@ -385,7 +417,11 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 			// postUpgradeOperations should update users and
 			// account_users schemes types and build the tables
-			res['resultObject']['postUpgradeOperations'] = await buildManagerService.postUpgradeOperations();
+			const postUpgradeOperations = await buildManagerService.postUpgradeOperations();
+			// We don't fail in case of postUpgradeOperations failure, since it might take a while, 
+			// And could be fixed by running the postUpgradeOperations manually.
+			res['resultObject']['postUpgradeOperations'] = postUpgradeOperations;
+
 		}
 		catch (error) 
 		{
