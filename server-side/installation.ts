@@ -424,13 +424,13 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 		try
 		{
-			res['resultObject'] = {};
+			res['resultObject'] = res['resultObject'] ?? {};
 
 			res['resultObject']['rolesSchemeUpdate'] = await schemaService.createCoreSchemas(["roles"]);
 			res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["role_roles"]);
-			res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
+			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
 
-			res['resultObject']['postUpgradeOperations'] = await buildManagerService.build("role_roles");
+			res['resultObject']['roleRolesBuild'] = await buildManagerService.build("role_roles");
 		}
 		catch (error) 
 		{
