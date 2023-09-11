@@ -166,34 +166,50 @@ export class BuildManagerService
 		const res = { success: true };
 		res['resultObject'] = {};
 		const asyncHelperService = new AsyncHelperService(this.papiClient);
-		const tablesToBuild: string[] = [];
-		try 
+		const tablesToBuild: string[] = ['users', 'account_users'];
+		try
 		{
-			res['resultObject']['createUsersSchema'] = await this.updateSchema('users', tablesToBuild);
-			res['resultObject']['createAccountUsersSchema'] = await this.updateSchema('account_users', tablesToBuild);
-			// waiting for Nebula to finish handling pns notifications
-			await asyncHelperService.waitForAsyncJob(60);
-			console.log('TABLES TO BUILD: ', JSON.stringify(tablesToBuild));
-			res['resultObject']['buildTables'] = await this.buildTables(tablesToBuild);
+			for (const tableName of tablesToBuild)
+			{
+				res['resultObject'][`create_${tableName}_schema`] = await this.updateSchema(tableName);
+			}
 		}
-		catch (error)
+		catch(error)
 		{
 			res.success = false;
 			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 		}
+
+		await asyncHelperService.waitForAsyncJob(60);
+
+		console.log('TABLES TO BUILD: ', JSON.stringify(tablesToBuild));
+
+		const buildTables = await this.buildTables(tablesToBuild);
+
+		if(!buildTables.success)
+		{
+			res.success = false;
+			res['errorMessage'] = buildTables.errorMessage;
+		}
+		else
+		{
+			res['resultObject']['buildTables'] = buildTables;
+		}
+
+		console.log('FINISHED POST UPGRADE OPERATIONS');
+
 		return res;
 	}
 
-	private async updateSchema(schemaName: string, tablesToBuild: string[]): Promise<AddonDataScheme | undefined>
+	private async updateSchema(schemaName: string, ): Promise<AddonDataScheme | undefined>
 	{
 		const schema =  await this.papiClient.addons.data.schemes.name(schemaName).get();
-		// if schema type is data, it means that the schema was already updated and built
-		if(schema.Type != 'data')
+		if(schema.Type !== 'data')
 		{
 			console.log(`UPDATING '${schemaName}' SCHEMA`);
 			schema.Fields = resourceNameToSchemaMap[schemaName].Fields;
 			schema.Type = resourceNameToSchemaMap[schemaName].Type;
-			tablesToBuild.push(schemaName);
+	
 			return await this.papiClient.addons.data.schemes.post(schema);
 		}
 	}
