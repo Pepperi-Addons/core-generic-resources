@@ -632,13 +632,13 @@ const roleRolesSchema: AddonDataScheme = {
 		},
 		Role: {
     		Type: "Resource",
-    		Resource: "role",
+    		Resource: "roles",
     		AddonUUID: config.AddonUUID,
 			ApplySystemFilter: true,
     	},
 		ParentRole: {
 			Type: "Resource",
-    		Resource: "role",
+    		Resource: "roles",
     		AddonUUID: config.AddonUUID,
 			ApplySystemFilter: true,
 		}
