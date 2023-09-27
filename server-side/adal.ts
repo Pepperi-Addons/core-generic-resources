@@ -6,7 +6,6 @@ import { Helper } from 'core-resources-shared';
 import { ExternalUserResourcePNSService } from './services/pns/externalUserResourcePNS.service';
 import { BuildManagerService } from './services/buildManager.service';
 import { IBuildServiceParams } from './services/builders';
-import { TestBody } from './services/integrationTests/entities';
 import { BuildTestService } from './services/integrationTests/buildTest.service';
 import { BuildManagerTestService } from './services/integrationTests/buildManagerTest.service';
 import { AsyncResultObject } from './constants';
@@ -18,8 +17,7 @@ export async function update_users(client: Client, request: Request)
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const service = new UsersPNSService(papiClient);
+		const service = new UsersPNSService(client);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -35,8 +33,7 @@ export async function update_users_from_external_user_resource(client: Client, r
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const service = new ExternalUserResourcePNSService(papiClient, request.query.resource);
+		const service = new ExternalUserResourcePNSService(client, request.query.resource);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -52,8 +49,7 @@ export async function external_user_resource_active_state_changed(client: Client
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const service = new ExternalUserResourcePNSService(papiClient, request.query.resource);
+		const service = new ExternalUserResourcePNSService(client, request.query.resource);
 		return await service.externalUserResourceActiveStateChanged(request.body);
 	}
 	default:
@@ -69,8 +65,7 @@ export async function update_account_buyers(client: Client, request: Request)
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const service = new ExternalUserResourcePNSService(papiClient, request.query.resource);
+		const service = new ExternalUserResourcePNSService(client, request.query.resource);
 		return await service.updateAccountBuyersOnNewBuyers(request.body);
 	}
 	default:
@@ -86,8 +81,7 @@ export async function update_account_users(client: Client, request: Request)
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const service = new AccountUsersPNSService(papiClient);
+		const service = new AccountUsersPNSService(client);
 		return await service.updateAdalTable(request.body);
 	}
 	default:
@@ -129,15 +123,14 @@ export async function build(client: Client, request: Request) : Promise<AsyncRes
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
 		let service: BuildManagerService;
 		if(request.body?.IsTest)
 		{
-			service = new BuildManagerTestService(papiClient, request.body);
+			service = new BuildManagerTestService(client, request.body);
 		}
 		else
 		{
-			service = new BuildManagerService(papiClient);
+			service = new BuildManagerService(client);
 		}
 
 		return await service.build(request.query?.resource);
@@ -247,7 +240,7 @@ export async function register_for_external_user_resource(client: Client, reques
 export async function delete_old_buyers_subscriptions(client: Client, request: Request)
 {
 	const papiClient = Helper.getPapiClient(client);
-	const service = new ExternalUserResourcePNSService(papiClient, "");
+	const service = new ExternalUserResourcePNSService(client, "");
 	await service.deleteOldBuyersSubscriptions(papiClient);
 }
 
@@ -258,8 +251,7 @@ export async function post_upgrade_operations(client: Client, request: Request)
 	case 'POST':
 	{
 		const copyActionUUID = false;
-		const papiClient = Helper.getPapiClient(client, copyActionUUID);
-		const service = new BuildManagerService(papiClient);
+		const service = new BuildManagerService(client, copyActionUUID);
 		return await service.postUpgradeOperations();
 	}
 	default:
@@ -275,8 +267,7 @@ export async function run_post_upgrade_operations(client: Client, request: Reque
 	{
 	case 'POST':
 	{
-		const papiClient = Helper.getPapiClient(client);
-		const service = new BuildManagerService(papiClient);
+		const service = new BuildManagerService(client);
 		return await service.runPostUpgradeOperations();
 	}
 	default:

@@ -1,16 +1,19 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import config from '../../../addon.config.json';
-import { CORE_ADDON_UUID } from 'core-resources-shared';
+import { CORE_ADDON_UUID, Helper } from 'core-resources-shared';
 import { PnsParams } from '../../models/metadata';
+import SystemHealthService from '../systemHealth.service';
+import jwtDecode from 'jwt-decode';
+import { Client } from '@pepperi-addons/debug-server/dist';
 
 export abstract class BasePNSService 
 {
 
 	protected papiClient: PapiClient;
 
-	constructor(papiClient: PapiClient)
+	constructor(private client: Client)
 	{
-		this.papiClient = papiClient;
+		this.papiClient = Helper.getPapiClient(client);
 	}
 
     abstract getSubscribeParamsSets(): Promise<PnsParams[]>;
@@ -49,4 +52,24 @@ export abstract class BasePNSService
 		return chunks;
 	}
 
+	protected async sendAlertToCoreResourcesAlertsChannel(description: string, errorMessage: string): Promise<void> 
+	{
+		const jwt = <any>jwtDecode(this.client.OAuthAccessToken);
+		const isAsync: boolean = this.client.isAsync!();
+		const enviroment = jwt["pepperi.datacenter"];
+		const distributorUUID = jwt["pepperi.distributoruuid"];
+		const distributor: any = await this.papiClient.get("/distributor");
+
+		const name = `<b>${enviroment.toUpperCase()}</b> - Core Resources PNS Error `;
+		const message = `<b>Distributor:</b> ${distributor["InternalID"]} - ${distributor["Name"]}<br><b>DistUUID:</b> ${distributorUUID}<br><b>ActionUUID:</b> ${this.papiClient["options"]["actionUUID"]}<br><b>IsAsync operation: </b>${isAsync}
+            <br><b style="color:red">ERROR!</b>
+			<br>${errorMessage}<br>
+			<br>`;
+
+		const kms = await this.papiClient.get("/kms/parameters/core_resources_alertsUrl");
+
+		await new SystemHealthService(this.papiClient).sendUserWebhookNotification(name, description, 'ERROR', message, "Always", kms.Value);
+	}
+
 }
+
