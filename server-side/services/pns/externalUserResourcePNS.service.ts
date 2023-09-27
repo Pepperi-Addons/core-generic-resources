@@ -67,12 +67,16 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		console.log("USERS UPDATE FROM BUYERS PNS TRIGGERED");
 		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-
-		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys);
-		const updatedExternalUserResource = externalUserResourceByKeysRes.Objects;
-		const fixedExternalUserResource = this.externalUserResourceGetterService.fixObjects(updatedExternalUserResource);
-
-		await this.adalService.batchUpsert('users', fixedExternalUserResource);
+		const keysChunks = this.chunkifyKeysArray(externalUserResourceKeys);
+		for(const keysChunk of keysChunks)
+		{
+			const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(keysChunk);
+			const updatedExternalUserResource = externalUserResourceByKeysRes.Objects;
+			const fixedExternalUserResource = this.externalUserResourceGetterService.fixObjects(updatedExternalUserResource);
+	
+			await this.adalService.batchUpsert('users', fixedExternalUserResource);
+		}
+	
 		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
 

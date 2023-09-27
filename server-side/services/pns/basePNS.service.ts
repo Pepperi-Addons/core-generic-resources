@@ -38,4 +38,15 @@ export abstract class BasePNSService
     	}
 	}
 
+	protected chunkifyKeysArray(keys: string[], chunkSize = 500): string[][]
+	{
+		const chunks: string[][] = [];
+		for (let i = 0; i < keys.length; i += chunkSize) 
+		{
+			const chunk = keys.slice(i, i + chunkSize);
+			chunks.push(chunk);
+		}
+		return chunks;
+	}
+
 }

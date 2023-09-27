@@ -36,19 +36,23 @@ export class AccountUsersPNSService extends BasePNSService
 		console.log("ACCOUNT USERS UPDATE PNS TRIGGERED");
 		const accountUsersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		console.log("ACCOUNT USERS UUIDS: " + JSON.stringify(accountUsersUUIDs));
-		const accountUsersByKeysRes = await this.papiAccountUsersService.getObjectsByKeys(accountUsersUUIDs);
-		let updatedPapiAccountUsers = accountUsersByKeysRes.Objects;
-
-		// check if missing results, then search in account_buyers
-		if(updatedPapiAccountUsers.length < accountUsersUUIDs.length) 
+		const uuidsChunks = this.chunkifyKeysArray(accountUsersUUIDs);
+		for(const uuidsChunk of uuidsChunks)
 		{
-			const missingUUIDs = accountUsersUUIDs.filter(uuid => !updatedPapiAccountUsers.find(user => user.UUID == uuid));
-			const accountBuyersService = new AccountBuyersGetterService(this.papiClient);
-			const missingAccountUsers = await accountBuyersService.getObjectsByKeys(missingUUIDs);
-			updatedPapiAccountUsers = updatedPapiAccountUsers.concat(missingAccountUsers);
+			const accountUsersByKeysRes = await this.papiAccountUsersService.getObjectsByKeys(uuidsChunk);
+			let updatedPapiAccountUsers = accountUsersByKeysRes.Objects;
+	
+			// check if missing results, then search in account_buyers
+			if(updatedPapiAccountUsers.length < uuidsChunk.length) 
+			{
+				const missingUUIDs = uuidsChunk.filter(uuid => !updatedPapiAccountUsers.find(user => user.UUID == uuid));
+				const accountBuyersService = new AccountBuyersGetterService(this.papiClient);
+				const missingAccountUsers = await accountBuyersService.getObjectsByKeys(missingUUIDs);
+				updatedPapiAccountUsers = updatedPapiAccountUsers.concat(missingAccountUsers);
+			}
+			updatedPapiAccountUsers = this.papiAccountUsersService.fixObjects(updatedPapiAccountUsers);
+			await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
 		}
-		updatedPapiAccountUsers = this.papiAccountUsersService.fixObjects(updatedPapiAccountUsers);
-		await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
 		console.log("ACCOUNT USERS UPDATE PNS FINISHED");
 	}
 }
