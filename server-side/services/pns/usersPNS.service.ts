@@ -13,7 +13,7 @@ export class UsersPNSService extends BasePNSService
 
 	constructor(client: Client)
 	{
-		super(client);
+		super(client, "USERS UPDATE");
 		const papiClient = Helper.getPapiClient(client);
 		this.papiUsersService = new UsersGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
@@ -28,27 +28,11 @@ export class UsersPNSService extends BasePNSService
 		]
 	}
 
-	async updateAdalTable(messageFromPNS: any): Promise<void>
+	async chunkUpdateLogic(uuidsChunk: string[]): Promise<void>
 	{
-		try
-		{
-			console.log("USERS UPDATE PNS TRIGGERED");
-			const usersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-			console.log("USERS UUIDS: " + JSON.stringify(usersUUIDs));
-			const uuidsChunks = this.chunkifyKeysArray(usersUUIDs);
-			for(const uuidsChunk of uuidsChunks)
-			{
-				const updatedPapiUsersByKeysRes = await this.papiUsersService.getObjectsByKeys(uuidsChunk);
-				let updatedPapiUsers = updatedPapiUsersByKeysRes.Objects;
-				updatedPapiUsers = this.papiUsersService.fixObjects(updatedPapiUsers);
-				await this.adalService.batchUpsert('users', updatedPapiUsers);
-			}
-			console.log("USERS UPDATE PNS FINISHED");
-		}
-		catch (error)
-		{
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
-			await this.sendAlertToCoreResourcesAlertsChannel("Error on updating users PNS", JSON.stringify(errorMessage));
-		}
+		const updatedPapiUsersByKeysRes = await this.papiUsersService.getObjectsByKeys(uuidsChunk);
+		let updatedPapiUsers = updatedPapiUsersByKeysRes.Objects;
+		updatedPapiUsers = this.papiUsersService.fixObjects(updatedPapiUsers);
+		await this.adalService.batchUpsert('users', updatedPapiUsers);
 	}
 }

@@ -118,6 +118,15 @@ export class AdalService implements IApiService
 		return res;
 	}
 
+	async chunkifiedBatchUpsert(resourceName: string, objects: any[], chunkSize = 500)
+	{
+		for (let i = 0; i < objects.length; i += chunkSize)
+		{
+			const chunkOfObjects = objects.slice(i, i + chunkSize);
+			await this.batchUpsert(resourceName, chunkOfObjects);
+		}
+	}
+
 	validateUniqueKeyPrerequisites(resourceName: string, requestedFieldId: string, requestedValue: string)
 	{
 		const schemeFields = resourceNameToSchemaMap[resourceName].Fields ?? {};

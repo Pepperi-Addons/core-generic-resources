@@ -13,7 +13,7 @@ export class AccountUsersPNSService extends BasePNSService
 
 	constructor(client: Client)
 	{
-		super(client);
+		super(client, "ACCOUNT USERS UPDATE");
 		const papiClient = Helper.getPapiClient(client);
 		this.papiAccountUsersService = new AccountUsersGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
@@ -28,41 +28,20 @@ export class AccountUsersPNSService extends BasePNSService
 		]
 	}
 
-	getResourceName(): string 
+	async chunkUpdateLogic(uuidsChunk: string[]): Promise<void>
 	{
-		return 'account_users';
-	}
-
-	async updateAdalTable(messageFromPNS: any): Promise<void>
-	{
-		try
-		{
-			console.log("ACCOUNT USERS UPDATE PNS TRIGGERED");
-			const accountUsersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-			console.log("ACCOUNT USERS UUIDS: " + JSON.stringify(accountUsersUUIDs));
-			const uuidsChunks = this.chunkifyKeysArray(accountUsersUUIDs);
-			for(const uuidsChunk of uuidsChunks)
-			{
-				const accountUsersByKeysRes = await this.papiAccountUsersService.getObjectsByKeys(uuidsChunk);
-				let updatedPapiAccountUsers = accountUsersByKeysRes.Objects;
+		const accountUsersByKeysRes = await this.papiAccountUsersService.getObjectsByKeys(uuidsChunk);
+		let updatedPapiAccountUsers = accountUsersByKeysRes.Objects;
 	
-				// check if missing results, then search in account_buyers
-				if(updatedPapiAccountUsers.length < uuidsChunk.length) 
-				{
-					const missingUUIDs = uuidsChunk.filter(uuid => !updatedPapiAccountUsers.find(user => user.UUID == uuid));
-					const accountBuyersService = new AccountBuyersGetterService(this.papiClient);
-					const missingAccountUsers = await accountBuyersService.getObjectsByKeys(missingUUIDs);
-					updatedPapiAccountUsers = updatedPapiAccountUsers.concat(missingAccountUsers);
-				}
-				updatedPapiAccountUsers = this.papiAccountUsersService.fixObjects(updatedPapiAccountUsers);
-				await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
-			}
-			console.log("ACCOUNT USERS UPDATE PNS FINISHED");
-		}
-		catch (error)
+		// check if missing results, then search in account_buyers
+		if(updatedPapiAccountUsers.length < uuidsChunk.length) 
 		{
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
-			await this.sendAlertToCoreResourcesAlertsChannel("Error on updating account_users PNS", JSON.stringify(errorMessage));
+			const missingUUIDs = uuidsChunk.filter(uuid => !updatedPapiAccountUsers.find(user => user.UUID == uuid));
+			const accountBuyersService = new AccountBuyersGetterService(this.papiClient);
+			const missingAccountUsers = await accountBuyersService.getObjectsByKeys(missingUUIDs);
+			updatedPapiAccountUsers = updatedPapiAccountUsers.concat(missingAccountUsers);
 		}
+		updatedPapiAccountUsers = this.papiAccountUsersService.fixObjects(updatedPapiAccountUsers);
+		await this.adalService.batchUpsert('account_users', updatedPapiAccountUsers);
 	}
 }

@@ -16,7 +16,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 
 	constructor(client: Client, protected externalUserResource: string)
 	{
-		super(client);
+		super(client, "USERS UPDATE FROM BUYERS");
 		const papiClient = Helper.getPapiClient(client);
 		this.externalUserResourceGetterService = new ExternalUserResourceGetterService(papiClient, externalUserResource);
 		this.adalService = new AdalService(papiClient);
@@ -65,30 +65,12 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		]
 	}
 
-	async updateAdalTable(messageFromPNS: any): Promise<void>
+	async chunkUpdateLogic(uuidsChunk: string[]): Promise<void> 
 	{
-		try
-		{
-			console.log("USERS UPDATE FROM BUYERS PNS TRIGGERED");
-			const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-			console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-			const keysChunks = this.chunkifyKeysArray(externalUserResourceKeys);
-			for(const keysChunk of keysChunks)
-			{
-				const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(keysChunk);
-				const updatedExternalUserResource = externalUserResourceByKeysRes.Objects;
-				const fixedExternalUserResource = this.externalUserResourceGetterService.fixObjects(updatedExternalUserResource);
-	
-				await this.adalService.batchUpsert('users', fixedExternalUserResource);
-			}
-	
-			console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
-		}
-		catch (error)
-		{
-			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
-			await this.sendAlertToCoreResourcesAlertsChannel("Error on updating users from buyers PNS", JSON.stringify(errorMessage));
-		}
+		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(uuidsChunk);
+		const updatedExternalUserResource = externalUserResourceByKeysRes.Objects;
+		const fixedExternalUserResource = this.externalUserResourceGetterService.fixObjects(updatedExternalUserResource);
+		await this.adalService.batchUpsert('users', fixedExternalUserResource);
 	}
 
 	async updateAccountBuyersOnNewBuyers(messageFromPNS: any): Promise<void>
@@ -146,7 +128,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 			if(usersToUpsert.length > 0)
 			{
 				const fixedUsers = this.externalUserResourceGetterService.fixObjects(usersToUpsert);
-				await this.adalService.batchUpsert('users', fixedUsers);
+				await this.adalService.chunkifiedBatchUpsert('users', fixedUsers);
 				console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
 			}
 		}
@@ -224,7 +206,8 @@ export class ExternalUserResourcePNSService extends BasePNSService
 			
 			const body = {
 				Where: `User.UUID in (${uuidsString})`,
-				Fields: await this.accountBuyersFieldsString()
+				Fields: await this.accountBuyersFieldsString(),
+				PageSize: -1
 			}
 			console.log("ACCOUNT BUYERS SEARCH BODY: " + JSON.stringify(body));
 			const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', body);
@@ -238,7 +221,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 				}
 			});
 			console.log("FIXED ACCOUNT BUYERS: " + JSON.stringify(fixedAccountBuyers));
-			await this.adalService.batchUpsert('account_users', fixedAccountBuyers);
+			await this.adalService.chunkifiedBatchUpsert('account_users', fixedAccountBuyers);
 			console.log("ACCOUNT BUYERS UPSERTED");
 		}
 	}
