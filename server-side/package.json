@@ -37,6 +37,7 @@
         "@pepperi-addons/etl-sdk": "^0.0.13",
         "@pepperi-addons/papi-sdk": "^1.53.0",
         "core-resources-shared": "file:../shared",
+        "jwt-decode": "^3.1.2",
         "lodash.clonedeep": "^4.5.0",
         "semver": "^7.3.8",
         "uuid": "^9.0.0"

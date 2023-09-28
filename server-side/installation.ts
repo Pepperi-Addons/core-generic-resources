@@ -31,7 +31,7 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	const papiClient = Helper.getPapiClient(client);
 	const schemaService = new SchemaService(papiClient);
-	const buildManagerService = new BuildManagerService(papiClient);
+	const buildManagerService = new BuildManagerService(client);
 
 	try 
 	{
@@ -41,7 +41,7 @@ export async function install(client: Client, request: Request): Promise<any>
 		await upsertSubscriptionToTsaCreation(papiClient);
 		await upsertSubscriptionToTsaModification(papiClient);
 		res['resultObject']['buildTables'] = await buildManagerService.buildTables(Object.keys(resourceNameToSchemaMap).filter(resourceName => resourceNameToSchemaMap[resourceName].Type !== 'papi'));
-		await pnsSubscriptions(papiClient);
+		await pnsSubscriptions(client, papiClient);
 	}
 	catch (error) 
 	{
@@ -407,7 +407,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		const buildManagerService = new BuildManagerService(papiClient);
+		const buildManagerService = new BuildManagerService(client);
 		try 
 		{
 			res['resultObject'] = {};
@@ -623,13 +623,13 @@ async function subscribeToPNS(pnsService: BasePNSService): Promise<void>
 	await pnsService.subscribe();
 }
 
-async function pnsSubscriptions(papiClient: PapiClient): Promise<void>
+async function pnsSubscriptions(client: Client, papiClient: PapiClient): Promise<void>
 {
 	const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(papiClient);
 	for(const externalUserResource of externalUserResources)
 	{
-		await subscribeToPNS(new ExternalUserResourcePNSService(papiClient, externalUserResource));
+		await subscribeToPNS(new ExternalUserResourcePNSService(client, externalUserResource));
 	}
-	await subscribeToPNS(new UsersPNSService(papiClient));
-	await subscribeToPNS(new AccountUsersPNSService(papiClient));
+	await subscribeToPNS(new UsersPNSService(client));
+	await subscribeToPNS(new AccountUsersPNSService(client));
 }

@@ -1,8 +1,9 @@
 import { PnsParams } from '../../models/metadata';
 import { BasePNSService } from './basePNS.service';
 import { UsersGetterService } from '../getters/usersGetter.service';
-import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { AdalService } from '../adal.service';
+import { Client } from '@pepperi-addons/debug-server/dist';
+import { Helper } from 'core-resources-shared';
 
 export class UsersPNSService extends BasePNSService
 {
@@ -10,9 +11,10 @@ export class UsersPNSService extends BasePNSService
 	protected papiUsersService: UsersGetterService;
 	protected adalService: AdalService;
 
-	constructor(papiClient: PapiClient)
+	constructor(client: Client)
 	{
-		super(papiClient);
+		super(client, "USERS UPDATE");
+		const papiClient = Helper.getPapiClient(client);
 		this.papiUsersService = new UsersGetterService(papiClient);
 		this.adalService = new AdalService(papiClient);
 	}
@@ -26,15 +28,11 @@ export class UsersPNSService extends BasePNSService
 		]
 	}
 
-	async updateAdalTable(messageFromPNS: any): Promise<void>
+	async chunkUpdateLogic(uuidsChunk: string[]): Promise<void>
 	{
-		console.log("USERS UPDATE PNS TRIGGERED");
-		const usersUUIDs = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-		console.log("USERS UUIDS: " + JSON.stringify(usersUUIDs));
-		const updatedPapiUsersByKeysRes = await this.papiUsersService.getObjectsByKeys(usersUUIDs);
+		const updatedPapiUsersByKeysRes = await this.papiUsersService.getObjectsByKeys(uuidsChunk);
 		let updatedPapiUsers = updatedPapiUsersByKeysRes.Objects;
 		updatedPapiUsers = this.papiUsersService.fixObjects(updatedPapiUsers);
 		await this.adalService.batchUpsert('users', updatedPapiUsers);
-		console.log("USERS UPDATE PNS FINISHED");
 	}
 }

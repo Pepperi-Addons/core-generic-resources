@@ -1,14 +1,13 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
-
 import config from '../../../addon.config.json';
 import { BuildManagerService } from '../buildManager.service';
 import { TestBody } from './entities';
+import { Client } from '@pepperi-addons/debug-server/dist';
 
 export class BuildManagerTestService extends BuildManagerService
 {
-	constructor(papiClient: PapiClient, protected testBody: TestBody)
+	constructor(client: Client, protected testBody: TestBody)
 	{
-		super(papiClient);
+		super(client);
 	}
 
 	/**
