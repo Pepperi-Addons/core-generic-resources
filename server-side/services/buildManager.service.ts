@@ -7,6 +7,8 @@ import { AccountUsersPNSService } from './pns/accountUsersPNS.service';
 import { ExternalUserResourcePNSService } from './pns/externalUserResourcePNS.service';
 import { resourceNameToSchemaMap } from '../resourcesSchemas';
 import { AsyncHelperService } from './asyncHelper.service';
+import { Client } from '@pepperi-addons/debug-server/dist';
+import { Helper } from 'core-resources-shared';
 
 export class BuildManagerService
 {
@@ -19,9 +21,12 @@ export class BuildManagerService
 		account_users: ['build_account_users', 'build_account_buyers'],
 		// role_roles: ['clean_build_role_roles']
 	};
+	protected papiClient: PapiClient;
 
-	constructor(protected papiClient: PapiClient)
-	{}
+	constructor(protected client: Client, copyActionUUID = true)
+	{
+		this.papiClient = Helper.getPapiClient(client, copyActionUUID);
+	}
 
 	public async build(resource: string): Promise<AsyncResultObject>
 	{
@@ -100,19 +105,19 @@ export class BuildManagerService
 		{
 		case 'users':
 		{
-			pnsService = new UsersPNSService(this.papiClient);
+			pnsService = new UsersPNSService(this.client);
 			await pnsService.subscribe();
 			const externalUserResources = await ExternalUserResourcePNSService.getAllExternalUserResources(this.papiClient);
 			for(const externalUserResource of externalUserResources)
 			{
-				const externalUserPnsService = new ExternalUserResourcePNSService(this.papiClient, externalUserResource);
+				const externalUserPnsService = new ExternalUserResourcePNSService(this.client, externalUserResource);
 				await externalUserPnsService.subscribe();
 			}
 			break;
 		}
 		case 'account_users':
 		{
-			pnsService = new AccountUsersPNSService(this.papiClient);
+			pnsService = new AccountUsersPNSService(this.client);
 			await pnsService.subscribe();
 			break;
 		}
