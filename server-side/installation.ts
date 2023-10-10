@@ -420,7 +420,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		// Update the employees schema to reference the Roles schema
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		const buildManagerService = new BuildManagerService(papiClient);
+		const buildManagerService = new BuildManagerService(client);
 
 		try
 		{
