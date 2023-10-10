@@ -20,7 +20,7 @@ export interface RoleRole extends TreeNode
 	Key: string
 }
 
-export class RolesGetterService extends BaseGetterService
+export class RoleRolesGetterService extends BaseGetterService
 {
 	constructor(papiClient: PapiClient)
 	{
