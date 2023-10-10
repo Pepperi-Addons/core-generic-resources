@@ -15,11 +15,8 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 
 	tests(describe: (suiteTitle: string, func: () => void) => void,
 		it: (name: string, fn: Mocha.Func) => void,
-		expect: Chai.ExpectStatic,
-		/*after: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
-        afterEach: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
-        before: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
-        beforeEach: ((fn: Mocha.Func | Mocha.AsyncFunc) => void)*/): void 
+		expect: Chai.ExpectStatic
+		): void 
 	{
 		describe(this.title, async () => 
 		{

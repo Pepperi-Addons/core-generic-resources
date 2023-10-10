@@ -11,11 +11,8 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 
 	tests(describe: (suiteTitle: string, func: () => void) => void,
 		it: (name: string, fn: Mocha.Func) => void,
-		expect: Chai.ExpectStatic,
-		/*after: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
-        afterEach: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
-        before: ((fn: Mocha.Func | Mocha.AsyncFunc) => void),
-        beforeEach: ((fn: Mocha.Func | Mocha.AsyncFunc) => void)*/): void 
+		expect: Chai.ExpectStatic
+		): void 
 	{
 		describe('Build ADAL tables tests', async () => 
 		{
@@ -76,87 +73,77 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				expect(adalAccountUsersList[0]).to.have.property('User').that.is.a('string').and.is.not.empty;
 			});
 
-			// describe('Build role_roles ADAL table', () => 
-			// {
+			describe('Build role_roles ADAL table', () => 
+			{
 
-			// 	const targetAdalResourceName = 'role_roles';
-			// 	const coreResourcesTestsService = new CoreResourcesTestsService(this.papiClient);
+				const targetAdalResourceName = 'role_roles';
+				const coreResourcesTestsService = new CoreResourcesTestsService(this.papiClient);
 
-			// 	// before(async () => {
-			// 	//     console.log("BEFORE, CLEANING TABLE");
-			// 	//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
-			// 	// });
+				it('Ensure roles and role_roles schemas exist', async () => 
+				{
+					const schemaNames = ['roles', 'role_roles'];
+					const findOptions: FindOptions = {
+						where: `Name in ('${schemaNames.join("','")}')`
+					};
+					const schemas = await coreResourcesTestsService.papiClient.addons.data.schemes.get(findOptions);
 
-			// 	// afterEach(async () => {
-			// 	//     console.log("AFTER EACH, CLEANING TABLE");
-			// 	//     await CoreResourcesTestsService.cleanTable(targetAdalResourceName);
-			// 	// });
+					expect(schemas).to.be.an('array').with.lengthOf(schemaNames.length);
+				});
 
-			// 	it('Ensure roles and role_roles schemas exist', async () => 
-			// 	{
-			// 		const schemaNames = ['roles', 'role_roles'];
-			// 		const findOptions: FindOptions = {
-			// 			where: `Name in ('${schemaNames.join("','")}')`
-			// 		};
-			// 		const schemas = await coreResourcesTestsService.papiClient.addons.data.schemes.get(findOptions);
+				const testNames = Object.keys(RoleRolesTestData);
+				for (const testName of testNames) 
+				{
+					it(`Build table using ${testName} test data`, async () => 
+					{
+						const { TestInput, ExpectedResult } = this.getTestData(testName);
 
-			// 		expect(schemas).to.be.an('array').with.lengthOf(schemaNames.length);
-			// 	});
+						try 
+						{
+							const buildTableResponse = await coreResourcesTestsService.buildRoleRolesTable(TestInput);
+							const defactoResults = await coreResourcesTestsService.getGenericResourceObjects(targetAdalResourceName) as RoleRole[];
 
-			// 	const testNames = Object.keys(RoleRolesTestData);
-			// 	for (const testName of testNames) 
-			// 	{
-			// 		it(`Build table using ${testName} test data`, async () => 
-			// 		{
-			// 			const { TestInput, ExpectedResult } = this.getTestData(testName);
-
-			// 			try 
-			// 			{
-			// 				const buildTableResponse = await coreResourcesTestsService.buildRoleRolesTable(TestInput);
-			// 				const defactoResults = await coreResourcesTestsService.getAllGenericResourceObjects(targetAdalResourceName) as RoleRole[];
-
-			// 				// Ensure the table was built successfully
-			// 				expect(buildTableResponse).to.have.property('success').that.is.true;
+							// Ensure the table was built successfully
+							expect(buildTableResponse).to.have.property('success').that.is.true;
 
 
-			// 				// Ensure the table was built with the correct number of rows
-			// 				testRoleRoles(defactoResults, ExpectedResult);
-			// 			}
-			// 			catch (e) 
-			// 			{
-			// 				console.log(e instanceof Error ? e.message : e);
-			// 			}
+							// Ensure the table was built with the correct number of rows
+							testRoleRoles(defactoResults, ExpectedResult);
+						}
+						catch (e) 
+						{
+							console.log(e instanceof Error ? e.message : e);
+						}
 
-			// 		});
-			// 	}
-			// });
+					});
+				}
+			});
 
-			// function testRoleRoles(defactoResults: RoleRole[], expectedResults: RoleRole[]) 
-			// {
-			// 	//build a map of the expected results
-			// 	const expectedResultsMap = {};
-			// 	for (let i = 0; i < expectedResults.length; i++) 
-			// 	{
-			// 		expectedResultsMap[expectedResults[i].Key!] = expectedResults[i];
-			// 	}
+			function testRoleRoles(defactoResults: RoleRole[], expectedResults: RoleRole[]) 
+			{
+				//build a map of the expected results
+				const expectedResultsMap = {};
+				for (let i = 0; i < expectedResults.length; i++) 
+				{
+					expectedResultsMap[expectedResults[i].Key!] = expectedResults[i];
+				}
 
-			// 	expect(defactoResults).to.be.an('array').with.lengthOf(expectedResults.length);
+				expect(defactoResults).to.be.an('array').with.lengthOf(expectedResults.length);
 
-			// 	for (let i = 0; i < defactoResults.length; i++) 
-			// 	{
-			// 		expect(defactoResults[i]).to.have.property('Key').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Key);
-			// 		expect(defactoResults[i]).to.have.property('Role').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Role);
+				for (let i = 0; i < defactoResults.length; i++) 
+				{
+					expect(defactoResults[i]).to.have.property('Key').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Key);
+					expect(defactoResults[i]).to.have.property('Role').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].Role);
 
-			// 		if (expectedResults[i].ParentRole) 
-			// 		{
-			// 			expect(defactoResults[i]).to.have.property('ParentRole').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
-			// 		}
-			// 		else 
-			// 		{
-			// 			expect(defactoResults[i].ParentRole).to.be.undefined.and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
-			// 		}
-			// 	}
-			// }
+					if (expectedResults[i].ParentRole) 
+					{
+						expect(defactoResults[i]).to.have.property('ParentRole').that.is.a('string').and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
+					}
+					else 
+					{
+						expect(defactoResults[i].ParentRole).to.be.undefined.and.to.equal(expectedResultsMap[defactoResults[i].Key!].ParentRole);
+					}
+				}
+			}
 		});
 	}
 
