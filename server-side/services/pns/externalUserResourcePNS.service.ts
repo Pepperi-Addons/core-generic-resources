@@ -5,6 +5,8 @@ import { AddonData, AddonDataScheme, FindOptions, PapiClient } from '@pepperi-ad
 import { AdalService } from '../adal.service';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 import config from '../../../addon.config.json';
+import { Helper } from 'core-resources-shared';
+import { Client } from '@pepperi-addons/debug-server/dist';
 
 export class ExternalUserResourcePNSService extends BasePNSService
 {
@@ -12,9 +14,10 @@ export class ExternalUserResourcePNSService extends BasePNSService
 	protected externalUserResourceGetterService: ExternalUserResourceGetterService;
 	protected adalService: AdalService;
 
-	constructor(papiClient: PapiClient, protected externalUserResource: string)
+	constructor(client: Client, protected externalUserResource: string)
 	{
-		super(papiClient);
+		super(client, "USERS UPDATE FROM BUYERS");
+		const papiClient = Helper.getPapiClient(client);
 		this.externalUserResourceGetterService = new ExternalUserResourceGetterService(papiClient, externalUserResource);
 		this.adalService = new AdalService(papiClient);
 	}
@@ -62,67 +65,77 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		]
 	}
 
-	async updateAdalTable(messageFromPNS: any): Promise<void>
+	async chunkUpdateLogic(uuidsChunk: string[]): Promise<void> 
 	{
-		console.log("USERS UPDATE FROM BUYERS PNS TRIGGERED");
-		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-
-		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys);
+		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(uuidsChunk);
 		const updatedExternalUserResource = externalUserResourceByKeysRes.Objects;
 		const fixedExternalUserResource = this.externalUserResourceGetterService.fixObjects(updatedExternalUserResource);
-
 		await this.adalService.batchUpsert('users', fixedExternalUserResource);
-		console.log("USERS UPDATE FROM BUYERS PNS FINISHED");
 	}
 
 	async updateAccountBuyersOnNewBuyers(messageFromPNS: any): Promise<void>
 	{
-		console.log("NEW BUYERS ADDED, UPDATING ACCOUNT BUYERS");
-		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-		const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, ['Active']);
-		const updatedExternalUserResourceObjects = externalUserResourceByKeysRes.Objects;
+		try
+		{
+			console.log("NEW BUYERS ADDED, UPDATING ACCOUNT BUYERS");
+			const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+			console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
+			const externalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, ['Active']);
+			const updatedExternalUserResourceObjects = externalUserResourceByKeysRes.Objects;
 
-		// Active buyers has account_buyers relations 
-		// which should be upserted to account_users adal table
-		await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
+			// Active buyers has account_buyers relations 
+			// which should be upserted to account_users adal table
+			await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
+		}
+		catch (error)
+		{
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
+			await this.sendAlertToCoreResourcesAlertsChannel("Error on updating account_buyers on new buyers PNS", JSON.stringify(errorMessage));
+		}
 	}
 
 	async externalUserResourceActiveStateChanged(messageFromPNS: any): Promise<void>
 	{
-		console.log("BUYERS ACTIVE STATE PNS TRIGGERED");
-		const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
-		console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
-		const updatedExternalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, ['Active']);
-		const updatedExternalUserResourceObjects = updatedExternalUserResourceByKeysRes.Objects;
-
-		// Active buyers has account_buyers relations 
-		// which should be upserted to account_users adal table
-		await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
-
-		const externalUserResourceContainedInUsersDict = await this.buildContainedUsersDict(externalUserResourceKeys);
-		const newUsers: AddonData[] = [];
-		const noLongerUsers: AddonData[] = [];
-		for(const obj of updatedExternalUserResourceObjects)
+		try
 		{
-			if(!obj.Active && externalUserResourceContainedInUsersDict[obj.Key as string]) 
+			console.log("BUYERS ACTIVE STATE PNS TRIGGERED");
+			const externalUserResourceKeys = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
+			console.log("BUYERS KEYS: " + JSON.stringify(externalUserResourceKeys));
+			const updatedExternalUserResourceByKeysRes = await this.externalUserResourceGetterService.getObjectsByKeys(externalUserResourceKeys, ['Active']);
+			const updatedExternalUserResourceObjects = updatedExternalUserResourceByKeysRes.Objects;
+
+			// Active buyers has account_buyers relations 
+			// which should be upserted to account_users adal table
+			await this.upsertAccountBuyersRelations(updatedExternalUserResourceObjects);
+
+			const externalUserResourceContainedInUsersDict = await this.buildContainedUsersDict(externalUserResourceKeys);
+			const newUsers: AddonData[] = [];
+			const noLongerUsers: AddonData[] = [];
+			for(const obj of updatedExternalUserResourceObjects)
 			{
+				if(!obj.Active && externalUserResourceContainedInUsersDict[obj.Key as string]) 
+				{
 				// obj is being hided from adal users because he is no longer a user
-				obj.Hidden = true;
-				noLongerUsers.push(obj);
+					obj.Hidden = true;
+					noLongerUsers.push(obj);
+				}
+				else if(obj.Active)
+				{
+					newUsers.push(obj);
+				}
 			}
-			else if(obj.Active)
+			const usersToUpsert = newUsers.concat(noLongerUsers);
+			if(usersToUpsert.length > 0)
 			{
-				newUsers.push(obj);
+				const fixedUsers = this.externalUserResourceGetterService.fixObjects(usersToUpsert);
+				await this.adalService.chunkifiedBatchUpsert('users', fixedUsers);
+				console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
 			}
 		}
-		const usersToUpsert = newUsers.concat(noLongerUsers);
-		if(usersToUpsert.length > 0)
+		catch (error)
 		{
-			const fixedUsers = this.externalUserResourceGetterService.fixObjects(usersToUpsert);
-			await this.adalService.batchUpsert('users', fixedUsers);
-			console.log("USERS STATE UPDATE FROM BUYERS PNS FINISHED");
+			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
+			await this.sendAlertToCoreResourcesAlertsChannel("Error on active state changed PNS", JSON.stringify(errorMessage));
 		}
 	}
 
@@ -193,7 +206,8 @@ export class ExternalUserResourcePNSService extends BasePNSService
 			
 			const body = {
 				Where: `User.UUID in (${uuidsString})`,
-				Fields: await this.accountBuyersFieldsString()
+				Fields: await this.accountBuyersFieldsString(),
+				PageSize: -1
 			}
 			console.log("ACCOUNT BUYERS SEARCH BODY: " + JSON.stringify(body));
 			const accountBuyersToUpsert = await this.papiClient.post('/account_buyers/search', body);
@@ -207,7 +221,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 				}
 			});
 			console.log("FIXED ACCOUNT BUYERS: " + JSON.stringify(fixedAccountBuyers));
-			await this.adalService.batchUpsert('account_users', fixedAccountBuyers);
+			await this.adalService.chunkifiedBatchUpsert('account_users', fixedAccountBuyers);
 			console.log("ACCOUNT BUYERS UPSERTED");
 		}
 	}
