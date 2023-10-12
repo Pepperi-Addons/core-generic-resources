@@ -116,6 +116,11 @@ export async function clean_build_role_roles(client: Client, request: Request): 
 	return await cleanBuildSpecificTable(client, request, Builders.BuildRoleRolesParams);
 }
 
+export async function build_roles(client: Client, request: Request) : Promise<AsyncResultObject>
+{
+	return await buildSpecificTable(client, request, Builders.BuildRolesParams);
+}
+
 
 export async function build(client: Client, request: Request) : Promise<AsyncResultObject> 
 {
