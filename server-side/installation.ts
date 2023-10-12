@@ -432,7 +432,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
 
 			// Building roles table will also initiate a role_roles build.
-			res['resultObject']['roleRolesBuild'] = await buildManagerService.build("roles");
+			res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
 
 		}
 		catch (error) 
@@ -460,9 +460,7 @@ export async function downgrade(client: Client, request: Request): Promise<any>
 	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '1.1.0'))
 	{
 		const papiClient = Helper.getPapiClient(client);
-		await downgradeFrom1_1ToLowerVersion(papiClient)
-		res.success = false;
-		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
+		await downgradeFrom1_1ToLowerVersion(papiClient);
 	}
 
 	return res;
@@ -655,13 +653,13 @@ async function pnsSubscriptions(client: Client, papiClient: PapiClient): Promise
 }
 
 
-function downgradeFrom1_1ToLowerVersion(papiClient: PapiClient)
+async function downgradeFrom1_1ToLowerVersion(papiClient: PapiClient)
 {
 	// TODO Delete role_roles PNS subscription to roles changes
 	// At this time there's no such subscription.
 
 	// Purge roles and role_roles schemas
-	purgeSchemas(papiClient, ["role_roles", "roles"]);
+	await purgeSchemas(papiClient, ["role_roles", "roles"]);
 
 }
 
