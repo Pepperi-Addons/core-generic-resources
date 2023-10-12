@@ -414,7 +414,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.6'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.8'))
 	{
 		// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
 		// Update the employees schema to reference the Roles schema
@@ -431,7 +431,9 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
 			res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
 
-			res['resultObject']['roleRolesBuild'] = await buildManagerService.build("role_roles");
+			// Building roles table will also initiate a role_roles build.
+			res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
+
 		}
 		catch (error) 
 		{
@@ -453,6 +455,12 @@ export async function downgrade(client: Client, request: Request): Promise<any>
 	{
 		res.success = false;
 		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
+	}
+
+	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '1.1.0'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		await downgradeFrom1_1ToLowerVersion(papiClient);
 	}
 
 	return res;
@@ -643,3 +651,15 @@ async function pnsSubscriptions(client: Client, papiClient: PapiClient): Promise
 	await subscribeToPNS(new UsersPNSService(client));
 	await subscribeToPNS(new AccountUsersPNSService(client));
 }
+
+
+async function downgradeFrom1_1ToLowerVersion(papiClient: PapiClient)
+{
+	// TODO Delete role_roles PNS subscription to roles changes
+	// At this time there's no such subscription.
+
+	// Purge roles and role_roles schemas
+	await purgeSchemas(papiClient, ["role_roles", "roles"]);
+
+}
+

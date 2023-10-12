@@ -1,8 +1,5 @@
-import { AddonDataScheme, FindOptions } from "@pepperi-addons/papi-sdk";
-import { RoleRole } from "../services/getters/rolesGetter.service";
-import { TestBody } from "../services/integrationTests/entities";
+import { AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import { ABaseCoreResourcesTests } from "./aBaseCoreResourcesTests.test";
-import { RoleRolesTestData } from "./testsData/roleRoles";
 
 export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 {
@@ -11,7 +8,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 	tests(describe: (suiteTitle: string, func: () => void) => void,
 		it: (name: string, fn: Mocha.Func) => void,
 		expect: Chai.ExpectStatic
-		): void 
+	): void 
 	{
 		this.adalSchemasTests(describe, it, expect);
 		this.papiSchemasTests(describe, it, expect);
