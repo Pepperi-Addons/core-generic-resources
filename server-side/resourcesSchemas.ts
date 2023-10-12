@@ -423,7 +423,7 @@ const usersSchema: AddonDataScheme = {
     {
     	Email: {
     		Type: "String",
-			Indexed: true
+    		Indexed: true
     	},
     	FirstName: {
     		Type: "String"
@@ -431,14 +431,14 @@ const usersSchema: AddonDataScheme = {
     	ExternalID: {
     		Type: "String",
     		Unique: true,
-			Indexed: true
+    		Indexed: true
     	},
     	LastName: {
     		Type: "String"
     	},
     	Name: {
     		Type: "String",
-			Indexed: true
+    		Indexed: true
     	},
     	Mobile: {
     		Type: "String"
@@ -608,7 +608,7 @@ const rolesSchema: AddonDataScheme = {
 		{
     		"Type": "String"
     	},
-		InternalID:
+    	InternalID:
 		{
 			Type: "Integer",
 			Unique: true

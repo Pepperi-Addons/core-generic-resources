@@ -8,7 +8,7 @@ export class CoreResourcesPnsTests extends ABaseCoreResourcesTests
 	tests(describe: (suiteTitle: string, func: () => void) => void,
 		it: (name: string, fn: Mocha.Func) => void,
 		expect: Chai.ExpectStatic
-		): void 
+	): void 
 	{
 		this.adalSchemasTests(describe, it, expect);
 		this.papiSchemasTests(describe, it, expect);

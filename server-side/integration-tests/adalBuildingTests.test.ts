@@ -12,7 +12,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 	tests(describe: (suiteTitle: string, func: () => void) => void,
 		it: (name: string, fn: Mocha.Func) => void,
 		expect: Chai.ExpectStatic
-		): void 
+	): void 
 	{
 		describe('Build ADAL tables tests', async () => 
 		{
