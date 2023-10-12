@@ -1,4 +1,4 @@
-import { PapiRole, RoleRole } from "../../services/getters/rolesGetter.service";
+import { PapiRole, RoleRole } from "../../services/getters/roleRolesGetter.service";
 import { TestBody } from "../../services/integrationTests/entities";
 
 
