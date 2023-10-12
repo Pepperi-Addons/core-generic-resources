@@ -1,11 +1,10 @@
 import { AddonData, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
-import { ISearchService, PapiService } from 'core-resources-shared';
+import { ISearchService } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export abstract class BaseGetterService 
 {
 	protected _requestedFields: string[] | undefined;
-	protected resourceTypeFields: string[] = [];
 
 	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService , 
 				private whereClause: string = "", private isPageKeySearch: boolean = false)
@@ -58,11 +57,7 @@ export abstract class BaseGetterService
     protected async getSchemeFields(schemeName: string): Promise<string[]>
     {
     	const scheme = resourceNameToSchemaMap[schemeName];
-    	// save fields of type "Resource" for later use
-    	for(const fieldName in scheme.Fields)
-    	{
-    		if(scheme.Fields[fieldName].Type == "Resource") this.resourceTypeFields.push(fieldName);
-    	}
+
     	const fields = Object.keys(scheme.Fields as any);
     	fields.push('Hidden');
     	fields.push('Key');
