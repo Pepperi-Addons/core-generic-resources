@@ -414,7 +414,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.6'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.8'))
 	{
 		// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
 		// Update the employees schema to reference the Roles schema
@@ -431,7 +431,9 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
 			res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
 
-			res['resultObject']['roleRolesBuild'] = await buildManagerService.build("role_roles");
+			// Building roles table will also initiate a role_roles build.
+			res['resultObject']['roleRolesBuild'] = await buildManagerService.build("roles");
+
 		}
 		catch (error) 
 		{

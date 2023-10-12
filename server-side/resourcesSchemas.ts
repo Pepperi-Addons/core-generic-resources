@@ -588,7 +588,7 @@ const profilesSchema: AddonDataScheme = {
 
 const rolesSchema: AddonDataScheme = {
 	Name: "roles",
-	Type: 'papi',
+	Type: 'data',
 	SyncData:
     {
     	Sync: true,
@@ -608,6 +608,11 @@ const rolesSchema: AddonDataScheme = {
 		{
     		"Type": "String"
     	},
+		InternalID:
+		{
+			Type: "Integer",
+			Unique: true
+		}
     }
 }
 
