@@ -1,6 +1,7 @@
 import { PapiClient } from "@pepperi-addons/papi-sdk";
+
 import { BaseGetterService } from "./baseGetter.service";
-import { PapiService } from 'core-resources-shared';
+import { AdalService } from "../adal.service";
 
 
 export interface PapiRole
@@ -24,7 +25,7 @@ export class RoleRolesGetterService extends BaseGetterService
 {
 	constructor(papiClient: PapiClient)
 	{
-		super(papiClient, new PapiService(papiClient));
+		super(papiClient, new AdalService(papiClient));
 	}
 	
 	getResourceName(): string
