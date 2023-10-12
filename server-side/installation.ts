@@ -457,6 +457,14 @@ export async function downgrade(client: Client, request: Request): Promise<any>
 		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
 	}
 
+	if(request.body.ToVersion && semverLessThanComparator(request.body.ToVersion, '1.1.0'))
+	{
+		const papiClient = Helper.getPapiClient(client);
+		await downgradeFrom1_1ToLowerVersion(papiClient)
+		res.success = false;
+		res.errorMessage = 'Downgrade to version lower than 0.7.0 is not supported. Kindly uninstall the addon, allow some time for PNS, and install the required version again.';
+	}
+
 	return res;
 }
 
@@ -645,3 +653,15 @@ async function pnsSubscriptions(client: Client, papiClient: PapiClient): Promise
 	await subscribeToPNS(new UsersPNSService(client));
 	await subscribeToPNS(new AccountUsersPNSService(client));
 }
+
+
+function downgradeFrom1_1ToLowerVersion(papiClient: PapiClient)
+{
+	// TODO Delete role_roles PNS subscription to roles changes
+	// At this time there's no such subscription.
+
+	// Purge roles and role_roles schemas
+	purgeSchemas(papiClient, ["role_roles", "roles"]);
+
+}
+
