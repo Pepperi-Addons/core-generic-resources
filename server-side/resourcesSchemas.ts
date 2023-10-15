@@ -589,17 +589,13 @@ const profilesSchema: AddonDataScheme = {
 const rolesSchema: AddonDataScheme = {
 	Name: "roles",
 	Type: 'data',
+	GenericResource: true,
 	SyncData:
     {
     	Sync: true,
     },
 	Fields:
     {
-    	Key:
-		{
-			Type: "String",
-			Unique: true
-		},
     	Name:
 		{
     		"Type": "String"
