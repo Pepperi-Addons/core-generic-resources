@@ -70,7 +70,31 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 
 	public async buildAdalTable(body: any): Promise<AsyncResultObject>
 	{
-    	return await this.etlService.buildTable(body);
+    	await this.baseGetterService.preBuildLogic();
+		
+		let buildTableRes;
+		let buildError: Error | undefined;
+
+		try
+		{
+			buildTableRes = await this.etlService.buildTable(body);
+		}
+		catch(error)
+		{
+			buildError = error as Error;
+		}
+		finally
+		{
+			await this.baseGetterService.postBuildLogic();
+		}
+
+		if(buildError)
+		{
+			throw buildError;
+		}
+
+
+		return buildTableRes;
 	}
 
 	/**

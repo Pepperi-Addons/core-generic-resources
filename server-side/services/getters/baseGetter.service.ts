@@ -74,4 +74,24 @@ export abstract class BaseGetterService
     	}
     	return papiObjects;
     }
+
+	/**
+	 * This method is called prior to the table building process.
+	 * It should be overridden by any class that has logic to execute prior to the building.
+	 * @returns { Promise<void> }
+	 */
+	public async preBuildLogic(): Promise<void>
+	{
+		return;
+	}
+
+	/**
+	 * This method is called after the table building process is done (whether successful or not).
+	 * It should be overridden by any class that has logic to execute after to the building.
+	 * @returns { Promise<void> }
+	 */
+	public async postBuildLogic(): Promise<void>
+	{
+		return;
+	}
 }
