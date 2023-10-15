@@ -31,7 +31,7 @@ export async function install(client: Client, request: Request): Promise<any>
 
 	const papiClient = Helper.getPapiClient(client);
 	const schemaService = new SchemaService(papiClient);
-	const buildManagerService = new BuildManagerService(client);
+	const buildManagerService = new BuildManagerService(client, false);
 
 	try 
 	{
@@ -389,7 +389,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		const buildManagerService = new BuildManagerService(client);
+		const buildManagerService = new BuildManagerService(client, false);
 		try 
 		{
 			res['resultObject'] = {};
@@ -420,7 +420,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		// Update the employees schema to reference the Roles schema
 		const papiClient = Helper.getPapiClient(client);
 		const schemaService = new SchemaService(papiClient);
-		const buildManagerService = new BuildManagerService(client);
+		const buildManagerService = new BuildManagerService(client, false);
 
 		try
 		{
