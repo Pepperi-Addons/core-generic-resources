@@ -18,6 +18,7 @@ interface TreeNode
 
 export interface RoleRole extends TreeNode
 {
+	Hidden: boolean,
 	Key: string
 }
 
@@ -150,7 +151,6 @@ export class RoleRolesGetterService extends BaseGetterService
 	 * node as well.
 	 * @param {PapiRole} node - The node to start the search from.
 	 * @param {PapiRole[]} ancestors - The array of ancestor nodes to pass down the search path.
- 	 * @param {PapiRole[]} result - The array to add visited nodes to.
 	 */
 	protected getAllAncestorsNodes(node: TreeNode, ancestors: TreeNode[]): TreeNode[]
 	{
@@ -178,7 +178,8 @@ export class RoleRolesGetterService extends BaseGetterService
 		{
 			return {
 				...treeNode,
-				Key: `${treeNode.Role}_${treeNode.ParentRole}`
+				Key: `${treeNode.Role}_${treeNode.ParentRole}`,
+				Hidden: false
 			};
 		});
 	}
