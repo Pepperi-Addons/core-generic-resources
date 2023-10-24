@@ -1,4 +1,4 @@
-import { PapiRole, RoleRole } from "../../services/getters/rolesGetter.service";
+import { PapiRole, RoleRole } from "../../services/getters/roleRolesGetter.service";
 import { TestBody } from "../../services/integrationTests/entities";
 
 
@@ -64,12 +64,14 @@ export const RoleRolesTestData: { [key in "twoRoots" |
     		{
     			"Role": "5702",
     			"ParentRole": "5701",
-    			"Key": "5702_5701"
+    			"Key": "5702_5701",
+				"Hidden": false
     		},
     		{
     			"Role": "5704",
     			"ParentRole": "5703",
-    			"Key": "5704_5703"
+    			"Key": "5704_5703",
+				"Hidden": false
     		}
     	]
     },
@@ -94,12 +96,14 @@ export const RoleRolesTestData: { [key in "twoRoots" |
     		{
     			"Role": "5702",
     			"ParentRole": "5701",
-    			"Key": "5702_5701"
+    			"Key": "5702_5701",
+				"Hidden": false
     		},
     		{
     			"Role": "5703",
     			"ParentRole": "5701",
-    			"Key": "5703_5701"
+    			"Key": "5703_5701",
+				"Hidden": false
     		}
     	]
     },
@@ -123,17 +127,20 @@ export const RoleRolesTestData: { [key in "twoRoots" |
 			{
 				"Role": "5702",
 				"ParentRole": "5701",
-				"Key": "5702_5701"
+				"Key": "5702_5701",
+				"Hidden": false
 			},
 			{
 				"Role": "5703",
 				"ParentRole": "5702",
-				"Key": "5703_5702"
+				"Key": "5703_5702",
+				"Hidden": false
 			},
 			{
 				"Role": "5703",
 				"ParentRole": "5701",
-				"Key": "5703_5701"
+				"Key": "5703_5701",
+				"Hidden": false
 			}
 		]
 	},
@@ -166,7 +173,8 @@ export const RoleRolesTestData: { [key in "twoRoots" |
 					const role: RoleRole = {
 						"Role": `${5701 + i + 1}`,
 						"ParentRole": `${5701 + j}`,
-						"Key": `${5701 + i + 1}_${5701 + j}`
+						"Key": `${5701 + i + 1}_${5701 + j}`,
+						"Hidden": false
 					}
 
 					res.push(role);

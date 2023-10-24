@@ -1,5 +1,5 @@
 import { FindOptions } from "@pepperi-addons/papi-sdk";
-import { RoleRole } from "../services/getters/rolesGetter.service";
+import { RoleRole } from "../services/getters/roleRolesGetter.service";
 import { TestBody } from "../services/integrationTests/entities";
 import { ABaseCoreResourcesTests } from "./aBaseCoreResourcesTests.test";
 import { RoleRolesTestData } from "./testsData/roleRoles";
@@ -12,7 +12,7 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 	tests(describe: (suiteTitle: string, func: () => void) => void,
 		it: (name: string, fn: Mocha.Func) => void,
 		expect: Chai.ExpectStatic
-		): void 
+	): void 
 	{
 		describe('Build ADAL tables tests', async () => 
 		{

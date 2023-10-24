@@ -1,11 +1,10 @@
 import { AddonData, PapiClient, SearchData } from '@pepperi-addons/papi-sdk';
-import { ISearchService, PapiService } from 'core-resources-shared';
+import { ISearchService } from 'core-resources-shared';
 import { resourceNameToSchemaMap } from '../../resourcesSchemas';
 
 export abstract class BaseGetterService 
 {
 	protected _requestedFields: string[] | undefined;
-	protected resourceTypeFields: string[] = [];
 
 	constructor(protected papiClient: PapiClient, protected iSearchService: ISearchService , 
 				private whereClause: string = "", private isPageKeySearch: boolean = false)
@@ -58,11 +57,7 @@ export abstract class BaseGetterService
     protected async getSchemeFields(schemeName: string): Promise<string[]>
     {
     	const scheme = resourceNameToSchemaMap[schemeName];
-    	// save fields of type "Resource" for later use
-    	for(const fieldName in scheme.Fields)
-    	{
-    		if(scheme.Fields[fieldName].Type == "Resource") this.resourceTypeFields.push(fieldName);
-    	}
+
     	const fields = Object.keys(scheme.Fields as any);
     	fields.push('Hidden');
     	fields.push('Key');
@@ -79,4 +74,24 @@ export abstract class BaseGetterService
     	}
     	return papiObjects;
     }
+
+	/**
+	 * This method is called prior to the table building process.
+	 * It should be overridden by any class that has logic to execute prior to the building.
+	 * @returns { Promise<void> }
+	 */
+	public async preBuildLogic(): Promise<void>
+	{
+		return;
+	}
+
+	/**
+	 * This method is called after the table building process is done (whether successful or not).
+	 * It should be overridden by any class that has logic to execute after to the building.
+	 * @returns { Promise<void> }
+	 */
+	public async postBuildLogic(): Promise<void>
+	{
+		return;
+	}
 }

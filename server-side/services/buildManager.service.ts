@@ -17,9 +17,10 @@ export class BuildManagerService
 	in order to build that ADAL table.
 	*/
 	protected resourceFunctionsMap: {[key: string]: string[]} = {
+		roles: ['build_roles'],
+		role_roles: ['clean_build_role_roles'],
 		users: ['build_users'],
 		account_users: ['build_account_users', 'build_account_buyers'],
-		role_roles: ['clean_build_role_roles']
 	};
 	protected papiClient: PapiClient;
 

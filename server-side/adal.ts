@@ -91,6 +91,21 @@ export async function update_account_users(client: Client, request: Request)
 	}
 }
 
+export async function roles_changed(client: Client, request: Request) 
+{
+	switch(request.method)
+	{
+	case 'POST':
+	{
+		return await clean_build_role_roles(client, request)
+	}
+	default:
+	{
+		throw new Error(`Unsupported method: ${request.method}`);
+	}
+	}
+}
+
 export async function build_users(client: Client, request: Request) : Promise<AsyncResultObject>
 {
 	return await buildSpecificTable(client, request, Builders.BuildUsersParams);
@@ -114,6 +129,11 @@ export async function build_account_buyers(client: Client, request: Request) : P
 export async function clean_build_role_roles(client: Client, request: Request): Promise<AsyncResultObject>
 {
 	return await cleanBuildSpecificTable(client, request, Builders.BuildRoleRolesParams);
+}
+
+export async function build_roles(client: Client, request: Request) : Promise<AsyncResultObject>
+{
+	return await buildSpecificTable(client, request, Builders.BuildRolesParams);
 }
 
 

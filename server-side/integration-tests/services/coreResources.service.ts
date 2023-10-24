@@ -2,7 +2,6 @@ import { PapiClient, SearchData, AddonData, SearchBody, FindOptions, Account } f
 import { v4 as uuid } from 'uuid';
 import { AddonUUID } from '../../../addon.config.json';
 import { TestBody } from '../../services/integrationTests/entities';
-import { BuildManagerService } from '../../services/buildManager.service';
 import { AsyncHelperService } from '../../services/asyncHelper.service';
 
 export class CoreResourcesTestsService 
