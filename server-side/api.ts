@@ -390,7 +390,6 @@ function getPapiService(client: Client, request: Request): IApiService
 	}
 	case 'users':
 	case 'account_users':
-	case 'roles':
 	case 'role_roles':
 	{
 		return new AdalService(papiClient);
