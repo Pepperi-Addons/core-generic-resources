@@ -3,6 +3,7 @@ import { AccountsPapiService, CoreServiceFactory, Helper, IApiService, PapiServi
 import { TsaService } from './tsa-service/tsa.service';
 import { AdalService } from './services/adal.service';
 import { AccountBuyersPapiService } from './services/accountBuyersPapi.service';
+import { RolesAdalService } from './services/rolesAdal.service';
 
 // #region get by key
 export async function get_items_by_key(client: Client, request: Request) 
@@ -393,6 +394,10 @@ function getPapiService(client: Client, request: Request): IApiService
 	case 'role_roles':
 	{
 		return new AdalService(papiClient);
+	}
+	case 'roles':
+	{
+		return new RolesAdalService(papiClient,client,request);
 	}
 	default:
 	{

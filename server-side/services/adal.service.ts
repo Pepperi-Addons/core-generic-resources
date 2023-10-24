@@ -7,7 +7,7 @@ import { resourceNameToSchemaMap } from '../resourcesSchemas';
 
 export class AdalService implements IApiService
 {
-	constructor(private papiClient: PapiClient)
+	constructor(protected papiClient: PapiClient)
 	{}
 
 	createResource(resourceName: string, body: any) : Promise<any>
