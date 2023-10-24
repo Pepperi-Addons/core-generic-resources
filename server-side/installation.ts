@@ -430,10 +430,10 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["role_roles"]);
 			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
 			res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
-			res['resultObject']['usersSchemeCleanRebuild'] = await papiClient.post("addons/data/schemes/users/clean_rebuild");
+			res['resultObject']['usersSchemeCleanRebuild'] = await papiClient.post("/addons/data/schemes/users/clean_rebuild");
 			res['resultObject']['accountUsersSchemeUpdate'] = await schemaService.createCoreSchemas(["account_users"]);
-			res['resultObject']['accountUsersSchemeCleanRebuild'] = await papiClient.post("addons/data/schemes/accountUsers/clean_rebuild");
-			
+			res['resultObject']['accountUsersSchemeCleanRebuild'] = await papiClient.post("/addons/data/schemes/account_users/clean_rebuild");
+
 			// Building roles table will also initiate a role_roles build.
 			res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
 
