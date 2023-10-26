@@ -24,7 +24,6 @@ import { resourceNameToSchemaMap } from './resourcesSchemas';
 import { AsyncResultObject } from './constants';
 import { AsyncHelperService } from './services/asyncHelper.service';
 
-
 export async function install(client: Client, request: Request): Promise<any> 
 {
 	const res = { success: true };
@@ -414,7 +413,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.24'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.25'))
 	{
 		// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
 		// Update the employees schema to reference the Roles schema
@@ -425,7 +424,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		try
 		{
 			res['resultObject'] = res['resultObject'] ?? {};
-
 			res['resultObject']['rolesSchemeUpdate'] = await schemaService.createCoreSchemas(["roles"]);
 			res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["role_roles"]);
 			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
@@ -436,7 +434,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 			// Building roles table will also initiate a role_roles build.
 			res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
-
 		}
 		catch (error) 
 		{
@@ -446,6 +443,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 			return res;
 		}
 	}
+	console.log(`upgrade result object: ${JSON.stringify(res['resultObject'])}`);
 
 	return res;
 }
