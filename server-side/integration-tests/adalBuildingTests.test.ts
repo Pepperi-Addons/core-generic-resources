@@ -73,6 +73,46 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 				expect(adalAccountUsersList[0]).to.have.property('User').that.is.a('string').and.is.not.empty;
 			});
 
+			it('Build roles adal table', async () => 
+			{
+				const papiRolesList = await this.coreResourcesTestsService.getPapiResourceObjects('roles');
+				const adalRoleRoles = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('role_roles');
+				const papiInternalIDs = papiRolesList.map(role => role.InternalID);
+				const papiUniqueInternalIDs = new Set(papiInternalIDs);
+
+				// reset roles table before build
+				await this.coreResourcesTestsService.resetTable('roles'); 
+				// building roles should also rebuild role_roles, so we'll reset it as well
+				await this.coreResourcesTestsService.resetTable('role_roles');
+
+				const buildTableResponse = await this.coreResourcesTestsService.buildTable('roles');
+
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+
+				const adalRolesList = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('roles');
+				const adalUniqueInternalIDs = new Set(adalRolesList.map(role => role.InternalID));
+				
+				// logging the difference for debugging purposes
+				console.log(this.coreResourcesTestsService.getDifference(adalUniqueInternalIDs, papiUniqueInternalIDs));
+
+				expect(buildTableResponse).to.have.property('success').that.is.true;
+				expect(adalRolesList).to.be.an('array').with.lengthOf(papiInternalIDs.length);
+				expect(adalRolesList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
+				expect(adalRolesList[0]).to.have.property('Name').that.is.a('string').and.is.not.empty;
+				expect(adalRolesList[0]).to.have.property('InternalID').that.is.a('number');
+				expect(adalRolesList[0]).to.have.property('Hidden').that.is.a('boolean');
+				expect(adalRolesList[0]).to.have.property('ParentInternalID');
+
+				// Ensure role_roles table was built successfully
+				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
+				const currentAdalRoleRoles = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('role_roles');
+				expect(currentAdalRoleRoles).to.be.an('array').with.lengthOf(adalRoleRoles.length);
+				expect(currentAdalRoleRoles[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
+				expect(currentAdalRoleRoles[0]).to.have.property('Role').that.is.a('string').and.is.not.empty;
+				expect(currentAdalRoleRoles[0]).to.have.property('ParentRole').that.is.a('string').and.is.not.empty;
+				expect(currentAdalRoleRoles[0]).to.have.property('Hidden').that.is.a('boolean');
+			});
+
 			describe('Build role_roles ADAL table', () => 
 			{
 
