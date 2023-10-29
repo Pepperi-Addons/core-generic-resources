@@ -97,20 +97,28 @@ export class AdalBuildingTests extends ABaseCoreResourcesTests
 
 				expect(buildTableResponse).to.have.property('success').that.is.true;
 				expect(adalRolesList).to.be.an('array').with.lengthOf(papiInternalIDs.length);
-				expect(adalRolesList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
-				expect(adalRolesList[0]).to.have.property('Name').that.is.a('string').and.is.not.empty;
-				expect(adalRolesList[0]).to.have.property('InternalID').that.is.a('number');
-				expect(adalRolesList[0]).to.have.property('Hidden').that.is.a('boolean');
-				expect(adalRolesList[0]).to.have.property('ParentInternalID');
+
+				if(adalRolesList.length > 0) 
+				{
+					expect(adalRolesList[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
+					expect(adalRolesList[0]).to.have.property('Name').that.is.a('string').and.is.not.empty;
+					expect(adalRolesList[0]).to.have.property('InternalID').that.is.a('number');
+					expect(adalRolesList[0]).to.have.property('Hidden').that.is.a('boolean');
+					expect(adalRolesList[0]).to.have.property('ParentInternalID');
+				}
 
 				// Ensure role_roles table was built successfully
 				await this.coreResourcesTestsService.asyncHelperService.waitForAsyncJob(this.ASYNC_JOB_AWAIT);
 				const currentAdalRoleRoles = await this.coreResourcesTestsService.searchAllAdalGenericResourceObjects('role_roles');
 				expect(currentAdalRoleRoles).to.be.an('array').with.lengthOf(adalRoleRoles.length);
-				expect(currentAdalRoleRoles[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
-				expect(currentAdalRoleRoles[0]).to.have.property('Role').that.is.a('string').and.is.not.empty;
-				expect(currentAdalRoleRoles[0]).to.have.property('ParentRole').that.is.a('string').and.is.not.empty;
-				expect(currentAdalRoleRoles[0]).to.have.property('Hidden').that.is.a('boolean');
+
+				if(currentAdalRoleRoles.length > 0)
+				{
+					expect(currentAdalRoleRoles[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
+					expect(currentAdalRoleRoles[0]).to.have.property('Role').that.is.a('string').and.is.not.empty;
+					expect(currentAdalRoleRoles[0]).to.have.property('ParentRole').that.is.a('string').and.is.not.empty;
+					expect(currentAdalRoleRoles[0]).to.have.property('Hidden').that.is.a('boolean');
+				}
 			});
 
 			describe('Build role_roles ADAL table', () => 
