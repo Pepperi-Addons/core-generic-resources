@@ -52,7 +52,7 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 
 	/**
 	 * Hides all items in the ADAL table, and build the table again.
-	 * @param body - used to pass the fromPage parameter. Must be the entire body of the request,
+	 * @param body - Must be the entire body of the request,
 	 * to support retries in an async call.
 	 * @returns {AsyncResultObject} - A promise that resolves to the result of the build
 	 */

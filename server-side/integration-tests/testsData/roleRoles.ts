@@ -2,14 +2,13 @@ import { PapiRole, RoleRole } from "../../services/getters/roleRolesGetter.servi
 import { TestBody } from "../../services/integrationTests/entities";
 
 
-function createTestData(roles: PapiRole[], fromPage?: number): TestBody 
+function createTestData(roles: PapiRole[]): TestBody 
 {
 	const testData: TestBody = {
 		TestInputObjects: {
 			roles: roles
 		},
-		IsTest: true,
-		...(fromPage && { fromPage: fromPage })
+		IsTest: true
 	};
 	return testData;
 }

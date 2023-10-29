@@ -55,7 +55,7 @@ export class RolesGetterService extends BaseGetterService
 	{
 		await this.setRolesSubscription();
 
-		const asyncCall = await this.papiClient.post(`/addons/api/async/${AddonUUID}/adal/clean_build_role_roles`, {fromPage: 1})
+		const asyncCall = await this.papiClient.post(`/addons/api/async/${AddonUUID}/adal/clean_build_role_roles`, {})
 		console.log(`Started building role_roles. For more details see: ${JSON.stringify(asyncCall)}`);
 
 	}
