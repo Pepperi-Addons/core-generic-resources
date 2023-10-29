@@ -77,7 +77,9 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 
 		try
 		{
+			console.log(`BODY SENT TO ETL SERVICE BUILD: ${JSON.stringify(body)}`);
 			buildTableRes = await this.etlService.buildTable(body);
+			console.log(`BODY AFTER BUILD IS DONE: ${JSON.stringify(body)}`);
 		}
 		catch(error)
 		{
