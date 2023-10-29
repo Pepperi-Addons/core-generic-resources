@@ -144,7 +144,29 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		const usersSchema = await papiClient.addons.data.schemes.name('users').get();
 		let externalUserResources = usersSchema.Internals?.ExternalUserResourcesRegistration ?? [];
 		externalUserResources = externalUserResources.map(obj => obj.Resource);
-		return externalUserResources;
+		const validExternalUserResources: string[] = [];
+		for(const resource of externalUserResources)
+		{
+			if(await this.schemeExists(papiClient, resource))
+			{
+				validExternalUserResources.push(resource);
+			}
+		}
+		return validExternalUserResources;
+	}
+
+	public static async schemeExists(papiClient: PapiClient, schemeName: string): Promise<boolean> 
+	{
+		// getting schemes not owned by this addon 
+		// requires sending the request without addonUUID header
+		delete papiClient["options"]["addonUUID"];
+
+		const schemesFound = await papiClient.addons.data.schemes.get({where: `Name=${schemeName}`});
+
+		// restoring addonUUID header
+		papiClient["options"]["addonUUID"] = config.AddonUUID;
+
+		return schemesFound.length > 0;
 	}
 
 	async deleteOldBuyersSubscriptions(papiClient: PapiClient): Promise<void>
