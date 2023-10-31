@@ -17,8 +17,7 @@ export class BuildManagerTestService extends BuildManagerService
 	protected override async singleBuild(funcName: string): Promise<any>
 	{
 		const singleBuildTestBody: TestBody = {
-			...this.testBody,
-			fromPage: 1
+			...this.testBody
 		};
 		return await this.papiClient.addons.api.uuid(config.AddonUUID).async().file('adal').func(funcName).post({retry: 20}, singleBuildTestBody);
 	}
