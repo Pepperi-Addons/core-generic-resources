@@ -5,6 +5,9 @@ import { AsyncResultObject } from '../../constants';
 import { BuildOperations as EtlOperations} from '@pepperi-addons/etl-sdk';
 import { BuildService as EtlService } from '@pepperi-addons/etl-sdk/dist/builders/build';
 import { AdalService } from '../adal.service';
+import { Client, Request } from '@pepperi-addons/debug-server/dist';
+import { Helper } from 'core-resources-shared';
+import SystemHealthService from '../systemHealth.service';
 
 
 export class BaseBuildService implements EtlOperations<AddonData, AddonData, any>
@@ -13,14 +16,18 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 	protected baseGetterService: BaseGetterService;
 	protected etlService: EtlService<AddonData, AddonData, any>;
 	protected adalService: AdalService;
+	private papiClient: PapiClient;
+	protected systemHealthService: SystemHealthService;
 
 
-	constructor(papiClient: PapiClient, protected buildServiceParams: IBuildServiceParams, externalUserResource?: string) 
+	constructor(private client: Client, protected buildServiceParams: IBuildServiceParams, externalUserResource?: string) 
 	{
 		// If externalUserResource is not provided, undefined is passed and the constructor ignores it.
-		this.baseGetterService = new this.buildServiceParams.baseGetterService(papiClient, externalUserResource);
-		this.adalService = new AdalService(papiClient);
+		this.papiClient = Helper.getPapiClient(client);
+		this.baseGetterService = new this.buildServiceParams.baseGetterService(this.papiClient, externalUserResource);
+		this.adalService = new AdalService(this.papiClient);
 		this.etlService = new buildServiceParams.etlService(buildServiceParams.adalTableName, this);
+		this.systemHealthService = new SystemHealthService(client);
 	}
 
 	getObjectsByPage(page: number, pageSize: number, additionalFields?: string | undefined): Promise<AddonData[]>
@@ -56,20 +63,36 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 	 * to support retries in an async call.
 	 * @returns {AsyncResultObject} - A promise that resolves to the result of the build
 	 */
-	public async cleanBuildAdalTable(body: any): Promise<AsyncResultObject>
+	public async cleanBuildAdalTable(request: Request): Promise<AsyncResultObject>
 	{
 		let res: AsyncResultObject = await this.hideAdalItems();
 
 		if (res.success)
 		{
-			res = await this.buildAdalTable(body);
+			res = await this.buildAdalTable(request);
 		}
 
 		return res;	
 	}
 
-	public async buildAdalTable(body: any): Promise<AsyncResultObject>
+	public async buildAdalTable(request: Request): Promise<AsyncResultObject>
 	{
+		
+		const isAsync = this.client.isAsync?.();
+		const requestedRetries: number = request.query?.retry;
+		const numberOfTry: number = this.client.NumberOfTry ?? 0;
+
+		if(isAsync)
+		{
+			const nucleusIsLoaded = await this.papiClient.get('/distributor/InNucleus');
+			if(!nucleusIsLoaded && numberOfTry < requestedRetries)
+			{
+				// Wait for 5 minutes, then retry
+				const delay = 5 * 60 * 1000; // 5 minutes in milliseconds
+				this.client.Retry(delay);
+			}
+
+		}
     	await this.baseGetterService.preBuildLogic();
 		
 		let buildTableRes;
@@ -77,13 +100,28 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 
 		try
 		{
-			console.log(`BODY SENT TO ETL SERVICE BUILD: ${JSON.stringify(body)}`);
-			buildTableRes = await this.etlService.buildTable(body);
-			console.log(`BODY AFTER BUILD IS DONE: ${JSON.stringify(body)}`);
+			console.log(`BODY SENT TO ETL SERVICE BUILD: ${JSON.stringify(request.body)}`);
+			buildTableRes = await this.etlService.buildTable(request.body);
+			console.log(`BODY AFTER BUILD IS DONE: ${JSON.stringify(request.body)}`);
+
+			// Sending an alert in case all retries failed, relevant only for async calls
+			if(isAsync && requestedRetries == numberOfTry && !buildTableRes.success
+				 && buildTableRes.errorMessage.localCompare('Time is up') == 0)
+			{
+				await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel(
+					`Error on Building ${this.buildServiceParams.adalTableName} table`,
+					 JSON.stringify(buildTableRes.errorMessage)
+				);
+			}
 		}
 		catch(error)
 		{
 			buildError = error as Error;
+			await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel(
+				`Error on Building ${this.buildServiceParams.adalTableName} table`,
+				 JSON.stringify(buildError.message)
+			);
+
 		}
 		finally
 		{

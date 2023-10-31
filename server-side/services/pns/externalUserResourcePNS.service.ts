@@ -90,7 +90,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		catch (error)
 		{
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
-			await this.sendAlertToCoreResourcesAlertsChannel("Error on updating account_buyers on new buyers PNS", JSON.stringify(errorMessage));
+			await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel("Error on updating account_buyers on new buyers PNS", JSON.stringify(errorMessage));
 		}
 	}
 
@@ -135,7 +135,7 @@ export class ExternalUserResourcePNSService extends BasePNSService
 		catch (error)
 		{
 			const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred.';
-			await this.sendAlertToCoreResourcesAlertsChannel("Error on active state changed PNS", JSON.stringify(errorMessage));
+			await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel("Error on active state changed PNS", JSON.stringify(errorMessage));
 		}
 	}
 
