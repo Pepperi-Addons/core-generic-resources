@@ -413,7 +413,7 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.25'))
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.31'))
 	{
 		// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
 		// Update the employees schema to reference the Roles schema
