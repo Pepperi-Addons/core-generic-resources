@@ -602,7 +602,7 @@ const rolesSchema: AddonDataScheme = {
     	},
     	ParentInternalID:
 		{
-    		"Type": "String"
+    		"Type": "Integer"
     	},
     	InternalID:
 		{
