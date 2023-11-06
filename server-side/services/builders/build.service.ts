@@ -117,8 +117,8 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 				}
 				else
 				{
-					// Retry without waiting
-					const delay = 0;
+					// Retry after waiting 10 seconds, to continue the build process
+					const delay = 10 * 1000;
 					this.client.Retry(delay);
 				}
 			}
