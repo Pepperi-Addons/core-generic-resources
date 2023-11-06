@@ -104,15 +104,25 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 			buildTableRes = await this.etlService.buildTable(request.body);
 			console.log(`BODY AFTER BUILD IS DONE: ${JSON.stringify(request.body)}`);
 
-			// Sending an alert in case all retries failed, relevant only for async calls
-			if(isAsync && requestedRetries == numberOfTry && !buildTableRes.success
-				 && buildTableRes.errorMessage.localCompare('Time is up') == 0)
+			// In case timeout reached
+			if(isAsync && !buildTableRes.success && buildTableRes.timeoutReached)
 			{
-				await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel(
-					`Error on Building ${this.buildServiceParams.adalTableName} table`,
-					 JSON.stringify(buildTableRes.errorMessage)
-				);
+				// Sending an alert in case all retries failed, relevant only for async calls
+				if(numberOfTry == requestedRetries)
+				{
+					await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel(
+						`Error on Building ${this.buildServiceParams.adalTableName} table`,
+						 JSON.stringify(buildTableRes.errorMessage)
+					);
+				}
+				else
+				{
+					// Retry without waiting
+					const delay = 0;
+					this.client.Retry(delay);
+				}
 			}
+				
 		}
 		catch(error)
 		{
