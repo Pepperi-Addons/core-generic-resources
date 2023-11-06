@@ -107,6 +107,8 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 			// In case timeout reached
 			if(isAsync && !buildTableRes.success && buildTableRes.timeoutReached)
 			{
+				console.log(`TIMEOUT REACHED ON BUILDING ${this.buildServiceParams.adalTableName} TABLE, RETRY ${numberOfTry} OUT OF ${requestedRetries}`);
+
 				// Sending an alert in case all retries failed, relevant only for async calls
 				if(numberOfTry == requestedRetries)
 				{
