@@ -78,7 +78,8 @@ export class BuildManagerService
 	protected async singleBuild(funcName: string): Promise<void>
 	{
 		console.log(`Trying to build table using function '${funcName}' in file 'adal'...`);
-		const asyncCall = await this.papiClient.post(`/addons/api/async/${config.AddonUUID}/adal/${funcName}`, {});
+		const retryParam = funcName.includes('?') ? '&retry=20' : '?retry=20'; // funcName might contain a query param
+		const asyncCall = await this.papiClient.post(`/addons/api/async/${config.AddonUUID}/adal/${funcName}${retryParam}`, {});
 		if(!asyncCall)
 		{
 			const errorMessage = `Error executing function '${funcName}' in file 'adal', got a null from async call.`;

@@ -177,7 +177,7 @@ async function buildSpecificTable(client: Client, request: Request, buildService
 	 case 'POST':
 	 {
 		 const service = getBuildService(client, buildServiceParams, request);
-		 return await service.buildAdalTable(request.body);
+		 return await service.buildAdalTable(request);
 	 }
 	 default:
 	 {
@@ -201,7 +201,7 @@ async function cleanBuildSpecificTable(client: Client, request: Request, buildSe
 	  case 'POST':
 	  {
 		  const service = getBuildService(client, buildServiceParams, request.body);
-		  return await service.cleanBuildAdalTable(request.body);
+		  return await service.cleanBuildAdalTable(request);
 	  }
 	  default:
 	  {
@@ -219,15 +219,14 @@ async function cleanBuildSpecificTable(client: Client, request: Request, buildSe
 function getBuildService(client: Client, iBuildServiceParams: IBuildServiceParams, request: any): Builders.BaseBuildService
 {
 	let buildService: Builders.BaseBuildService;
-	const papiClient = Helper.getPapiClient(client);
 
 	if(request.body?.IsTest)
 	{
-		buildService = new BuildTestService(papiClient, iBuildServiceParams, request.body);
+		buildService = new BuildTestService(client, iBuildServiceParams, request.body);
 	}
 	else
 	{
-		buildService = new Builders.BaseBuildService(papiClient, iBuildServiceParams, request.query?.resource);
+		buildService = new Builders.BaseBuildService(client, iBuildServiceParams, request.query?.resource);
 	}
 
 	return buildService;

@@ -90,7 +90,11 @@ const accountUsersSchema: AddonDataScheme = {
 				ExternalID: {
     				Type: "String",
     				Indexed: true
-    			}
+    			},
+				InternalID: {
+					Indexed: true,
+					Type: "Integer"
+				}
 			},
 			ApplySystemFilter: true
 		},
@@ -108,7 +112,11 @@ const accountUsersSchema: AddonDataScheme = {
 				ExternalID: {
     				Type: "String",
     				Indexed: true
-    			}
+    			},
+				InternalID: {
+					Indexed: true,
+					Type: "Integer"
+				}
 			},
 			ApplySystemFilter: true
 		}
@@ -427,6 +435,11 @@ const usersSchema: AddonDataScheme = {
     	},
     	FirstName: {
     		Type: "String"
+    	},
+    	InternalID: {
+    		Type: "Integer",
+    		Unique: true,
+    		Indexed: true
     	},
     	ExternalID: {
     		Type: "String",
