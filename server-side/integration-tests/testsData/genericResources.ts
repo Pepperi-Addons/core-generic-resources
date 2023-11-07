@@ -16,14 +16,14 @@ export const genericResourcesTestsData: GenericResourceTestInput[] = [
 		UniqueFieldID: "Key",
 		NonUniqueFieldID: "Parent",
 	},
-	// {
-	// 	ResourceName: "role_roles",
-	// 	UniqueFieldID: "InternalID",
-	// 	NonUniqueFieldID: "ParentInternalID",
-	// },
-	// {
-	// 	ResourceName: "roles",
-	// 	UniqueFieldID: "InternalID",
-	// 	NonUniqueFieldID: "ParentInternalID",
-	// }
+	{
+		ResourceName: "role_roles",
+		UniqueFieldID: "Key",
+		NonUniqueFieldID: "Role",
+	},
+	{
+		ResourceName: "roles",
+		UniqueFieldID: "InternalID",
+		NonUniqueFieldID: "ParentInternalID",
+	}
 ];

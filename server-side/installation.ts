@@ -434,9 +434,6 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 
 			// Building roles table will also initiate a role_roles build.
 			res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
-
-			// Building users table because InternalID field added to the schema
-			res['resultObject']['usersBuild'] = await buildManagerService.build("users");
 		}
 		catch (error) 
 		{
