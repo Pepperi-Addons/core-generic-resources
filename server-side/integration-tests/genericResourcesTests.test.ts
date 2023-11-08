@@ -1,4 +1,4 @@
-import { AddonData } from "@pepperi-addons/papi-sdk";
+import { AddonData, FindOptions } from "@pepperi-addons/papi-sdk";
 
 import { ABaseCoreResourcesTests } from "./aBaseCoreResourcesTests.test";
 import { GenericResourceTestInput } from "./entities";
@@ -22,7 +22,9 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 		{
 			for (const testData of GenericResourcesTestsData)
 			{
-				await this.genericResourceTests(it, expect, testData);
+				describe(`Resource Name: ${testData.ResourceName}`, async () => {
+					await this.genericResourceTests(it, expect, testData);
+				})
 			}
 		})
 	}
