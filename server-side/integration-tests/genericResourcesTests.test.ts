@@ -60,7 +60,7 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 				{
 					expect(requestedObject).to.have.property(field).that.equals(Objects[0][field]);
 				}
-				await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, 'randomValue')).to.be.rejectedWith(/Object ID does not exist|not found/i);
+				await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, '42')).to.be.rejectedWith(/Object ID does not exist|not found/i);
 				await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.NonUniqueFieldID, 'randomValue')).to.be.rejectedWith(/The field_id query parameter is not valid|field_id is not unique/i);
 			}
 		});
