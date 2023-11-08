@@ -108,6 +108,26 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 			requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 			expect(requestedObjects).to.have.property('Objects').that.is.an('array').with.lengthOf(filteredObjects.length);
 		});
+
+		it('Default schema fields test', async () => 
+		{
+			const schemaDefaultFields = ["Key", "Hidden", "CreationDateTime", "ModificationDateTime"];
+
+			const findOptions: FindOptions = {
+				fields: schemaDefaultFields
+			};
+
+			const requestedObjects = await this.coreResourcesTestsService.getGenericResourceObjects(testData.ResourceName, findOptions);
+			expect(requestedObjects).to.be.an('array').and.is.not.empty;
+
+			for (const object of requestedObjects) 
+			{
+				for (const defaultField of schemaDefaultFields) 
+				{
+					expect(object).to.have.property(defaultField);
+				}
+			}
+		});
 	}
 
 	protected async getCachedSchemaInfo(testData: GenericResourceTestInput): Promise<{ SchemaFields: string[], Objects: AddonData[] }>
