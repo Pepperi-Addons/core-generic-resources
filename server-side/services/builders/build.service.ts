@@ -114,7 +114,7 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 				{
 					await this.systemHealthService.sendAlertToCoreResourcesAlertsChannel(
 						`Error on Building ${this.buildServiceParams.adalTableName} table`,
-						 JSON.stringify(buildTableRes.errorMessage)
+						 `All ${requestedRetries} retries fell on timeout`
 					);
 				}
 				else

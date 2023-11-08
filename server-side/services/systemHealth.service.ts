@@ -45,7 +45,7 @@ class SystemHealthService
 		const distributorUUID = jwt["pepperi.distributoruuid"];
 		const distributor: any = await this.papiClient.get("/distributor");
 
-		const name = `<b>${enviroment.toUpperCase()}</b> - Core Resources PNS Error `;
+		const name = `<b>${enviroment.toUpperCase()}</b> - Core Resources Error `;
 		const message = `<b>Distributor:</b> ${distributor["InternalID"]} - ${distributor["Name"]}<br><b>DistUUID:</b> ${distributorUUID}<br><b>ActionUUID:</b> ${this.papiClient["options"]["actionUUID"]}<br><b>IsAsync operation: </b>${isAsync}
             <br><b style="color:red">ERROR!</b>
 			<br>${errorMessage}<br>
