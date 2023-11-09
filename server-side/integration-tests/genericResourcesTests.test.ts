@@ -1,4 +1,4 @@
-import { AddonData } from "@pepperi-addons/papi-sdk";
+import { AddonData, FindOptions } from "@pepperi-addons/papi-sdk";
 
 import { ABaseCoreResourcesTests } from "./aBaseCoreResourcesTests.test";
 import { GenericResourceTestInput } from "./entities";
@@ -22,7 +22,9 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 		{
 			for (const testData of GenericResourcesTestsData)
 			{
-				await this.genericResourceTests(it, expect, testData);
+				describe(`Resource Name: ${testData.ResourceName}`, async () => {
+					await this.genericResourceTests(it, expect, testData);
+				})
 			}
 		})
 	}
@@ -111,6 +113,26 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 				searchBody['UniqueFieldID'] = testData.UniqueFieldID;
 				requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 				expect(requestedObjects).to.have.property('Objects').that.is.an('array').with.lengthOf(filteredObjects.length);
+			}
+		});
+
+		it('Default schema fields test', async () => 
+		{
+			const schemaDefaultFields = ["Key", "Hidden", "CreationDateTime", "ModificationDateTime"];
+
+			const findOptions: FindOptions = {
+				fields: schemaDefaultFields
+			};
+
+			const requestedObjects = await this.coreResourcesTestsService.getGenericResourceObjects(testData.ResourceName, findOptions);
+			expect(requestedObjects).to.be.an('array').and.is.not.empty;
+
+			for (const object of requestedObjects) 
+			{
+				for (const defaultField of schemaDefaultFields) 
+				{
+					expect(object).to.have.property(defaultField);
+				}
 			}
 		});
 	}
