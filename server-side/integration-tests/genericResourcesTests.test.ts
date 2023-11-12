@@ -22,7 +22,8 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 		{
 			for (const testData of GenericResourcesTestsData)
 			{
-				describe(`Resource Name: ${testData.ResourceName}`, async () => {
+				describe(`Resource Name: ${testData.ResourceName}`, async () => 
+				{
 					await this.genericResourceTests(it, expect, testData);
 				})
 			}
@@ -34,86 +35,82 @@ export class GenericResourcesTests extends ABaseCoreResourcesTests
 		it('Get by key test', async () => 
 		{
 			const {SchemaFields, Objects} = await this.getCachedSchemaInfo(testData);
-			if(Objects.length > 0)
+			expect(Objects).to.be.an('array').and.is.not.empty;
+
+			expect(Objects[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
+			const requestedObject = await this.coreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, Objects[0].Key!);
+			for (const field of SchemaFields)
 			{
-				expect(Objects[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
-				const requestedObject = await this.coreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, Objects[0].Key!);
-				for (const field of SchemaFields)
-				{
-					expect(requestedObject).to.have.property(field).that.equals(Objects[0][field]);
-				}
-				await expect(this.coreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, 'badKey')).to.be.rejectedWith(/Object ID does not exist|is not vaild UUID/i);
-				const validKey = this.coreResourcesTestsService.generateValidKey();
-				await expect(this.coreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, validKey)).to.be.rejectedWith(/Object ID does not exist|not found/i);
+				expect(requestedObject).to.have.property(field).that.equals(Objects[0][field]);
 			}
+			await expect(this.coreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, 'badKey')).to.be.rejectedWith(/Object ID does not exist|is not vaild UUID/i);
+			const validKey = this.coreResourcesTestsService.generateValidKey();
+			await expect(this.coreResourcesTestsService.getGenericResourceByKey(testData.ResourceName, validKey)).to.be.rejectedWith(/Object ID does not exist|not found/i);
+			
 
 		});
 
 		it('Get by unique field test', async () => 
 		{
 			const {SchemaFields, Objects} = await this.getCachedSchemaInfo(testData);
-			if(Objects.length > 0)
+			expect(Objects).to.be.an('array').and.is.not.empty;
+
+			const objectsWithUniqueValue = Objects.filter(obj => obj[testData.UniqueFieldID]);
+			if(objectsWithUniqueValue.length > 0)
 			{
-				const objectsWithUniqueValue = Objects.filter(obj => obj[testData.UniqueFieldID]);
-				if(objectsWithUniqueValue.length > 0)
+				expect(objectsWithUniqueValue[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
+				expect(objectsWithUniqueValue[0]).to.have.property(testData.UniqueFieldID);
+				const requestedObject = await this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, objectsWithUniqueValue[0][testData.UniqueFieldID]);
+				for (const field of SchemaFields)
 				{
-					expect(objectsWithUniqueValue[0]).to.have.property('Key').that.is.a('string').and.is.not.empty;
-					expect(objectsWithUniqueValue[0]).to.have.property(testData.UniqueFieldID);
-					const requestedObject = await this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, objectsWithUniqueValue[0][testData.UniqueFieldID]);
-					for (const field of SchemaFields)
-					{
-						expect(requestedObject).to.have.property(field).that.equals(Objects[0][field]);
-					}
-					await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, '42')).to.be.rejectedWith(/Object ID does not exist|not found/i);
-					await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.NonUniqueFieldID, 'randomValue')).to.be.rejectedWith(/The field_id query parameter is not valid|field_id is not unique/i);
+					expect(requestedObject).to.have.property(field).that.equals(Objects[0][field]);
 				}
+				await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.UniqueFieldID, '42')).to.be.rejectedWith(/Object ID does not exist|not found/i);
+				await expect(this.coreResourcesTestsService.getGenericResourceByUniqueField(testData.ResourceName, testData.NonUniqueFieldID, 'randomValue')).to.be.rejectedWith(/The field_id query parameter is not valid|field_id is not unique/i);
 			}
 		});
 
 		it('Search test', async () => 
 		{
-
 			const {SchemaFields, Objects} = await this.getCachedSchemaInfo(testData);
+			expect(Objects).to.be.an('array').and.is.not.empty;
 
-			if(Objects.length > 0)
+			const searchBody = {};
+			let requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
+			expect(requestedObjects).to.have.property('Objects').that.is.an('array').and.is.not.empty;
+			for (const obj of requestedObjects['Objects']) 
 			{
-				const searchBody = {};
-				let requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
+				for (const field of SchemaFields) 
+				{
+					expect(obj).to.have.property(field);
+				}
+			}
+
+			// Where
+			const nonNullNonUniqueField = Objects.find(obj => obj[testData.NonUniqueFieldID] !== null && obj[testData.NonUniqueFieldID] !== undefined);
+			if(nonNullNonUniqueField)
+			{
+				searchBody['Where'] = `${testData.NonUniqueFieldID}='${nonNullNonUniqueField[testData.NonUniqueFieldID]}'`;
+				requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
 				expect(requestedObjects).to.have.property('Objects').that.is.an('array').and.is.not.empty;
 				for (const obj of requestedObjects['Objects']) 
 				{
-					for (const field of SchemaFields) 
-					{
-						expect(obj).to.have.property(field);
-					}
+					expect(obj).to.have.property(testData.NonUniqueFieldID);
+					expect(obj[testData.NonUniqueFieldID]).to.equal(nonNullNonUniqueField[testData.NonUniqueFieldID]);
 				}
-
-				// Where
-				const nonNullNonUniqueField = Objects.find(obj => obj[testData.NonUniqueFieldID] !== null && obj[testData.NonUniqueFieldID] !== undefined);
-				if(nonNullNonUniqueField)
-				{
-					searchBody['Where'] = `${testData.NonUniqueFieldID}='${nonNullNonUniqueField[testData.NonUniqueFieldID]}'`;
-					requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
-					expect(requestedObjects).to.have.property('Objects').that.is.an('array').and.is.not.empty;
-					for (const obj of requestedObjects['Objects']) 
-					{
-						expect(obj).to.have.property(testData.NonUniqueFieldID);
-						expect(obj[testData.NonUniqueFieldID]).to.equal(nonNullNonUniqueField[testData.NonUniqueFieldID]);
-					}
-				}
-
-				// Unique field
-				delete searchBody['Where'];
-				const numberOfWantedElements = 2;
-			
-				// Filter at most 2 elements from the Objects array
-				const filteredObjects = Objects.filter(obj => obj[testData.UniqueFieldID] !== null && obj[testData.UniqueFieldID] !== undefined).slice(0, numberOfWantedElements);
-
-				searchBody['UniqueFieldList'] = filteredObjects.map(obj => obj[testData.UniqueFieldID]);
-				searchBody['UniqueFieldID'] = testData.UniqueFieldID;
-				requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
-				expect(requestedObjects).to.have.property('Objects').that.is.an('array').with.lengthOf(filteredObjects.length);
 			}
+
+			// Unique field
+			delete searchBody['Where'];
+			const numberOfWantedElements = 2;
+			
+			// Filter at most 2 elements from the Objects array
+			const filteredObjects = Objects.filter(obj => obj[testData.UniqueFieldID] !== null && obj[testData.UniqueFieldID] !== undefined).slice(0, numberOfWantedElements);
+
+			searchBody['UniqueFieldList'] = filteredObjects.map(obj => obj[testData.UniqueFieldID]);
+			searchBody['UniqueFieldID'] = testData.UniqueFieldID;
+			requestedObjects = await this.coreResourcesTestsService.searchGenericResource(testData.ResourceName, searchBody);
+			expect(requestedObjects).to.have.property('Objects').that.is.an('array').with.lengthOf(filteredObjects.length);
 		});
 
 		it('Default schema fields test', async () => 
