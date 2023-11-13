@@ -20,9 +20,9 @@ export class AsyncHelperService
 	/** Poll an ActionUUID until it resolves to success our failure. The returned promise resolves to a boolean - true in case the execution was successful, false otherwise.
 	* @param ExecutionUUID the executionUUID which should be polled.
 	* @param interval the time interval in ms which will be waited between polling retries.
-	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 540, allowing for 9 minutes of polling, allowing graceful exit for install. 
+	* @param maxAttempts the maximum number of polling retries before giving up polling. Default value is 510, allowing for 8.5 minutes of polling, allowing graceful exit for install. 
 	*/
-	public async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 540): Promise<boolean>
+	public async pollExecution(papiClient: PapiClient, ExecutionUUID: string, interval = 1000, maxAttempts = 510): Promise<boolean>
 	{
 		let attempts = 0;
 
