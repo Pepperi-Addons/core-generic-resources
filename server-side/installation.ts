@@ -413,36 +413,67 @@ export async function upgrade(client: Client, request: Request): Promise<any>
 		}
 	}
 
-	// if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.31'))
-	// {
-	// 	// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
-	// 	// Update the employees schema to reference the Roles schema
-	// 	const papiClient = Helper.getPapiClient(client);
-	// 	const schemaService = new SchemaService(papiClient);
-	// 	const buildManagerService = new BuildManagerService(client, false);
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.58'))
+	{
+		// upgrade to 1.1.58 first, so the installed addon will have the
+		// necessary endpoints for the postUpgradeOperations to work in 
+		// more advanced version, like >= 1.1.59.
+		const papiClient = Helper.getPapiClient(client);
+		try
+		{
+			const upgradeAddon = await papiClient.addons.installedAddons.addonUUID(AddonUUID).upgrade('1.1.58');
+			const asyncHelperService = new AsyncHelperService(papiClient);
+			const isAsyncRequestResolved = await asyncHelperService.pollExecution(papiClient, upgradeAddon.ExecutionUUID!);
+			if(!isAsyncRequestResolved)
+			{
+				// We fail the upgrade process if the upgrade to 1.1.58 failed,
+				// Since 1.1.58 and above require the endpoints that are installed
+				const errorMessage = `Failed to internally upgrade to 1.1.58. For more details see audit log: ${upgradeAddon.ExecutionUUID!}`;
+				console.error(errorMessage);
+				res.success = false;
+				res['errorMessage'] = errorMessage;
+			}
+		}
+		catch (error)
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
 
-	// 	try
-	// 	{
-	// 		res['resultObject'] = res['resultObject'] ?? {};
-	// 		res['resultObject']['rolesSchemeUpdate'] = await schemaService.createCoreSchemas(["roles"]);
-	// 		res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["role_roles"]);
-	// 		res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
-	// 		res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
-	// 		res['resultObject']['usersSchemeCleanRebuild'] = await papiClient.post("/addons/data/schemes/users/clean_rebuild");
-	// 		res['resultObject']['accountUsersSchemeUpdate'] = await schemaService.createCoreSchemas(["account_users"]);
-	// 		res['resultObject']['accountUsersSchemeCleanRebuild'] = await papiClient.post("/addons/data/schemes/account_users/clean_rebuild");
+			return res;
+		}
+	}
 
-	// 		// Building roles table will also initiate a role_roles build.
-	// 		res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
-	// 	}
-	// 	catch (error) 
-	// 	{
-	// 		res.success = false;
-	// 		res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+	if(request.body.FromVersion && semverLessThanComparator(request.body.FromVersion, '1.1.59'))
+	{
+		// Create new roles and role_roles schemas and run build process for 'role_roles' schemas.
+		// Update the employees schema to reference the Roles schema
+		const papiClient = Helper.getPapiClient(client);
+		const schemaService = new SchemaService(papiClient);
+		const buildManagerService = new BuildManagerService(client, false);
 
-	// 		return res;
-	// 	}
-	// }
+		try
+		{
+			res['resultObject'] = res['resultObject'] ?? {};
+			res['resultObject']['rolesSchemeUpdate'] = await schemaService.createCoreSchemas(["roles"]);
+			res['resultObject']['roleRolesSchemeUpdate'] = await schemaService.createCoreSchemas(["role_roles"]);
+			res['resultObject']['employeesSchemeUpdate'] = await schemaService.createCoreSchemas(["employees"]);
+			res['resultObject']['usersSchemeUpdate'] = await schemaService.createCoreSchemas(["users"]);
+			res['resultObject']['usersSchemeCleanRebuild'] = await papiClient.post("/addons/api/async/00000000-0000-0000-0000-00000000ada1/indexed_adal_api/clean_rebuild?table_name=users&retry=3");
+			res['resultObject']['accountUsersSchemeUpdate'] = await schemaService.createCoreSchemas(["account_users"]);
+			res['resultObject']['accountUsersSchemeCleanRebuild'] = await papiClient.post("/addons/api/async/00000000-0000-0000-0000-00000000ada1/indexed_adal_api/clean_rebuild?table_name=account_users&retry=3");
+
+			// Building roles table will also initiate a role_roles build.
+			res['resultObject']['rolesBuild'] = await buildManagerService.build("roles");
+		}
+		catch (error) 
+		{
+			res.success = false;
+			res['errorMessage'] = error instanceof Error ? error.message : 'Unknown error occurred.';
+
+			return res;
+		}
+	}
+
 	console.log(`upgrade result object: ${JSON.stringify(res['resultObject'])}`);
 
 	return res;
