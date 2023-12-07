@@ -17,7 +17,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@pepperi-addons/scripts": "^2.0.13"
+		"@pepperi-addons/scripts": "^2.0.16"
 	},
 	"devDependencies": {
 		"@pepperi-addons/eslint-plugin-pepperi-lint": "*",
