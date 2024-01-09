@@ -8,6 +8,7 @@ import { AdalService } from '../adal.service';
 import { Client, Request } from '@pepperi-addons/debug-server/dist';
 import { Helper } from 'core-resources-shared';
 import SystemHealthService from '../systemHealth.service';
+import { AsyncHelperService } from '../asyncHelper.service';
 
 
 export class BaseBuildService implements EtlOperations<AddonData, AddonData, any>
@@ -88,7 +89,9 @@ export class BaseBuildService implements EtlOperations<AddonData, AddonData, any
 			if(!nucleusIsLoaded && numberOfTry < requestedRetries)
 			{
 				// Wait for 5 minutes, then retry
-				const delay = 5 * 60 * 1000; // 5 minutes in milliseconds
+				const asyncHelperService = new AsyncHelperService(this.papiClient);
+				await asyncHelperService.waitForAsyncJob(5 * 60);
+				const delay = 1 * 1000; // 1 second in milliseconds
 				this.client.Retry(delay);
 			}
 
